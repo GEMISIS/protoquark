@@ -2,3 +2,4 @@ components
 node_modules
 build
 client/bin
+.DS_Store
