@@ -1,0 +1,31 @@
+{
+  "name": "quack",
+  "version": "1.0.0",
+  "description": "A browser FPS game.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gemisis/quack.git"
+  },
+  "keywords": [
+    "yo",
+    "momma"
+  ],
+  "author": "Thomas Mathews, Gerald McAlister, Jimmy Phan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gemisis/quack/issues"
+  },
+  "homepage": "https://github.com/gemisis/quack",
+  "devDependencies": {
+    "duo": "^0.9.6",
+    "eye-spy": "^2.0.0"
+  },
+  "dependencies": {
+    "express": "^4.12.2",
+    "jade": "^1.9.2"
+  }
+}
