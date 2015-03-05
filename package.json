@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "express": "^4.12.2",
-    "jade": "^1.9.2"
+    "jade": "^1.9.2",
+    "random-word": "^1.0.1"
   }
 }
