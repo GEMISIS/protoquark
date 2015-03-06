@@ -19,12 +19,12 @@ function onKeyUp (e) {
 }
 
 function onChat (e) {
-  //add.call(this, this.conn.getName(e.sender), e.context.text)
+  add(this.ul, e.sender, e.context)
 }
 
 function Chat (connection) {
   var conn = this.conn = connection
-  //conn.on("chat", onChat.bind(this))
+  conn.on("chat", onChat.bind(this))
 
   this.name = "P?"
   this.el = document.createElement("div")
@@ -45,10 +45,7 @@ Chat.prototype = {
 
     if (!value) return this.blur()
 
-    add(this.ul, "P?", value)
-    /*this.conn.send("chat", {
-      text: value
-    })*/
+    this.conn.send("chat", value)
     this.input.value = ""
   },
 
