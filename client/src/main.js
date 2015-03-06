@@ -1,7 +1,10 @@
 var Router = require("./router")
+var Connection = require("./connection")
 
 function onRoom (name) {
   console.log("connect to or create room:", name)
+
+  window.connection = new Connection(name);
 }
 
 document.addEventListener("DOMContentLoaded", function (e) {
