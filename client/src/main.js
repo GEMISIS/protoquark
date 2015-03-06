@@ -2,11 +2,11 @@ var Chat       = require("./chat")
 var Connection = require("./connection")
 var Router     = require("./router")
 
-window.connection = new Connection(name);
+window.connection = new Connection();
 
 function onRoom (name) {
   console.log("connect to or create room:", name)
-  window.connection.connect()
+  window.connection.connect(name)
 }
 
 document.addEventListener("DOMContentLoaded", function (e) {

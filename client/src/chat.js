@@ -25,8 +25,6 @@ function onChat (e) {
 function Chat (connection) {
   var conn = this.conn = connection
   conn.on("chat", onChat.bind(this))
-
-  this.name = "P?"
   this.el = document.createElement("div")
   this.el.className = "chat noselect"
   this.ul = document.createElement("ul")
