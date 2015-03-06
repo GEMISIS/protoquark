@@ -1,0 +1,72 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+*:focus {
+  outline: none;
+}
+
+body {
+  background: silver;
+  font-size: 100%;
+  font-family: Helvetica, Arial, sans-serif;
+  overflow: hidden;
+}
+
+.noselect {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.chat {
+  background: transparent;
+  bottom: 1em;
+  color: white;
+  left: 1em;
+  max-width: 512px;
+  position: absolute;
+  width: 100%;
+}
+
+.chat.focus > input {
+  background: dodgerblue;
+}
+
+.chat.focus > ul {
+  pointer-events: all;
+}
+
+.chat > ul {
+  list-style: none;
+  pointer-events: none;
+  overflow-y: scroll;
+  max-height: 19.2ex;
+  line-height: 2.2ex;
+}
+
+.chat > ul > li {
+}
+
+.chat > input {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1em;
+  padding: 0.2em 0;
+  width: 100%;
+}
+
+.chat > input::-webkit-input-placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+.chat > input::-moz-placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+.chat > input:-ms-input-placeholder  {
+  color: rgba(255, 255, 255, 0.6);
+}
