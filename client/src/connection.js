@@ -2,9 +2,7 @@ var emitter = require("component/emitter")
 
 var API_KEY = "lwjd5qra8257b9"
 
-function Connection(room) {
-  this.room = room
-}
+function Connection() {}
 
 Connection.prototype = {
   send: function send(event, obj, receiver) {
@@ -37,14 +35,16 @@ Connection.prototype = {
     }
   },
 
-  connect: function connect() {
+  connect: function connect(room) {
     var peer = this.peer = new Peer({key : API_KEY})
     peer.on("error", onJoinError.bind(this))
     peer.on("open", onClientIdAssigned.bind(this))
 
-    var clientToServerConn = this.clientToServerConn = peer.connect(this.room)
+    var clientToServerConn = this.clientToServerConn = peer.connect(room)
     clientToServerConn.on("open", onConnectedToServer.bind(this))
     clientToServerConn.on("data", onServerData.bind(this))
+
+    this.room = room
   },
 
   isServer : function isServer() {
@@ -75,15 +75,12 @@ function onServerData(data) {
   this.emit(data.event, data)
 }
 
-function onClientData(data) {
-  var conn = arguments[0]
-
+function onClientData(conn, data) {
   console.log("Received client data", data)
   this.emit(data.event, data)
 }
 
-function onClientDisconnected() {
-  var conn = arguments[0]
+function onClientDisconnected(conn) {
   delete this.clients[conn.peer]
   console.log("User closed", conn)
 }
