@@ -2,7 +2,6 @@ var API_KEY = "lwjd5qra8257b9"
 
 function Connection(room) {
   this.room = room
-  this.connect()
 }
 
 Connection.prototype = {
