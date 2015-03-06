@@ -5,17 +5,22 @@ var API_KEY = "lwjd5qra8257b9"
 function Connection() {}
 
 Connection.prototype = {
-  send: function send(event, obj, receiver) {
+  send: function send(event, obj, opts) {
     var clients = this.clients
       , clientToServerConn = this.clientToServerConn
+
+    if (opts == void 0) opts = {}
 
     var data = {
       event : event,
       context : obj,
-      sender : this.id
+      sender : this.id,
+      relay: opts.relay,
+      broadcast: opts.broadcast
     }
 
     if (this.isServer()) {
+      var receiver = opts.receiver
       if (receiver && clients[receiver]) {
         clients[receiver].send(data)
       }
@@ -78,6 +83,10 @@ function onServerData(data) {
 function onClientData(conn, data) {
   console.log("Received client data", data)
   this.emit(data.event, data)
+  if (data.relay)
+    this.send(data.event, data.context, {receiver: data.relay})
+  if (data.broadcast)
+    this.send(data.event, data.context)
 }
 
 function onClientDisconnected(conn) {
