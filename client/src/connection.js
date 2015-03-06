@@ -1,3 +1,5 @@
+var emitter = require("component/emitter")
+
 var API_KEY = "lwjd5qra8257b9"
 
 function Connection(room) {
@@ -5,12 +7,30 @@ function Connection(room) {
 }
 
 Connection.prototype = {
-  send: function send(data, receiver) {
+  send: function send(event, obj, receiver) {
     var clients = this.clients
       , clientToServerConn = this.clientToServerConn
 
-    if (receiver && clients && clients[receiver]) {
-      clients[receiver].send(data)
+    var data = {
+      event : event,
+      context : obj,
+      sender : this.id
+    }
+
+    if (this.isServer()) {
+      if (receiver && clients[receiver]) {
+        clients[receiver].send(data)
+      }
+      else if (!receiver) {
+        this.emit(event, data)
+
+        // Sendall
+        for (var key in clients) {
+          if (clients[key]) {
+            clients[key].send(data)
+          }
+        }
+      }
     }
     else if (clientToServerConn) {
       clientToServerConn.send(data)
@@ -25,6 +45,10 @@ Connection.prototype = {
     var clientToServerConn = this.clientToServerConn = peer.connect(this.room)
     clientToServerConn.on("open", onConnectedToServer.bind(this))
     clientToServerConn.on("data", onServerData.bind(this))
+  },
+
+  isServer : function isServer() {
+    return !!this.clients
   }
 }
 
@@ -48,10 +72,14 @@ function onJoinError(err) {
 
 function onServerData(data) {
   console.log("Received data from server", data)
+  this.emit(data.event, data)
 }
 
 function onClientData(data) {
+  var conn = arguments[0]
+
   console.log("Received client data", data)
+  this.emit(data.event, data)
 }
 
 function onClientDisconnected() {
@@ -65,7 +93,7 @@ function onClientConnected(conn) {
 
   this.clients[conn.peer] = conn
 
-  conn.on("data", onClientData.bind(this))
+  conn.on("data", onClientData.bind(this, conn))
   conn.on("close", onClientDisconnected.bind(this, conn))
 }
 
@@ -83,5 +111,7 @@ function serve() {
   peer.on("connection", onClientConnected.bind(this))
   peer.on("open", onServerStarted.bind(this))
 }
+
+emitter(Connection.prototype)
 
 module.exports = Connection
