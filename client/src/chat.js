@@ -19,12 +19,21 @@ function onKeyUp (e) {
 }
 
 function onChat (e) {
-  add(this.ul, e.sender, e.context)
+  add(this.ul, this.names[e.sender] || e.sender, e.context)
+}
+
+function onPlayers (e) {
+  names = this.names
+  Object.keys(e.context).forEach(function (key) {
+    names[key] = e.context[key].name
+  })
 }
 
 function Chat (connection) {
   var conn = this.conn = connection
   conn.on("chat", onChat.bind(this))
+  conn.on("players", onPlayers.bind(this))
+  this.names = {}
   this.el = document.createElement("div")
   this.el.className = "chat noselect"
   this.ul = document.createElement("ul")

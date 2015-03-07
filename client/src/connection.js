@@ -94,12 +94,30 @@ function onClientDisconnected(conn) {
   console.log("User closed", conn)
 }
 
-function onClientConnected(conn) {
-  console.log("Client connected ", conn.peer, conn.id)
+function makePlayers (me, others) {
+  players = {}
+  players[me.id] = {
+    id: me.id,
+    name: "P1"
+  }
+  Object.keys(others).sort().forEach(function (key, index) {
+    players[key] = {
+      id: key,
+      name: "P" + (index + 2)
+    }
+  })
+  return players
+}
 
+function onClientConnected(conn) {
   conn.on("data", onClientData.bind(this, conn))
   conn.once("close", onClientDisconnected.bind(this, conn))
   this.clients[conn.peer] = conn
+  console.log("Client connected ", conn.peer, conn.id)
+
+  setTimeout((function(){
+    this.send("players", makePlayers(this.peer, this.clients))
+  }).bind(this), 250)
 }
 
 function onServerStarted() {
