@@ -1,6 +1,6 @@
 var emitter = require("component/emitter")
 
-var API_KEY = "lwjd5qra8257b9"
+var API_KEY = "98bn0vxj6aymygb9"
 var nameCounter = 0
 
 function Connection() {
@@ -46,6 +46,9 @@ Connection.prototype = {
     var peer = this.peer = new Peer({key : API_KEY})
     peer.once("error", onJoinError.bind(this))
     peer.once("open", onClientIdAssigned.bind(this))
+
+    if (this.server)
+      this.server.removeAllListeners()
 
     var conn = this.server = peer.connect(room)
     conn.on("open", onConnectedToServer.bind(this))
@@ -154,7 +157,8 @@ function onPlayerEnter (e) {
 
 function onPlayerExit (e) {
   console.log("Player exited", e)
-  delete this.players[e.context.id]
+  if (this.players[e.context.id])
+    delete this.players[e.context.id]
 }
 
 function onServerStarted() {
@@ -176,6 +180,7 @@ function onServerError (e) {
 
 function serve() {
   // In case this was previously a client, delete the client to host connection
+  this.server.removeAllListeners()
   delete this.server
   nameCounter = 0
   this.clients = {}
