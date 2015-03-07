@@ -43,7 +43,7 @@ Chat.prototype = {
 
     if (!value) return this.blur()
 
-    this.conn.send("chat", value)
+    this.conn.send("chat", value, {broadcast: true})
     this.input.value = ""
   },
 
