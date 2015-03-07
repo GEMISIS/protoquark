@@ -4,6 +4,7 @@ var API_KEY = "lwjd5qra8257b9"
 
 function Connection() {
   this.on("setname", onSetName.bind(this))
+  this.on("players", onPlayers.bind(this))
 }
 
 Connection.prototype = {
@@ -77,15 +78,10 @@ function onJoinError(err) {
 function onServerData(data) {
   console.log("Received data from server", data)
   this.emit(data.event, data)
-
-  if (data.event === "players") {
-    this.players = data.context
-  }
 }
 
 function onServerDisconnected() {
-  console.log("Server dced!")
-
+  console.log("Server dced! Migrating")
   migrate.call(this)
 }
 
@@ -109,7 +105,7 @@ function onClientData(conn, data) {
 function onClientDisconnected(conn) {
   delete this.clients[conn.peer]
   delete this.players[conn.peer]
-  console.log("User closed", conn)
+  console.log("User closed", conn) 
 }
 
 function onClientConnected(conn) {
@@ -169,7 +165,10 @@ function serve() {
 
 function migrate() {
   var id = this.peer.id
-    , nextHostId = this.players ? this.players[0] : undefined
+    , players = this.players
+    , nextHostId = Object.keys(players).filter(function (id) {
+      return !players[id].isHost
+    })[0]
 
   // Serve if we are next in line.
   if (id && id === nextHostId)
