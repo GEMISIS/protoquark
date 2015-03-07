@@ -193,8 +193,10 @@ function migrate() {
       return !players[id].isHost
     })[0]
 
+  console.log("next host", nextHostId)
+  
   // Serve if we are next in line.
-  if (id && id === nextHostId)
+  if (id === nextHostId)
     serve.call(this, id)
   else if (nextHostId)
     this.connect(nextHostId)
