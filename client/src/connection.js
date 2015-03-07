@@ -112,6 +112,7 @@ function onClientConnected(conn) {
   console.log("Client connected ", conn.peer, conn.id)
 
   setTimeout((function(){
+    this.send("players", this.players, {relay: conn.peer})
     sendPlayerUpdate(this.send.bind(this), this.players[conn.peer])
   }).bind(this), 250)
 }
