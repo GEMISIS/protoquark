@@ -35,7 +35,6 @@ Connection.prototype = {
 
   connect: function connect(room) {
     this.room = room
-    this.peerIds = []
 
     var peer = this.peer = new Peer({key : API_KEY})
     peer.once("error", onJoinError.bind(this))
@@ -72,6 +71,10 @@ function onJoinError(err) {
 function onServerData(data) {
   console.log("Received data from server", data)
   this.emit(data.event, data)
+
+  if (data.event === "players") {
+    this.players = data.context
+  }
 }
 
 function onServerDisconnected() {
@@ -102,12 +105,30 @@ function onClientDisconnected(conn) {
   console.log("User closed", conn)
 }
 
-function onClientConnected(conn) {
-  console.log("Client connected ", conn.peer, conn.id)
+function makePlayers (me, others) {
+  players = {}
+  players[me.id] = {
+    id: me.id,
+    name: "P1"
+  }
+  Object.keys(others).sort().forEach(function (key, index) {
+    players[key] = {
+      id: key,
+      name: "P" + (index + 2)
+    }
+  })
+  return players
+}
 
+function onClientConnected(conn) {
   conn.on("data", onClientData.bind(this, conn))
   conn.once("close", onClientDisconnected.bind(this, conn))
   this.clients[conn.peer] = conn
+  console.log("Client connected ", conn.peer, conn.id)
+
+  setTimeout((function(){
+    this.send("players", makePlayers(this.peer, this.clients))
+  }).bind(this), 250)
 }
 
 function onServerStarted() {
@@ -131,12 +152,12 @@ function serve() {
 
 function migrate() {
   var id = this.peer.id
-    , nextHostId = this.peerIds[0]
+    , nextHostId = this.players ? this.players[0] : undefined
 
   // Serve if we are next in line.
-  if (id === nextHostId)
+  if (id && id === nextHostId)
     serve.call(this, id)
-  else
+  else if (nextHostId)
     this.connect(nextHostId)
 }
 
