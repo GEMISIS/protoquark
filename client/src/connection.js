@@ -127,6 +127,10 @@ function onClientConnected(conn) {
   }).bind(this), 250)
 }
 
+function onSetName (e) {
+  this.players[e.sender].name = e.context
+}
+
 function onServerStarted() {
   console.log("server started")
   this.players[this.peer.id] = {
