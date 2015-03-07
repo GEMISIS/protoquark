@@ -6,50 +6,43 @@ function Connection() {}
 
 Connection.prototype = {
   send: function send(event, obj, opts) {
-    var clients = this.clients
-      , clientToServerConn = this.clientToServerConn
-
     if (opts == void 0) opts = {}
+
+    var clients = this.clients
+    var server = this.server
 
     var data = {
       event : event,
       context : obj,
-      sender : this.id,
-      relay: opts.relay,
-      broadcast: opts.broadcast
+      sender : opts.sender || this.peer.id,
+      relay: opts.relay
     }
 
-    if (this.isServer()) {
-      var receiver = opts.receiver
-      if (receiver && clients[receiver]) {
-        clients[receiver].send(data)
-      }
-      else if (!receiver) {
-        this.emit(event, data)
+    // If we are just a client send it now.
+    if (!this.isServer()) return server.send(data)
 
-        // Sendall
-        for (var key in clients) {
-          if (clients[key]) {
-            clients[key].send(data)
-          }
-        }
-      }
-    }
-    else if (clientToServerConn) {
-      clientToServerConn.send(data)
-    }
+    // Handle relaying of data.
+    if (clients[data.relay]) return clients[data.relay].send(data)
+
+    // Re-send ourself the event, because we are not a client.
+    this.emit(data.event, data)
+
+    // As server broadcast to all clients if there is no relay automatically.
+    Object.keys(clients).map(function (key) {
+      clients[key].send(data)
+    })
   },
 
   connect: function connect(room) {
-    var peer = this.peer = new Peer({key : API_KEY})
-    peer.on("error", onJoinError.bind(this))
-    peer.on("open", onClientIdAssigned.bind(this))
-
-    var clientToServerConn = this.clientToServerConn = peer.connect(room)
-    clientToServerConn.on("open", onConnectedToServer.bind(this))
-    clientToServerConn.on("data", onServerData.bind(this))
-
     this.room = room
+
+    var peer = this.peer = new Peer({key : API_KEY})
+    peer.once("error", onJoinError.bind(this))
+    peer.once("open", onClientIdAssigned.bind(this))
+
+    var conn = this.server = peer.connect(room)
+    conn.on("open", onConnectedToServer.bind(this))
+    conn.on("data", onServerData.bind(this))
   },
 
   isServer : function isServer() {
@@ -58,8 +51,7 @@ Connection.prototype = {
 }
 
 function onClientIdAssigned(id) {
-  console.log("You are", id)
-  this.id = id
+  console.log("You are", this.peer.id)
 }
 
 function onConnectedToServer() {
@@ -82,11 +74,19 @@ function onServerData(data) {
 
 function onClientData(conn, data) {
   console.log("Received client data", data)
+
+  var relay = data.relay || ""
+
+  // If directed at a user other than us, forward data.
+  if (relay != this.peer.id)
+    return this.send(data.event, data.context, data)
+
+  // If directed at the server emit it.
+  if (relay == this.peer.id)
+    return this.emit(data.event, data)
+
+  this.send(data.event, data.context, data)
   this.emit(data.event, data)
-  if (data.relay)
-    this.send(data.event, data.context, {receiver: data.relay})
-  if (data.broadcast)
-    this.send(data.event, data.context)
 }
 
 function onClientDisconnected(conn) {
@@ -97,25 +97,28 @@ function onClientDisconnected(conn) {
 function onClientConnected(conn) {
   console.log("Client connected ", conn.peer, conn.id)
 
-  this.clients[conn.peer] = conn
-
   conn.on("data", onClientData.bind(this, conn))
-  conn.on("close", onClientDisconnected.bind(this, conn))
+  conn.once("close", onClientDisconnected.bind(this, conn))
+  this.clients[conn.peer] = conn
 }
 
 function onServerStarted() {
   console.log("server started")
-  this.id = this.room
+}
+
+function onServerError (e) {
+  console.log("Server error:", e)
 }
 
 function serve() {
   // In case this was previously a client, delete the client to host connection
-  delete this.clientToServerConn
+  delete this.server
   this.clients = {}
 
   var peer = this.peer = new Peer(this.room, {key : API_KEY})
+  peer.once("open", onServerStarted.bind(this))
   peer.on("connection", onClientConnected.bind(this))
-  peer.on("open", onServerStarted.bind(this))
+  peer.on("error", onServerError.bind(this))
 }
 
 emitter(Connection.prototype)
