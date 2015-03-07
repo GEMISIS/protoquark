@@ -2,7 +2,9 @@ var emitter = require("component/emitter")
 
 var API_KEY = "lwjd5qra8257b9"
 
-function Connection() {}
+function Connection() {
+  this.on("setname", onSetName.bind(this))
+}
 
 Connection.prototype = {
   send: function send(event, obj, opts) {
@@ -95,6 +97,7 @@ function onClientData(conn, data) {
 
 function onClientDisconnected(conn) {
   delete this.clients[conn.peer]
+  delete this.players[conn.peer]
   console.log("User closed", conn)
 }
 
@@ -117,7 +120,8 @@ function onServerStarted() {
   console.log("server started")
   this.players[this.peer.id] = {
     id: this.peer.id,
-    name: this.generateName()
+    name: this.generateName(),
+    isHost: true
   }
   this.send("players", this.players)
 }
