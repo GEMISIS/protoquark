@@ -110,10 +110,9 @@ function onClientData(conn, data) {
 }
 
 function onClientDisconnected(conn) {
+  this.send("playerexit", this.players[conn.peer])
   delete this.clients[conn.peer]
   delete this.players[conn.peer]
-
-  this.send("playerexit", this.players[conn.peer])
   console.log("User closed", conn)
 }
 
