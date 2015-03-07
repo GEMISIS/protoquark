@@ -29,10 +29,15 @@ function onPlayers (e) {
   })
 }
 
+function onPlayerEnter (e) {
+  this.names[e.context.id] = e.context.name
+}
+
 function Chat (connection) {
   var conn = this.conn = connection
   conn.on("chat", onChat.bind(this))
   conn.on("players", onPlayers.bind(this))
+  conn.on("playerenter", onPlayerEnter.bind(this))
   this.names = {}
   this.el = document.createElement("div")
   this.el.className = "chat noselect"
