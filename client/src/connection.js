@@ -112,12 +112,20 @@ function onClientConnected(conn) {
   console.log("Client connected ", conn.peer, conn.id)
 
   setTimeout((function(){
-    this.send("players", this.players)
+    sendPlayerUpdate(this.send.bind(this), this.players[conn.peer])
   }).bind(this), 250)
 }
 
+function sendPlayerUpdate (send, player) {
+  var obj = {}
+  obj[player.id] = player
+  send("players", obj)
+}
+
 function onSetName (e) {
+  if (!this.isServer()) return
   this.players[e.sender].name = e.context
+  sendPlayerUpdate(this.send.bind(this), this.players[e.sender])
 }
 
 function onServerStarted() {
