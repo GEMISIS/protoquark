@@ -169,6 +169,9 @@ function onServerStarted() {
 
 function onServerError (e) {
   console.log("Server error:", e)
+  if (e.type === "unavailable-id") {
+    this.connect(this.room)
+  }
 }
 
 function serve() {
