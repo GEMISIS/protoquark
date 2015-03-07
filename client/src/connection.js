@@ -1,6 +1,7 @@
 var emitter = require("component/emitter")
 
 var API_KEY = "lwjd5qra8257b9"
+var nameCounter = 0
 
 function Connection() {
   this.players = {}
@@ -56,7 +57,7 @@ Connection.prototype = {
   },
 
   generateName: function () {
-    return "P" + ++this.nameCounter
+    return "P" + ++nameCounter
   }
 }
 
@@ -134,8 +135,9 @@ function onSetName (e) {
 }
 
 function onPlayers (e) {
+  var players = this.players
   Object.keys(e.context).forEach(function (id) {
-    this.players[id] = e.context[id]
+    players[id] = e.context[id]
   })
 }
 
@@ -164,7 +166,7 @@ function onServerError (e) {
 function serve() {
   // In case this was previously a client, delete the client to host connection
   delete this.server
-  this.nameCounter = 0
+  nameCounter = 0
   this.clients = {}
 
   var peer = this.peer = new Peer(this.room, {key : API_KEY})
