@@ -47,6 +47,10 @@ Connection.prototype = {
 
   isServer : function isServer() {
     return !!this.clients
+  },
+
+  generateName: function () {
+    return "P" + ++this.nameCounter
   }
 }
 
@@ -94,34 +98,28 @@ function onClientDisconnected(conn) {
   console.log("User closed", conn)
 }
 
-function makePlayers (me, others) {
-  players = {}
-  players[me.id] = {
-    id: me.id,
-    name: "P1"
-  }
-  Object.keys(others).sort().forEach(function (key, index) {
-    players[key] = {
-      id: key,
-      name: "P" + (index + 2)
-    }
-  })
-  return players
-}
-
 function onClientConnected(conn) {
   conn.on("data", onClientData.bind(this, conn))
   conn.once("close", onClientDisconnected.bind(this, conn))
   this.clients[conn.peer] = conn
+  this.players[conn.peer] = {
+    id: conn.peer,
+    name: this.generateName()
+  }
   console.log("Client connected ", conn.peer, conn.id)
 
   setTimeout((function(){
-    this.send("players", makePlayers(this.peer, this.clients))
+    this.send("players", this.players)
   }).bind(this), 250)
 }
 
 function onServerStarted() {
   console.log("server started")
+  this.players[this.peer.id] = {
+    id: this.peer.id,
+    name: this.generateName()
+  }
+  this.send("players", this.players)
 }
 
 function onServerError (e) {
@@ -131,7 +129,9 @@ function onServerError (e) {
 function serve() {
   // In case this was previously a client, delete the client to host connection
   delete this.server
+  this.nameCounter = 0
   this.clients = {}
+  this.players = {}
 
   var peer = this.peer = new Peer(this.room, {key : API_KEY})
   peer.once("open", onServerStarted.bind(this))
