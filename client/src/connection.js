@@ -28,7 +28,7 @@ Connection.prototype = {
     this.emit(data.event, data)
 
     // As server broadcast to all clients if there is no relay automatically.
-    Object.keys(clients).map(function (key) {
+    Object.keys(clients).forEach(function (key) {
       clients[key].send(data)
     })
   },
