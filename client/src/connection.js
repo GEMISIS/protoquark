@@ -3,7 +3,11 @@ var emitter = require("component/emitter")
 var API_KEY = "lwjd5qra8257b9"
 
 function Connection() {
+  this.players = {}
   this.on("setname", onSetName.bind(this))
+  this.on("players", onPlayers.bind(this))
+  this.on("playerenter", onPlayerEnter.bind(this))
+  this.on("playerexit", onPlayerExit.bind(this))
 }
 
 Connection.prototype = {
@@ -98,6 +102,7 @@ function onClientData(conn, data) {
 function onClientDisconnected(conn) {
   delete this.clients[conn.peer]
   delete this.players[conn.peer]
+  this.send("playerexit", this.players[conn.peer])
   console.log("User closed", conn)
 }
 
@@ -112,8 +117,8 @@ function onClientConnected(conn) {
   console.log("Client connected ", conn.peer, conn.id)
 
   setTimeout((function(){
+    this.send("playerenter", this.players[conn.peer])
     this.send("players", this.players, {relay: conn.peer})
-    sendPlayerUpdate(this.send.bind(this), this.players[conn.peer])
   }).bind(this), 250)
 }
 
@@ -124,9 +129,22 @@ function sendPlayerUpdate (send, player) {
 }
 
 function onSetName (e) {
-  if (!this.isServer()) return
   this.players[e.sender].name = e.context
   sendPlayerUpdate(this.send.bind(this), this.players[e.sender])
+}
+
+function onPlayers (e) {
+  Object.keys(e.context).forEach(function (id) {
+    this.players[id] = e.context[id]
+  })
+}
+
+function onPlayerEnter (e) {
+  this.players[e.context.id] = e.context
+}
+
+function onPlayerExit (e) {
+  delete this.players[e.context.id]
 }
 
 function onServerStarted() {
@@ -136,7 +154,7 @@ function onServerStarted() {
     name: this.generateName(),
     isHost: true
   }
-  this.send("players", this.players)
+  this.send("playerenter", this.players[this.peer.id])
 }
 
 function onServerError (e) {
@@ -148,7 +166,6 @@ function serve() {
   delete this.server
   this.nameCounter = 0
   this.clients = {}
-  this.players = {}
 
   var peer = this.peer = new Peer(this.room, {key : API_KEY})
   peer.once("open", onServerStarted.bind(this))
