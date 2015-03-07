@@ -35,6 +35,7 @@ Connection.prototype = {
 
   connect: function connect(room) {
     this.room = room
+    this.peerIds = []
 
     var peer = this.peer = new Peer({key : API_KEY})
     peer.once("error", onJoinError.bind(this))
@@ -43,6 +44,7 @@ Connection.prototype = {
     var conn = this.server = peer.connect(room)
     conn.on("open", onConnectedToServer.bind(this))
     conn.on("data", onServerData.bind(this))
+    conn.on("close", onServerDisconnected.bind(this))
   },
 
   isServer : function isServer() {
@@ -70,6 +72,12 @@ function onJoinError(err) {
 function onServerData(data) {
   console.log("Received data from server", data)
   this.emit(data.event, data)
+}
+
+function onServerDisconnected() {
+  console.log("Server dced!")
+
+  migrate.call(this)
 }
 
 function onClientData(conn, data) {
@@ -119,6 +127,17 @@ function serve() {
   peer.once("open", onServerStarted.bind(this))
   peer.on("connection", onClientConnected.bind(this))
   peer.on("error", onServerError.bind(this))
+}
+
+function migrate() {
+  var id = this.peer.id
+    , nextHostId = this.peerIds[0]
+
+  // Serve if we are next in line.
+  if (id === nextHostId)
+    serve.call(this, id)
+  else
+    this.connect(nextHostId)
 }
 
 emitter(Connection.prototype)
