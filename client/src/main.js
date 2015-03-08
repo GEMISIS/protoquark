@@ -1,6 +1,7 @@
 var Chat       = require("./chat")
 var Connection = require("./connection")
 var Router     = require("./router")
+var Stage      = require("./stage")
 
 window.connection = new Connection();
 
@@ -20,8 +21,14 @@ document.addEventListener("DOMContentLoaded", function (e) {
   router.on("route:room", onRoom)
   router.listen()
 
+  var stage = new Stage()
+  el.appendChild(stage.el)
+  stage.resize()
+
   var chat = new Chat(window.connection)
   el.appendChild(chat.el)
+
+  window.addEventListener("resize", stage.resize.bind(stage))
 
   window.addEventListener("keyup", function (e) {
     if (e.keyCode == 13) chat.focus()
