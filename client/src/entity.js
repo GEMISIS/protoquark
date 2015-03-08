@@ -7,6 +7,7 @@ function Entity(context) {
 
   this.position = new Vec3()
   this.rotation = new Quat()
+  this.euler = new Vec3()
 
   // ordered array of snapshots based on time with most recent snapshot at end of list.
   this.snapshots = []
