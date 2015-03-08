@@ -6,29 +6,14 @@ function animate () {
     this.renderer, this.scene, this.camera))
 }
 
-function onPlayerEnter (e) {
-  var player = new Player(e.context)
-  this.players[e.context.id] = player
-  this.scene.add(player.o3d)
-}
-
-function onPlayerExit (e) {
-  this.scene.remove(this.players[e.context.id])
-}
-
 function Stage (conn) {
-  this.conn = conn
   this.el = document.createElement("div")
   this.el.className = "stage noselect"
-  this.players = {}
   this.init()
 
   this.el.addEventListener("contextmenu", function(e) {
     e.preventDefault()
   })
-
-  conn.on("playerenter", onPlayerEnter.bind(this))
-  conn.on("playerexit", onPlayerExit.bind(this))
 }
 
 Stage.prototype = {
