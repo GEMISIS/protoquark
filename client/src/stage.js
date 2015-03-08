@@ -6,7 +6,12 @@ function animate () {
     this.renderer, this.scene, this.camera))
 }
 
+function onMouseMove (e) {
+  console.log("move mouse", e)
+}
+
 function Stage (conn) {
+  this.cbs = {}
   this.el = document.createElement("div")
   this.el.className = "stage noselect"
   this.init()
@@ -32,6 +37,9 @@ Stage.prototype = {
 
     this.resize()
     animate.call(this)
+
+    this.cbs.mousemove = onMouseMove.bind(this)
+    window.addEventListener("mousemove", this.cbs.mousemove)
   },
 
   resize: function resize() {
@@ -43,6 +51,7 @@ Stage.prototype = {
 
   dispose: function dispose() {
     cancelAnimatinFrame(this.id)
+    window.removeEventListener("mousemove", this.cbs.mousemove)
   }
 }
 

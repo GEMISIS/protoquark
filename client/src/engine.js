@@ -1,7 +1,8 @@
 var Entity = require("./entity")
 
 var ons = {
-control: {},
+control: {
+},
 conn: {
   playerenter: function onPlayerEnter (e) {
     var ent = new Entity(e.context)
@@ -16,6 +17,7 @@ conn: {
     this.entities.splice(this.entities.indexOf(ent), 1)
   }
 }
+}
 
 function Engine (connection, controller) {
   this.conn = connection
@@ -25,7 +27,7 @@ function Engine (connection, controller) {
   var self = this
   Object.keys(ons).forEach(function (key) {
     Object.keys(ons[key]).forEach(function (ev) {
-      self[key].on(ev, ons[ev].bind(this))
+      self[key].on(ev, ons[key][ev].bind(this))
     })
   })
 }
