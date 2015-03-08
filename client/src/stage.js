@@ -1,6 +1,7 @@
 var Matrix4 = require("./math").mat4
 var Player  = require("./obj3d/player")
 var Vector3 = require("./math").vec3
+var Quaternion = require("./math").quat
 
 function animate () {
   this.renderer.render(this.scene, this.camera)
@@ -18,12 +19,12 @@ function onMouseMove (e) {
   var dx = e.x - pos.x
   var dy = e.y - pos.y
 
-  //me.euler.x += dy
-  me.euler.y += dx * 0.1
+  me.euler.x += dx * .001
+  me.euler.y += dy * 0.001
 
-  me.rotation = new Matrix4().multiplyMatrices(
-    new Matrix4().makeRotationY(me.euler.y),
-    new Matrix4().makeRotationX(me.euler.x))
+  me.rotation = new Quaternion().multiplyQuaternions(
+    new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -me.euler.y),
+    new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -me.euler.x))
 
   pos.x = e.x
   pos.y = e.y
