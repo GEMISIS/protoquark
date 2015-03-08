@@ -1,4 +1,6 @@
-var Player = require("./obj3d/player")
+var Matrix4 = require("./math").mat4
+var Player  = require("./obj3d/player")
+var Vector3 = require("./math").vec3
 
 function animate () {
   this.renderer.render(this.scene, this.camera)
@@ -9,16 +11,19 @@ function animate () {
 
 function onMouseMove (e) {
   var me = this.engine.you()
+
+  if (!me) return
+
   var pos = this.mpos
   var dx = e.x - pos.x
   var dy = e.y - pos.y
 
-  me.euler.x += dy
-  me.euler.y += dx
+  //me.euler.x += dy
+  me.euler.y += dx * 0.1
 
   me.rotation = new Matrix4().multiplyMatrices(
-    new Matrix4().makeRotationY(this.euler.y),
-    new Matrix4().makeRotationX(this.euler.x))
+    new Matrix4().makeRotationY(me.euler.y),
+    new Matrix4().makeRotationX(me.euler.x))
 
   pos.x = e.x
   pos.y = e.y
@@ -44,8 +49,6 @@ Stage.prototype = {
     this.camera = new THREE.PerspectiveCamera(70, 0, 1, 1000)
     this.renderer = new THREE.WebGLRenderer()
 
-    this.camera.position.z = 10
-
     var el = this.el
     while (el.firstChild) {
       el.removeChild(el.firstChild)
@@ -57,6 +60,10 @@ Stage.prototype = {
 
     this.cbs.mousemove = onMouseMove.bind(this)
     window.addEventListener("mousemove", this.cbs.mousemove)
+
+    var p = new Player()
+    p.o3d.position.z = -10
+    this.scene.add(p.o3d)
   },
 
   resize: function resize() {
@@ -72,8 +79,11 @@ Stage.prototype = {
   },
 
   update: function update() {
-    // Camera
     var me = this.engine.you()
+
+    if (!me) return
+
+    // Camera
     var forward = new Vector3(0, 0, -1)
       .applyMatrix4(new Matrix4().makeRotationFromQuaternion(me.rotation))
       .normalize()

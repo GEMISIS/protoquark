@@ -34,6 +34,7 @@ function Engine (connection, controller) {
 
 Engine.prototype = {
   you: function () {
+    if (!this.conn.peer) return
     var id = this.conn.peer.id
     return this.entities.filter(function(ent){
       return ent.context.id == id
