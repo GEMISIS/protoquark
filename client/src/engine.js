@@ -1,7 +1,8 @@
 var Entity = require("./entity")
 
 var ons = {
-control: {},
+control: {
+},
 conn: {
   playerenter: function onPlayerEnter (e) {
     var ent = new Entity(e.context)
@@ -15,6 +16,7 @@ conn: {
     if (!ent) return
     this.entities.splice(this.entities.indexOf(ent), 1)
   }
+}
 }
 
 function Engine (connection, controller) {

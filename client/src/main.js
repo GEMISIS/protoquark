@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
   var engine = new Engine(conn, controller)
 
-  var stage = window.stage = new Stage(engine)
+  var stage = window.stage = new Stage(engine, controller)
   el.appendChild(stage.el)
   stage.resize()
 
