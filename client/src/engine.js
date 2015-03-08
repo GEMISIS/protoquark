@@ -1,4 +1,7 @@
 var Entity = require("./entity")
+var Matrix4    = require("./math").mat4
+var Vector3    = require("./math").vec3
+var Quaternion = require("./math").quat
 
 var localIdCounter = 0
 
@@ -6,6 +9,9 @@ var ons = {
 control: {
   look: function onLook(dx, dy) {
     var me = this.you()
+
+    if (!me) return
+
     me.euler.x += dx
     me.euler.y += dy
 
