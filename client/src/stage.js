@@ -4,17 +4,34 @@ function animate () {
   this.renderer.render(this.scene, this.camera)
   this.id = requestAnimationFrame(animate.bind(this,
     this.renderer, this.scene, this.camera))
+  this.update()
 }
 
 function onMouseMove (e) {
-  console.log("move mouse", e)
+  var me = this.engine.you()
+  var pos = this.mpos
+  var dx = e.x - pos.x
+  var dy = e.y - pos.y
+
+  me.euler.x += dy
+  me.euler.y += dx
+
+  me.rotation = new Matrix4().multiplyMatrices(
+    new Matrix4().makeRotationY(this.euler.y),
+    new Matrix4().makeRotationX(this.euler.x))
+
+  pos.x = e.x
+  pos.y = e.y
 }
 
-function Stage (conn) {
+function Stage (engine, controller) {
+  this.engine = engine
+  this.control = controller
   this.cbs = {}
   this.el = document.createElement("div")
   this.el.className = "stage noselect"
   this.init()
+  this.mpos = {x:0, y:0}
 
   this.el.addEventListener("contextmenu", function(e) {
     e.preventDefault()
@@ -52,6 +69,17 @@ Stage.prototype = {
   dispose: function dispose() {
     cancelAnimatinFrame(this.id)
     window.removeEventListener("mousemove", this.cbs.mousemove)
+  },
+
+  update: function update() {
+    // Camera
+    var me = this.engine.you()
+    var forward = new Vector3(0, 0, -1)
+      .applyMatrix4(new Matrix4().makeRotationFromQuaternion(me.rotation))
+      .normalize()
+    var lookAtPoint = new Vector3().addVectors(me.position, forward)
+    this.camera.lookAt(lookAtPoint)
+    this.camera.position.copy(me.position)
   }
 }
 

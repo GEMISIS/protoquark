@@ -27,9 +27,18 @@ function Engine (connection, controller) {
   var self = this
   Object.keys(ons).forEach(function (key) {
     Object.keys(ons[key]).forEach(function (ev) {
-      self[key].on(ev, ons[key][ev].bind(this))
+      self[key].on(ev, ons[key][ev].bind(self))
     })
   })
+}
+
+Engine.prototype = {
+  you: function () {
+    var id = this.conn.peer.id
+    return this.entities.filter(function(ent){
+      return ent.context.id == id
+    })[0]
+  }
 }
 
 module.exports = Engine
