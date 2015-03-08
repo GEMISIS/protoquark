@@ -20,7 +20,7 @@ function onMouseMove (e) {
   var dy = e.y - pos.y
 
   me.euler.x += dx * .001
-  me.euler.y += dy * 0.001
+  me.euler.y += dy * .001
 
   me.rotation = new Quaternion().multiplyQuaternions(
     new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -me.euler.y),
@@ -47,7 +47,7 @@ function Stage (engine, controller) {
 Stage.prototype = {
   init: function init() {
     this.scene = new THREE.Scene()
-    this.camera = new THREE.PerspectiveCamera(70, 0, 1, 1000)
+    this.camera = new THREE.PerspectiveCamera(50, 0, 1, 1000)
     this.renderer = new THREE.WebGLRenderer()
 
     var el = this.el
