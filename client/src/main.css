@@ -48,7 +48,8 @@ body {
   background: dodgerblue;
 }
 
-.chat.focus > ul {
+.chat.focus > ul,
+.chat.focus > input {
   pointer-events: all;
 }
 
@@ -70,6 +71,7 @@ body {
   font-size: 1em;
   padding: 0.2em 0;
   width: 100%;
+  pointer-events: none;
 }
 
 .chat > input::-webkit-input-placeholder {

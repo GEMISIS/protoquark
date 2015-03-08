@@ -45,19 +45,21 @@ Connection.prototype = {
   },
 
   connect: function connect(room) {
+    console.log("connecting to", room)
     this.room = room
 
     var peer = this.peer = new Peer({key : API_KEY})
     peer.once("error", onJoinError.bind(this))
     peer.once("open", onClientIdAssigned.bind(this))
+    /*peer.on("connection", function (e) { console.log("connection!", e) })
+    peer.on("call", function (e) { console.log("call!", e) })
+    peer.on("close", function (e) { console.log("close!", e) })
+    peer.on("disconnected", function (e) { console.log("disconnected!", e) })*/
+  },
 
-    if (this.server)
-      this.server.removeAllListeners()
-
-    var conn = this.server = peer.connect(room)
-    conn.on("open", onConnectedToServer.bind(this))
-    conn.on("data", onServerData.bind(this))
-    conn.on("close", onServerDisconnected.bind(this))
+  kill: function kill() {
+    this.peer.disconnect()
+    console.log("connection killed")
   },
 
   isServer : function isServer() {
@@ -75,6 +77,14 @@ function pingServer() {
 
 function onClientIdAssigned(id) {
   console.log("You are", this.peer.id)
+
+  if (this.server) this.server.removeAllListeners()
+
+  var conn = this.server = this.peer.connect(this.room)
+  conn.on("open", onConnectedToServer.bind(this))
+  conn.on("data", onServerData.bind(this))
+  conn.on("close", onServerDisconnected.bind(this))
+  conn.on("error", onServerError.bind(this))
 }
 
 function onConnectedToServer() {
@@ -96,7 +106,6 @@ function onServerData(data) {
 }
 
 function onServerDisconnected() {
-  console.log("Server dced! Migrating")
   migrate.call(this)
 }
 
@@ -116,8 +125,6 @@ function onClientData(conn, data) {
 
   if (broadcast)
     this.send(data.event, data.context, data)
-
-  this.emit(data.event, data)
 }
 
 function onClientDisconnected(conn) {
@@ -212,6 +219,7 @@ function onServerError (e) {
 }
 
 function serve() {
+  console.log("starting server")
   // In case this was previously a client, delete the client to host connection
   this.server.removeAllListeners()
   delete this.server
@@ -225,6 +233,7 @@ function serve() {
 }
 
 function migrate() {
+  console.log("migrating server")
   var id = this.peer.id
     , players = this.players
     , nextHostId = Object.keys(players).filter(function (id) {
