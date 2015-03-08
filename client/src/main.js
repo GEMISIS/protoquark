@@ -7,6 +7,55 @@ var Stage      = require("./stage")
 
 window.connection = new Connection();
 
+var PIXELS_PER_RADIAN = 1000
+
+var keymap = {
+  32: "jump",
+  65: "strafeleft",
+  68: "strageright",
+  70: "grenade",
+  82: "reload",
+  83: "backward",
+  87: "forward"
+}
+
+var mousemap = {
+  1: "shoot",
+  3: "grenade"
+}
+
+var ons = {
+  beforeunload: function (e) {
+    this.connection.kill()
+  },
+  resize: function onResize (e) {
+    this.stage.resize.bind(this.stage)
+  },
+  keyup: function onKeyUp (e) {
+    this.controller.set(keymap[e.keyCode], false)
+  },
+  keydown: function onKeyDown (e) {
+    if (e.keyCode == 13) this.chat.focus()
+    this.controller.set(keymap[e.keyCode], true)
+  },
+  mousedown: function onMouseDown (e) {
+    this.controller.set(mousemap[e.which], true)
+  },
+  mouseup: function onMouseUp (e) {
+    this.controller.set(mousemap[e.which], false)
+  },
+  mousemove: function onMouseMove (e) {
+    var pos = this.controller.mpos
+    var x = e.x
+    var y = e.y
+    var dx = (x - pos.x) * 1.0 / PIXELS_PER_RADIAN
+    var dy = (y - pos.y) * 1.0 / PIXELS_PER_RADIAN
+    pos.x = x
+    pos.y = y
+    this.controller.set("look", {x:dx, y:dy})
+  }
+}
+
 function onRoom (name) {
   window.connection.connect(name)
 }
@@ -20,30 +69,23 @@ document.addEventListener("DOMContentLoaded", function (e) {
   router.add("room", /^\/([^\/]+)\/?$/)
   router.on("route:room", onRoom)
 
-  var chat = new Chat(conn)
+  var chat = window.chat = new Chat(conn)
   el.appendChild(chat.el)
 
-  var controller = new Controller
-  controller.mpos.x = rect.width * 0.5
-  controller.mpos.y = rect.height * 0.5
-  controller.listen()
+  var controller = window.controller = new Controller
+  controller.mpos = {
+    x: rect.width * 0.5,
+    y: rect.height * 0.5
+  }
 
-  var engine = new Engine(conn, controller)
+  var engine = window.engine = new Engine(conn, controller)
 
   var stage = window.stage = new Stage(engine)
   el.appendChild(stage.el)
   stage.resize()
 
-  window.addEventListener("resize", stage.resize.bind(stage))
-  window.addEventListener("keyup", function (e) {
-    if (e.keyCode == 13) chat.focus()
-  })
-  window.addEventListener("beforeunload", function (e) {
-    connection.kill()
-  })
-
-  window.addEventListener("mousemove", function (e) {
-    controller.lookWithMouse(e.x, e.y)
+  Object.keys(ons).forEach(function(ev){
+    window.addEventListener(ev, ons[ev].bind(window))
   })
 
   router.listen()
