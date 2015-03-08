@@ -14,6 +14,7 @@ function onRoom (name) {
 document.addEventListener("DOMContentLoaded", function (e) {
   var conn = window.connection
   var el = document.body
+  var rect = el.getBoundingClientRect()
 
   var router = new Router()
   router.add("room", /^\/([^\/]+)\/?$/)
@@ -28,6 +29,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
   var engine = new Engine(conn, controller)
 
   var stage = window.stage = new Stage(engine, controller)
+  stage.mpos.x = rect.width * 0.5
+  stage.mpos.y = rect.height * 0.5
   el.appendChild(stage.el)
   stage.resize()
 

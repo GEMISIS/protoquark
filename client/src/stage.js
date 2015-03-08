@@ -36,12 +36,13 @@ function Stage (engine, controller) {
   this.cbs = {}
   this.el = document.createElement("div")
   this.el.className = "stage noselect"
-  this.init()
   this.mpos = {x:0, y:0}
 
   this.el.addEventListener("contextmenu", function(e) {
     e.preventDefault()
   })
+
+  this.init()
 }
 
 Stage.prototype = {
