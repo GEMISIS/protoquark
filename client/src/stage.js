@@ -1,13 +1,21 @@
-var Matrix4 = require("./math").mat4
-var Player  = require("./obj3d/player")
-var Vector3 = require("./math").vec3
+var Matrix4    = require("./math").mat4
+var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
 
+var representations = {
+  player: require("./obj3d/player")
+}
+
+function getEntityRepresentation (me, entity) {
+  if (me.context.id == entity.context.id) return
+  return representations.player
+}
+
 function animate () {
+  this.update()
   this.renderer.render(this.scene, this.camera)
   this.id = requestAnimationFrame(animate.bind(this,
     this.renderer, this.scene, this.camera))
-  this.update()
 }
 
 function onMouseMove (e) {
@@ -50,6 +58,7 @@ Stage.prototype = {
     this.scene = new THREE.Scene()
     this.camera = new THREE.PerspectiveCamera(50, 0, 1, 1000)
     this.renderer = new THREE.WebGLRenderer()
+    this.emap = {}
 
     var el = this.el
     while (el.firstChild) {
@@ -63,7 +72,7 @@ Stage.prototype = {
     this.cbs.mousemove = onMouseMove.bind(this)
     window.addEventListener("mousemove", this.cbs.mousemove)
 
-    var p = new Player()
+    var p = new representations.player()
     p.o3d.position.z = -10
     this.scene.add(p.o3d)
   },
@@ -92,6 +101,36 @@ Stage.prototype = {
     var lookAtPoint = new Vector3().addVectors(me.position, forward)
     this.camera.lookAt(lookAtPoint)
     this.camera.position.copy(me.position)
+
+    // Diff the entities in the engine and add and or update, or remove them.
+    var map = this.emap
+    var imap = {}
+    var entities = this.engine.entities
+    for (var i=0; i<entities.length; i++) {
+      var e = entities[i]
+      imap[e.id] = true
+
+      if (map[e.id]) continue
+
+      var Rep = getEntityRepresentation.call(this, me, e)
+
+      if (!Rep) return
+
+      var p = map[e.id] = new Rep(e)
+      this.scene.add(p.o3d)
+    }
+    var ids = Object.keys(map)
+    for (var i=0; i<ids.length; i++) {
+      var id = ids[i]
+      if (imap[id]) {
+        imap[id].update()
+        continue
+      }
+      this.scene.remove(map[id].o3d)
+      delete map[id]
+      ids.splice(i, 1)
+      i--
+    }
   }
 }
 

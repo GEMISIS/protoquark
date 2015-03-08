@@ -1,5 +1,5 @@
-function Player (context, geo) {
-  this.context = context
+function Player (entity, geo) {
+  this.entity = entity
   this.o3d = new THREE.Object3D()
 
   var material = new THREE.MeshBasicMaterial({
@@ -9,6 +9,15 @@ function Player (context, geo) {
   var mesh = new THREE.Mesh(geometry, material)
 
   this.o3d.add(mesh)
+}
+
+Player.prototype = {
+  update: function update () {
+    var o3d = this.o3d
+    var e = this.entity
+    o3d.position.copy(e.position)
+    o3d.rotation.copy(e.rotation)
+  }
 }
 
 module.exports = Player
