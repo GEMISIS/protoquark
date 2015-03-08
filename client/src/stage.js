@@ -6,6 +6,8 @@ var representations = {
   player: require("./obj3d/player")
 }
 
+var PIXELS_PER_RADIAN = 1000
+
 function getEntityRepresentation (me, entity) {
   if (me.context.id == entity.context.id) return
   return representations.player
@@ -27,8 +29,8 @@ function onMouseMove (e) {
   var dx = e.x - pos.x
   var dy = e.y - pos.y
 
-  me.euler.x += dx * .001
-  me.euler.y += dy * .001
+  me.euler.x += dx * 1.0 / PIXELS_PER_RADIAN
+  me.euler.y += dy * 1.0 / PIXELS_PER_RADIAN
 
   me.rotation = new Quaternion().multiplyQuaternions(
     new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -me.euler.y),

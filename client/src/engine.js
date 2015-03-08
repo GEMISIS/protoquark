@@ -1,5 +1,7 @@
 var Entity = require("./entity")
 
+var localIdCounter = 0
+
 var ons = {
 control: {
 },
@@ -39,6 +41,10 @@ Engine.prototype = {
     return this.entities.filter(function(ent){
       return ent.context.id == id
     })[0]
+  },
+
+  generateId: function generateId() {
+    return localIdCounter++;
   }
 }
 
