@@ -1,9 +1,24 @@
 var Entity = require("./entity")
+var Matrix4    = require("./math").mat4
+var Vector3    = require("./math").vec3
+var Quaternion = require("./math").quat
 
 var localIdCounter = 0
 
 var ons = {
 control: {
+  look: function onLook(dx, dy) {
+    var me = this.you()
+
+    if (!me) return
+
+    me.euler.x += dx
+    me.euler.y += dy
+
+    me.rotation = new Quaternion().multiplyQuaternions(
+      new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -me.euler.y),
+      new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -me.euler.x))
+  }
 },
 conn: {
   playerenter: function onPlayerEnter (e) {
@@ -47,14 +62,5 @@ Engine.prototype = {
     return localIdCounter++;
   }
 }
-
-/*
-me.euler.x += dx
-me.euler.y += dy
-
-me.rotation = new Quaternion().multiplyQuaternions(
-  new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -me.euler.y),
-  new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -me.euler.x))
-*/
 
 module.exports = Engine
