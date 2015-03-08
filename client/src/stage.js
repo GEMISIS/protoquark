@@ -6,8 +6,6 @@ var representations = {
   player: require("./obj3d/player")
 }
 
-var PIXELS_PER_RADIAN = 1000
-
 function getEntityRepresentation (me, entity) {
   if (me.context.id == entity.context.id) return
   return representations.player
@@ -20,29 +18,8 @@ function animate () {
     this.renderer, this.scene, this.camera))
 }
 
-function onMouseMove (e) {
-  var me = this.engine.you()
-
-  if (!me) return
-
-  var pos = this.mpos
-  var dx = e.x - pos.x
-  var dy = e.y - pos.y
-
-  me.euler.x += dx * 1.0 / PIXELS_PER_RADIAN
-  me.euler.y += dy * 1.0 / PIXELS_PER_RADIAN
-
-  me.rotation = new Quaternion().multiplyQuaternions(
-    new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -me.euler.y),
-    new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -me.euler.x))
-
-  pos.x = e.x
-  pos.y = e.y
-}
-
-function Stage (engine, controller) {
+function Stage (engine) {
   this.engine = engine
-  this.control = controller
   this.cbs = {}
   this.el = document.createElement("div")
   this.el.className = "stage noselect"
@@ -70,9 +47,6 @@ Stage.prototype = {
 
     this.resize()
     animate.call(this)
-
-    this.cbs.mousemove = onMouseMove.bind(this)
-    window.addEventListener("mousemove", this.cbs.mousemove)
 
     var p = new representations.player()
     p.o3d.position.z = -10
@@ -125,7 +99,7 @@ Stage.prototype = {
     for (var i=0; i<ids.length; i++) {
       var id = ids[i]
       if (imap[id]) {
-        imap[id].update()
+        if (imap[id].update) imap[id].update()
         continue
       }
       this.scene.remove(map[id].o3d)

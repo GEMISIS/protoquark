@@ -24,13 +24,13 @@ document.addEventListener("DOMContentLoaded", function (e) {
   el.appendChild(chat.el)
 
   var controller = new Controller
+  controller.mpos.x = rect.width * 0.5
+  controller.mpos.y = rect.height * 0.5
   controller.listen()
 
   var engine = new Engine(conn, controller)
 
-  var stage = window.stage = new Stage(engine, controller)
-  stage.mpos.x = rect.width * 0.5
-  stage.mpos.y = rect.height * 0.5
+  var stage = window.stage = new Stage(engine)
   el.appendChild(stage.el)
   stage.resize()
 
@@ -40,6 +40,10 @@ document.addEventListener("DOMContentLoaded", function (e) {
   })
   window.addEventListener("beforeunload", function (e) {
     connection.kill()
+  })
+
+  window.addEventListener("mousemove", function (e) {
+    controller.lookWithMouse(e.x, e.y)
   })
 
   router.listen()

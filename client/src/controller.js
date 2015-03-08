@@ -1,9 +1,11 @@
 var emitter = require("component/emitter")
 
+var PIXELS_PER_RADIAN = 1000
+
 var keymap = {
   32: "jump",
-  65: "strafeLeft",
-  68: "strageRight",
+  65: "strafeleft",
+  68: "strageright",
   70: "grenade",
   82: "reload",
   83: "backward",
@@ -45,6 +47,7 @@ var ons = {
 function Controller () {
   this.cbs = {}
   this.states = {}
+  this.mpos = {x:0, y:0}
 }
 
 Controller.prototype = {
@@ -64,6 +67,15 @@ Controller.prototype = {
 
   getState: function getState (control) {
     return this.states[control]
+  },
+
+  lookWithMouse: function lookWithMouse (x, y) {
+    var pos = this.mpos
+    var dx = (x - pos.x) * 1.0 / PIXELS_PER_RADIAN
+    var dy = (y - pos.y) * 1.0 / PIXELS_PER_RADIAN
+    this.emit("look", dx, dy)
+    pos.x = e.x
+    pos.y = e.y
   }
 }
 

@@ -48,4 +48,13 @@ Engine.prototype = {
   }
 }
 
+/*
+me.euler.x += dx
+me.euler.y += dy
+
+me.rotation = new Quaternion().multiplyQuaternions(
+  new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -me.euler.y),
+  new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -me.euler.x))
+*/
+
 module.exports = Engine
