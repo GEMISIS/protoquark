@@ -2,7 +2,8 @@ var Maths = require("./math").maths
 var Vec3 = require("./math").vec3
 var Quat = require("./math").quat
 
-function Entity() {
+function Entity(context) {
+  this.context = context
   this.position = new Vec3()
 
   // ordered array of snapshots based on time with most recent snapshot at end of list.

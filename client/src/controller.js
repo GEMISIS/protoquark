@@ -63,6 +63,7 @@ Controller.prototype = {
   },
 
   getState: function getState (control) {
+    return this.states[control]
   }
 }
 

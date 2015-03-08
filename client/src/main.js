@@ -1,6 +1,7 @@
 var Chat       = require("./chat")
 var Connection = require("./connection")
 var Controller = require("./controller")
+var Engine     = require("./engine")
 var Router     = require("./router")
 var Stage      = require("./stage")
 
@@ -18,22 +19,22 @@ document.addEventListener("DOMContentLoaded", function (e) {
   router.add("room", /^\/([^\/]+)\/?$/)
   router.on("route:room", onRoom)
 
-  var stage = window.stage = new Stage(conn)
-  el.appendChild(stage.el)
-  stage.resize()
-
   var chat = new Chat(conn)
   el.appendChild(chat.el)
 
-  var controller = new Controller(conn)
+  var controller = new Controller
   controller.listen()
 
-  window.addEventListener("resize", stage.resize.bind(stage))
+  var engine = new Engine(conn, controller)
 
+  var stage = window.stage = new Stage(engine)
+  el.appendChild(stage.el)
+  stage.resize()
+
+  window.addEventListener("resize", stage.resize.bind(stage))
   window.addEventListener("keyup", function (e) {
     if (e.keyCode == 13) chat.focus()
   })
-
   window.addEventListener("beforeunload", function (e) {
     connection.kill()
   })
