@@ -1,4 +1,5 @@
-function Player (geo) {
+function Player (context, geo) {
+  this.context = context
   this.o3d = new THREE.Object3D()
 
   var material = new THREE.MeshBasicMaterial({
