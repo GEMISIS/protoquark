@@ -2,6 +2,7 @@ var emitter = require("component/emitter")
 
 var API_KEY = "98bn0vxj6aymygb9"
 var nameCounter = 0
+var pingCounter = 0
 
 function Connection() {
   this.players = {}
@@ -9,6 +10,8 @@ function Connection() {
   this.on("players", onPlayers.bind(this))
   this.on("playerenter", onPlayerEnter.bind(this))
   this.on("playerexit", onPlayerExit.bind(this))
+  this.on("ping", onPing.bind(this))
+  this.on("pong", onPong.bind(this))
 }
 
 Connection.prototype = {
@@ -22,7 +25,8 @@ Connection.prototype = {
       event : event,
       context : obj,
       sender : opts.sender || this.peer.id,
-      relay: opts.relay
+      relay: opts.relay,
+      broadcast: opts.broadcast
     }
 
     // If we are just a client send it now.
@@ -31,7 +35,7 @@ Connection.prototype = {
     // Handle relaying of data.
     if (clients[data.relay]) return clients[data.relay].send(data)
 
-    // Re-send ourself the event, because we are not a client.
+    // Re-send ourself the event, because we are not a client and we are broadcasting
     this.emit(data.event, data)
 
     // As server broadcast to all clients if there is no relay automatically.
@@ -65,6 +69,10 @@ Connection.prototype = {
   }
 }
 
+function pingServer() {
+  this.send()
+}
+
 function onClientIdAssigned(id) {
   console.log("You are", this.peer.id)
 }
@@ -96,16 +104,19 @@ function onClientData(conn, data) {
   console.log("Received client data", data)
 
   var relay = data.relay || ""
+  var broadcast = data.broadcast
 
   // If directed at a user other than us, forward data.
-  if (relay != this.peer.id)
+  if (!broadcast && relay && relay != this.peer.id)
     return this.send(data.event, data.context, data)
 
   // If directed at the server emit it.
   if (relay == this.peer.id)
     return this.emit(data.event, data)
 
-  this.send(data.event, data.context, data)
+  if (broadcast)
+    this.send(data.event, data.context, data)
+
   this.emit(data.event, data)
 }
 
@@ -124,12 +135,24 @@ function onClientConnected(conn) {
     id: conn.peer,
     name: this.generateName()
   }
-  console.log("Client connected ", conn.peer, conn.id)
+  console.log("Client connected ", conn.peer)
 
   setTimeout((function(){
     this.send("playerenter", this.players[conn.peer])
     this.send("players", this.players, {relay: conn.peer})
   }).bind(this), 250)
+
+  pingClient.call(this, conn.peer, 5)
+}
+
+function pingClient(id, times) {
+  times = times || 1
+  
+  while (times-- > 0) {
+    setTimeout((function(){
+      this.send("ping", {time : Date.now() / 1000, which : pingCounter++}, {relay : id})
+    }).bind(this), times * 250)
+  }
 }
 
 function sendPlayerUpdate (send, player) {
@@ -158,6 +181,17 @@ function onPlayerExit (e) {
   console.log("Player exited", e)
   if (this.players[e.context.id])
     delete this.players[e.context.id]
+}
+
+function onPing(e) {
+  // "Pong" back to sender - only if client
+  if (!this.isServer())
+    this.send("pong", e.context)
+}
+
+function onPong(e) {
+  // We received a pong to our ping request.
+  console.log("Received pong", Date.now() / 1000 - e.context.time)
 }
 
 function onServerStarted() {
