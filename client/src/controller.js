@@ -73,9 +73,9 @@ Controller.prototype = {
     var pos = this.mpos
     var dx = (x - pos.x) * 1.0 / PIXELS_PER_RADIAN
     var dy = (y - pos.y) * 1.0 / PIXELS_PER_RADIAN
+    pos.x = x
+    pos.y = y
     this.emit("look", dx, dy)
-    pos.x = e.x
-    pos.y = e.y
   }
 }
 
