@@ -104,16 +104,16 @@ function onServerDisconnected() {
 function onClientData(conn, data) {
   console.log("Received client data", data)
 
-  var relay = data.relay || ""
+  var relay = data.relay
 
   // If directed at a user other than us, forward data.
   if (relay && relay != this.peer.id)
     return this.send(data.event, data.context, data)
 
   // If directed at the server emit it.
-  if (relay == this.peer.id)
-    return this.emit(data.event, data)
+  if (relay == this.peer.id) return this.emit(data.event, data)
 
+  // Broadcast it.
   this.send(data.event, data.context, data)
 }
 
