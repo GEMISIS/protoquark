@@ -3,6 +3,7 @@ var emitter = require("component/emitter")
 var API_KEY = "98bn0vxj6aymygb9"
 var nameCounter = 0
 var pingCounter = 0
+var networkIdCounter = 0x10000
 
 function Connection() {
   this.players = {}
