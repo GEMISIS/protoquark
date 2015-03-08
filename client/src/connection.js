@@ -120,8 +120,7 @@ function onClientData(conn, data) {
     return this.send(data.event, data.context, data)
 
   // If directed at the server emit it.
-  if (relay == this.peer.id)
-    return this.emit(data.event, data)
+  if (relay == this.peer.id) return this.emit(data.event, data)
 
   if (broadcast)
     this.send(data.event, data.context, data)
