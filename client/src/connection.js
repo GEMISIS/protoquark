@@ -107,7 +107,7 @@ function onClientData(conn, data) {
   var relay = data.relay || ""
 
   // If directed at a user other than us, forward data.
-  if (relay != this.peer.id)
+  if (relay && relay != this.peer.id)
     return this.send(data.event, data.context, data)
 
   // If directed at the server emit it.
@@ -115,7 +115,6 @@ function onClientData(conn, data) {
     return this.emit(data.event, data)
 
   this.send(data.event, data.context, data)
-  this.emit(data.event, data)
 }
 
 function onClientDisconnected(conn) {
