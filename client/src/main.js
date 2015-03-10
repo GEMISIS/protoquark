@@ -39,9 +39,6 @@ var ons = {
 
     if (this.chat.hasfocus && !isenter) return
 
-    e.preventDefault()
-    e.stopPropagation
-
     if (isenter) return this.chat.toggle()
 
     this.controller.set(keymap[e.keyCode], true)
