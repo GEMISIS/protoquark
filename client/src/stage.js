@@ -61,11 +61,6 @@ Stage.prototype = {
 
     if (!me) return this.renderer.render(this.scene, this.camera)
 
-    // Camera
-    var forward = new Vector3(0, 0, -1)
-      .applyMatrix4(new Matrix4().makeRotationFromQuaternion(me.rotation))
-      .normalize()
-    var lookAtPoint = new Vector3().addVectors(me.position, forward)
     this.camera.rotation.copy(new Euler(-me.euler.y, -me.euler.x, 0, "YXZ"))
     this.camera.position.copy(me.position)
 
