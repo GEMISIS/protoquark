@@ -1,13 +1,14 @@
 var Maths = require("./math").maths
-var Vec3 = require("./math").vec3
-var Quat = require("./math").quat
+var Matrix4    = require("./math").mat4
+var Vector3    = require("./math").vec3
+var Quaternion = require("./math").quat
 
 function Entity(context, id) {
   this.context = context
 
-  this.position = new Vec3()
-  this.rotation = new Quat()
-  this.euler = new Vec3()
+  this.position = new Vector3()
+  this.rotation = new Quaternion()
+  this.euler = new Vector3()
 
   this.id = id
 
@@ -37,8 +38,8 @@ Entity.prototype = {
         var snapshotBefore = snapshots[i]
           , snapshotAfter = snapshots[i + 1]
           , t = (time - snapshotBefore.time) / (snapshotAfter.time - snapshotBefore.time)
-          , position = new Vec3(snapshotBefore.x, snapshotBefore.y, snapshotBefore.z).lerp(snapshotAfter, t)
-          , rotation = new Quat()
+          , position = new Vector3(snapshotBefore.x, snapshotBefore.y, snapshotBefore.z).lerp(snapshotAfter, t)
+          , rotation = new Quaternion()
 
         Maths.slerp(rotation, snapshotBefore.rotation, snapshotAfter.rotation, t)
 
@@ -53,6 +54,14 @@ Entity.prototype = {
       position: position,
       rotation: rotation
     }
+  },
+
+  updateRotation: function updateRotation() {
+    var euler = this.euler
+
+    this.rotation = new Quaternion().multiplyQuaternions(
+      new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -euler.y),
+      new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -euler.x))
   }
 }
 

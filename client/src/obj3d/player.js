@@ -1,9 +1,9 @@
-function Player (entity, geo) {
+function Player (entity, geo, color) {
   this.entity = entity
   this.o3d = new THREE.Object3D()
 
   var material = new THREE.MeshBasicMaterial({
-    color: 0xff0000
+    color: color || 0xff0000
   })
   var geometry = geo || new THREE.BoxGeometry(1, 1, 1)
   var mesh = new THREE.Mesh(geometry, material)

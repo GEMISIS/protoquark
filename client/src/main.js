@@ -7,7 +7,7 @@ var Stage      = require("./stage")
 
 window.connection = new Connection();
 
-var PIXELS_PER_RADIAN = 1000
+var PIXELS_PER_RADIAN = 250
 
 var keymap = {
   32: "jump",

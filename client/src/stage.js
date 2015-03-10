@@ -1,6 +1,7 @@
 var Matrix4    = require("./math").mat4
 var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
+var Euler      = require("./math").euler
 
 var representations = {
   player: require("./obj3d/player")
@@ -48,9 +49,12 @@ Stage.prototype = {
     this.resize()
     animate.call(this)
 
-    var p = new representations.player()
-    p.o3d.position.z = -10
-    this.scene.add(p.o3d)
+    for (var angle = 0; angle < 360; angle += 90) {
+      var p = new representations.player(null, null, 255 * angle)
+      p.o3d.position.x = Math.cos(angle * Math.PI / 180) * 5
+      p.o3d.position.z = -Math.sin(angle * Math.PI / 180) * 5
+      this.scene.add(p.o3d)
+    }
   },
 
   resize: function resize() {
@@ -74,7 +78,8 @@ Stage.prototype = {
       .applyMatrix4(new Matrix4().makeRotationFromQuaternion(me.rotation))
       .normalize()
     var lookAtPoint = new Vector3().addVectors(me.position, forward)
-    this.camera.lookAt(lookAtPoint)
+    // this.camera.lookAt(lookAtPoint)
+    this.camera.rotation.copy(new Euler(-me.euler.y, -me.euler.x, 0, "YXZ"))
     this.camera.position.copy(me.position)
 
     // Diff the entities in the engine and add and or update, or remove them.

@@ -7,7 +7,7 @@ var localIdCounter = 0
 
 var handle = {
   player: function(ent, dt) {
-    var angle = ent.euler.y
+    var angle = ent.euler.x
     var sinAngle = Math.sin(angle)
     var cosAngle = Math.cos(angle)
     var speed = ent.speed || 2
@@ -15,15 +15,17 @@ var handle = {
     if (ent.control.forward || ent.control.backward) {
       var multiplier = ent.control.forward ? 1 : -1
       
-      ent.position.x += cosAngle * speed * dt * multiplier
-      ent.position.z += sinAngle * speed * dt * multiplier
+      ent.position.x += sinAngle * speed * dt * multiplier
+      ent.position.z -= cosAngle * speed * dt * multiplier
     }
 
     if (ent.control.strafeleft || ent.control.straferight) {
       var multiplier = ent.control.straferight ? 1 : -1
       
-      ent.position.x += sinAngle * speed * dt * multiplier
-      ent.position.z += cosAngle * speed * dt * multiplier
+      ent.position.x += cosAngle * speed * dt * multiplier
+      ent.position.z += sinAngle * speed * dt * multiplier
+
+      ent.updateRotation()
     }
   }
 }
