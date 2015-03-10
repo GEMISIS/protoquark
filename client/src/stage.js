@@ -62,7 +62,6 @@ Stage.prototype = {
 
   dispose: function dispose() {
     cancelAnimatinFrame(this.id)
-    window.removeEventListener("mousemove", this.cbs.mousemove)
   },
 
   update: function update() {

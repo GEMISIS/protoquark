@@ -7,13 +7,13 @@ var localIdCounter = 0
 
 var ons = {
 control: {
-  look: function onLook(dx, dy) {
+  look: function onLook(state) {
     var me = this.you()
 
     if (!me) return
 
-    me.euler.x += dx
-    me.euler.y += dy
+    me.euler.x += state.x
+    me.euler.y += state.y
 
     me.rotation = new Quaternion().multiplyQuaternions(
       new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -me.euler.y),
