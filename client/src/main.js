@@ -90,11 +90,10 @@ document.addEventListener("DOMContentLoaded", function (e) {
   })
 
   router.listen()
-  
   update(engine)
 })
 
 function update(engine) {
-  engine.update(1 / 60.0)
-  setTimeout(update.bind(this, engine), 1 / 60.0)
+  engine.update(1/60)
+  requestAnimationFrame(update.bind(this, engine))
 }
