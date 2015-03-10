@@ -38,7 +38,6 @@ var ons = {
     var isenter = e.keyCode == 13
 
     if (this.chat.hasfocus && !isenter) return
-
     if (isenter) return this.chat.toggle()
 
     this.controller.set(keymap[e.keyCode], true)

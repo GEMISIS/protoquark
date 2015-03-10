@@ -1,4 +1,4 @@
-var Entity = require("./entity")
+var Entity     = require("./entity")
 var Matrix4    = require("./math").mat4
 var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
@@ -14,17 +14,14 @@ var handle = {
 
     if (ent.control.forward || ent.control.backward) {
       var multiplier = ent.control.forward ? 1 : -1
-      
       ent.position.x += sinAngle * speed * dt * multiplier
       ent.position.z -= cosAngle * speed * dt * multiplier
     }
 
     if (ent.control.strafeleft || ent.control.straferight) {
       var multiplier = ent.control.straferight ? 1 : -1
-      
       ent.position.x += cosAngle * speed * dt * multiplier
       ent.position.z += sinAngle * speed * dt * multiplier
-
       ent.updateRotation()
     }
   }
@@ -54,9 +51,7 @@ conn: {
   playerenter: function onPlayerEnter (e) {
     var ent = new Entity(e.context)
     ent.control = {}
-
     ent.type = "player"
-
     this.entities.push(ent)
   },
 
