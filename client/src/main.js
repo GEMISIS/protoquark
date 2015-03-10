@@ -12,7 +12,7 @@ var PIXELS_PER_RADIAN = 1000
 var keymap = {
   32: "jump",
   65: "strafeleft",
-  68: "strageright",
+  68: "straferight",
   70: "grenade",
   82: "reload",
   83: "backward",
@@ -36,6 +36,7 @@ var ons = {
   },
   keydown: function onKeyDown (e) {
     if (e.keyCode == 13) this.chat.focus()
+
     this.controller.set(keymap[e.keyCode], true)
   },
   mousedown: function onMouseDown (e) {
@@ -89,4 +90,11 @@ document.addEventListener("DOMContentLoaded", function (e) {
   })
 
   router.listen()
+  
+  update(engine)
 })
+
+function update(engine) {
+  engine.update(1 / 60.0)
+  setTimeout(update.bind(this, engine), 1 / 60.0)
+}
