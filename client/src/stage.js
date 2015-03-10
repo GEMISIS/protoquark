@@ -11,13 +11,6 @@ function getEntityRepresentation (me, entity) {
   return representations.player
 }
 
-function animate () {
-  this.update()
-  this.renderer.render(this.scene, this.camera)
-  this.id = requestAnimationFrame(animate.bind(this,
-    this.renderer, this.scene, this.camera))
-}
-
 function Stage (engine) {
   this.engine = engine
   this.cbs = {}
@@ -46,7 +39,6 @@ Stage.prototype = {
     el.appendChild(this.renderer.domElement)
 
     this.resize()
-    animate.call(this)
 
     var p = new representations.player()
     p.o3d.position.z = -10
@@ -60,14 +52,10 @@ Stage.prototype = {
     this.renderer.setSize(rect.width, rect.height)
   },
 
-  dispose: function dispose() {
-    cancelAnimatinFrame(this.id)
-  },
-
-  update: function update() {
+  update: function update(dt) {
     var me = this.engine.you()
 
-    if (!me) return
+    if (!me) return this.renderer.render(this.scene, this.camera)
 
     // Camera
     var forward = new Vector3(0, 0, -1)
@@ -89,7 +77,7 @@ Stage.prototype = {
 
       var Rep = getEntityRepresentation.call(this, me, e)
 
-      if (!Rep) return
+      if (!Rep) continue
 
       var p = map[e.id] = new Rep(e)
       this.scene.add(p.o3d)
@@ -106,6 +94,8 @@ Stage.prototype = {
       ids.splice(i, 1)
       i--
     }
+
+    this.renderer.render(this.scene, this.camera)
   }
 }
 

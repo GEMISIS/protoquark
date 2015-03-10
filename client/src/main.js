@@ -35,11 +35,19 @@ var ons = {
     this.controller.set(keymap[e.keyCode], false)
   },
   keydown: function onKeyDown (e) {
-    if (e.keyCode == 13) this.chat.focus()
+    var isenter = e.keyCode == 13
+
+    if (this.chat.hasfocus && !isenter) return
+
+    e.preventDefault()
+    e.stopPropagation
+
+    if (isenter) return this.chat.toggle()
 
     this.controller.set(keymap[e.keyCode], true)
   },
   mousedown: function onMouseDown (e) {
+    this.chat.blur()
     this.controller.set(mousemap[e.which], true)
   },
   mouseup: function onMouseUp (e) {
@@ -90,10 +98,12 @@ document.addEventListener("DOMContentLoaded", function (e) {
   })
 
   router.listen()
-  update(engine)
+  update(engine, stage)
 })
 
-function update(engine) {
-  engine.update(1/60)
-  requestAnimationFrame(update.bind(this, engine))
+function update(engine, stage) {
+  var step = 1/60
+  engine.update(step)
+  stage.update(step)
+  requestAnimationFrame(update.bind(this, engine, stage))
 }
