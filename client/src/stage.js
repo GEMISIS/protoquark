@@ -42,7 +42,7 @@ Stage.prototype = {
     this.resize()
 
     for (var angle = 0; angle < 360; angle += 90) {
-      var p = new representations.player(null, null, Math.random() * 0xFFFFFF)
+      var p = new representations.player(null, null, Math.max(Math.random() * 0xFFFFFF, 0xFF))
       p.o3d.position.x = Math.cos(angle * Math.PI / 180) * 5
       p.o3d.position.z = -Math.sin(angle * Math.PI / 180) * 5
       this.scene.add(p.o3d)
