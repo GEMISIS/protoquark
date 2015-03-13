@@ -114,7 +114,7 @@ conn: {
     var self = this
     var me = this.you()
 
-    Object.keys(snapshots).forEach(function(id) {
+    Object.keys(entitySnapshots).forEach(function(id) {
       var ent = self.entityMap[id]
       var snapshots = entitySnapshots[id]
 
