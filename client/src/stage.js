@@ -84,8 +84,8 @@ Stage.prototype = {
     var ids = Object.keys(map)
     for (var i=0; i<ids.length; i++) {
       var id = ids[i]
-      if (imap[id]) {
-        if (imap[id].update) imap[id].update()
+      if (imap[id] && imap[id].update) {
+        imap[id].update(dt)
         continue
       }
       this.scene.remove(map[id].o3d)
