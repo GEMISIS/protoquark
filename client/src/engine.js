@@ -110,13 +110,13 @@ conn: {
   },
 
   entitiesupdate: function onEntitiesUpdate(e) {
-    var snapshots = e.context.snapshots
+    var entitySnapshots = e.context.snapshots
     var self = this
     var me = this.you()
 
     Object.keys(snapshots).forEach(function(id) {
       var ent = self.entityMap[id]
-      var snapshots = snapshots[id]
+      var snapshots = entitySnapshots[id]
 
       // Add interpolated snapshots only if this isnt ourself
       if (ent && snapshots && ent !== me) {
