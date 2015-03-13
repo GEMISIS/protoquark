@@ -1,6 +1,12 @@
 var emitter = require("component/emitter")
 
 var API_KEY = "98bn0vxj6aymygb9"
+
+// Max ping packets to send
+var MAX_PINGS = 10
+// Smaller amount of ping packets before we can accurately get latency & server time
+var MIN_PINGS = 5
+
 var nameCounter = 0
 var pingCounter = 0
 var networkIdCounter = 0x10000
@@ -13,6 +19,7 @@ function Connection() {
   this.on("playerexit", onPlayerExit.bind(this))
   this.on("ping", onPing.bind(this))
   this.on("pong", onPong.bind(this))
+  this.on("servertime", onServerTime.bind(this))
 }
 
 Connection.prototype = {
@@ -60,6 +67,7 @@ Connection.prototype = {
 
   kill: function kill() {
     this.peer.disconnect()
+    this.emit("connectionkill")
     console.log("connection killed")
   },
 
@@ -69,11 +77,16 @@ Connection.prototype = {
 
   generateName: function () {
     return "P" + ++nameCounter
-  }
-}
+  },
 
-function pingServer() {
-  this.send()
+  getServerTime: function getServerTime() {
+    var serverTimeOffset = this.serverTimeOffset
+    return Date.now() / 1000 + (serverTimeOffset ? serverTimeOffset : 0)
+  },
+
+  isOwnId: function(id) {
+    return id === this.peer.id
+  },
 }
 
 function onClientIdAssigned(id) {
@@ -102,8 +115,15 @@ function onJoinError(err) {
 }
 
 function onServerData(data) {
-  console.log("Received data from server", data)
+  // console.log("Received data from server", data)
   this.emit(data.event, data)
+}
+
+function onServerTime(data) {
+  if (this.isServer()) return
+
+  var serverTime = data.context.time + data.context.latency / 2
+  this.serverTimeOffset = serverTime - Date.now() / 1000
 }
 
 function onServerDisconnected() {
@@ -111,7 +131,7 @@ function onServerDisconnected() {
 }
 
 function onClientData(conn, data) {
-  console.log("Received client data", data)
+  // console.log("Received client data", data)
 
   var relay = data.relay || ""
   var broadcast = data.broadcast
@@ -121,10 +141,10 @@ function onClientData(conn, data) {
     return this.send(data.event, data.context, data)
 
   // If directed at the server emit it.
-  if (relay == this.peer.id) return this.emit(data.event, data)
+  if (relay == this.peer.id || !broadcast) return this.emit(data.event, data)
 
-  if (broadcast)
-    this.send(data.event, data.context, data)
+  // broadcast
+  this.send(data.event, data.context, data)
 }
 
 function onClientDisconnected(conn) {
@@ -135,21 +155,25 @@ function onClientDisconnected(conn) {
 }
 
 function onClientConnected(conn) {
+  console.log("Client connected ", conn.peer)
+
   conn.on("data", onClientData.bind(this, conn))
   conn.once("close", onClientDisconnected.bind(this, conn))
   this.clients[conn.peer] = conn
-  this.players[conn.peer] = {
+
+  var player = this.players[conn.peer] = {
     id: conn.peer,
     name: this.generateName()
   }
-  console.log("Client connected ", conn.peer)
 
   setTimeout((function(){
-    this.send("playerenter", this.players[conn.peer])
+    // Send new player info to everyone including new player
+    this.send("playerenter", player)
+    // Send updated players listing to new player
     this.send("players", this.players, {relay: conn.peer})
   }).bind(this), 250)
 
-  pingClient.call(this, conn.peer, 5)
+  pingClient.call(this, player.id, MAX_PINGS)
 }
 
 function pingClient(id, times) {
@@ -197,8 +221,26 @@ function onPing(e) {
 }
 
 function onPong(e) {
+  if (!this.isServer()) return
+
   // We received a pong to our ping request.
-  console.log("Received pong", Date.now() / 1000 - e.context.time)
+  var latency = Date.now() / 1000 - e.context.time
+  
+  var player = this.players[e.sender]
+  
+  var latencies = player.latencies = player.latencies || []
+  latencies.push(latency)
+
+  if (latencies.length < MIN_PINGS) return
+
+  // Once we gathered enough packets, we can do a median check to get the latency
+  player.latency = latencies.sort()[Math.floor(latencies.length / 2)]
+  player.latencies = []
+
+  this.send("servertime", {
+    time: Date.now() / 1000,
+    latency: player.latency
+  })
 }
 
 function onServerStarted() {

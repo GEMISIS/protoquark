@@ -4,7 +4,9 @@ var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
 
 var localIdCounter = 0
+var SEND_INTERVAL = .05
 
+// Handler by entity type
 var handle = {
   player: function(ent, dt) {
     var angle = ent.euler.x
@@ -24,6 +26,16 @@ var handle = {
       ent.position.z += sinAngle * speed * dt * multiplier
       ent.updateRotation()
     }
+
+    // Queue up packets to send - we'll clear this once sent
+    ent.addSnapshot(this.conn.getServerTime())
+  },
+
+  remoteplayer: function(ent, dt) {
+    // Note that since we dont know what order these events will arrive,
+    // make sure Entity.prototype.trimSnapshots doesn't remove everything
+    ent.interpolate(this.conn.getServerTime())
+    ent.trimSnapshots()
   }
 }
 
@@ -49,10 +61,14 @@ control: {
 },
 conn: {
   playerenter: function onPlayerEnter (e) {
-    var ent = new Entity(e.context)
+    console.log(e.context)
+    var owned = this.conn.isOwnId(e.context.id)
+    var ent = new Entity(e.context, this.generateId())
     ent.control = {}
-    ent.type = "player"
+    ent.type = owned ? "player" : "remoteplayer"
+    
     this.entities.push(ent)
+    this.entityMap[e.context.id] = ent
   },
 
   playerexit: function onPlayerExit (e) {
@@ -63,6 +79,55 @@ conn: {
     if (!ent) return
     this.entities.splice(this.entities.indexOf(ent), 1)
   },
+
+  players: function onPlayers(e) {
+    // Loop through all players besides ourself since that's handled in playerenter
+    var self = this
+    var conn = this.conn
+    Object.keys(e.context).forEach(function(id) {
+      if (!conn.isOwnId(id)) {
+        var ent = new Entity(e.context, self.generateId())
+        ent.control = {}
+        ent.type = "remoteplayer"
+        
+        self.entities.push(ent)
+        self.entityMap[id] = ent
+      }
+    })
+  },
+
+  playerstate: function onPlayerState(e) {
+    if (!this.conn.isServer()) return
+
+    var ent = this.entityMap[e.sender]
+    if (!ent) return
+
+    // Queue packets for future send - dont put in ent.snapshots since we'll handle that with
+    // the entitiesupdate event for both client and server
+
+    this.snapshots = this.snapshots || {}
+    this.snapshots[e.sender] = (this.snapshots[e.sender] || []).concat(e.context.snapshots)
+  },
+
+  entitiesupdate: function onEntitiesUpdate(e) {
+    var snapshots = e.context.snapshots
+    var self = this
+    var me = this.you()
+
+    Object.keys(snapshots).forEach(function(id) {
+      var ent = self.entityMap[id]
+      var snapshots = snapshots[id]
+
+      // Add interpolated snapshots only if this isnt ourself
+      if (ent && snapshots && ent !== me) {
+        ent.snapshots = ent.snapshots.concat(snapshots)
+      }
+    })
+  },
+
+  connectionkill: function onConnectionKill() {
+    clearInterval(this.sendIntervalId)
+  }
 }
 }
 
@@ -70,6 +135,8 @@ function Engine (connection, controller) {
   this.conn = connection
   this.control = controller
   this.entities = []
+  this.entityMap = {}
+  this.sendIntervalId = setInterval(onIntervalSend.bind(this), SEND_INTERVAL * 1000)
 
   var self = this
 
@@ -98,10 +165,7 @@ function Engine (connection, controller) {
 Engine.prototype = {
   you: function () {
     if (!this.conn.peer) return
-    var id = this.conn.peer.id
-    return this.entities.filter(function(ent){
-      return ent.context.id == id
-    })[0]
+    return this.entityMap[this.conn.peer.id]
   },
 
   generateId: function generateId() {
@@ -116,8 +180,28 @@ Engine.prototype = {
       var ent = entities[i]
       var handler = handle[ent.type]
 
-      if (handler) handler(ent, dt)
+      if (handler) handler.call(this, ent, dt)
     }
+  }
+}
+
+function onIntervalSend() {
+  var conn = this.conn
+  var me = this.you()
+  if (me && me.snapshots.length) {
+    // Send queued up packets
+    conn.send("playerstate", {
+      snapshots: me.snapshots
+    });
+    // Clear for next send.
+    me.snapshots = []
+  }
+
+  if (conn.isServer() && this.snapshots) {
+    conn.send("entitiesupdate", {
+      snapshots: this.snapshots
+    });
+    this.snapshots = {}
   }
 }
 
