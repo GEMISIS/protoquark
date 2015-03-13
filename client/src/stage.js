@@ -59,7 +59,10 @@ Stage.prototype = {
   update: function update(dt) {
     var me = this.engine.you()
 
-    if (!me) return this.renderer.render(this.scene, this.camera)
+    if (!me) {
+      console.log("no me")
+      return this.renderer.render(this.scene, this.camera)
+    }
 
     this.camera.rotation.copy(new Euler(-me.euler.y, -me.euler.x, 0, "YXZ"))
     this.camera.position.copy(me.position)
@@ -68,31 +71,46 @@ Stage.prototype = {
     var map = this.emap
     var imap = {}
     var entities = this.engine.entities
+    var rep
+
     for (var i=0; i<entities.length; i++) {
       var e = entities[i]
       imap[e.id] = true
 
       if (map[e.id]) continue
 
-      var Rep = getEntityRepresentation.call(this, me, e)
+      var Representation = getEntityRepresentation.call(this, me, e)
+      if (Representation) {
+        rep = new Representation(e)
+        this.scene.add(rep.o3d)
+      }
+      else {
+        rep = {entity: e}
+      }
 
-      if (!Rep) continue
-
-      var p = map[e.id] = new Rep(e)
-      this.scene.add(p.o3d)
+      map[e.id] = rep
+      console.log("Added entity", e.id)
     }
+
     var ids = Object.keys(map)
     for (var i=0; i<ids.length; i++) {
       var id = ids[i]
-      if (imap[id] && imap[id].update) {
-        imap[id].update(dt)
+      rep = map[id]
+
+      if (imap[id]) {
+        if (rep.update) rep.update(dt)
+        console.log("Updated entity", rep.entity.id)
         continue
       }
-      this.scene.remove(map[id].o3d)
+
+      this.scene.remove(rep.o3d)
       delete map[id]
       ids.splice(i, 1)
       i--
+      console.log("Removed entity", rep.entity.id)
     }
+
+    console.log("---")
 
     this.renderer.render(this.scene, this.camera)
   }
