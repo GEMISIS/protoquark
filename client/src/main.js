@@ -29,7 +29,7 @@ var ons = {
     this.connection.kill()
   },
   resize: function onResize (e) {
-    this.stage.resize.bind(this.stage)
+    this.stage.resize()
   },
   keyup: function onKeyUp (e) {
     this.controller.set(keymap[e.keyCode], false)
