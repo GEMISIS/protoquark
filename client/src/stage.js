@@ -8,7 +8,7 @@ var representations = {
 }
 
 function getEntityRepresentation (me, entity) {
-  if (me.context.id == entity.context.id) return
+  if (me && me.context.id == entity.context.id) return
   return representations.player
 }
 
@@ -59,13 +59,10 @@ Stage.prototype = {
   update: function update(dt) {
     var me = this.engine.you()
 
-    if (!me) {
-      console.log("no me")
-      return this.renderer.render(this.scene, this.camera)
+    if (me) {
+      this.camera.rotation.copy(new Euler(-me.euler.y, -me.euler.x, 0, "YXZ"))
+      this.camera.position.copy(me.position)
     }
-
-    this.camera.rotation.copy(new Euler(-me.euler.y, -me.euler.x, 0, "YXZ"))
-    this.camera.position.copy(me.position)
 
     // Diff the entities in the engine and add and or update, or remove them.
     var map = this.emap
@@ -89,7 +86,6 @@ Stage.prototype = {
       }
 
       map[e.id] = rep
-      console.log("Added entity", e.id)
     }
 
     var ids = Object.keys(map)
@@ -99,7 +95,6 @@ Stage.prototype = {
 
       if (imap[id]) {
         if (rep.update) rep.update(dt)
-        console.log("Updated entity", rep.entity.id)
         continue
       }
 
@@ -107,10 +102,7 @@ Stage.prototype = {
       delete map[id]
       ids.splice(i, 1)
       i--
-      console.log("Removed entity", rep.entity.id)
     }
-
-    console.log("---")
 
     this.renderer.render(this.scene, this.camera)
   }
