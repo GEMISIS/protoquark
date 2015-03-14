@@ -13,7 +13,6 @@ function Player (entity, geo, color) {
 
 Player.prototype = {
   update: function update (dt) {
-    console.log("update entitie pos")
     var o3d = this.o3d
     var e = this.entity
     o3d.position.copy(e.position)

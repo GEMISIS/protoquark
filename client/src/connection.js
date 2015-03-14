@@ -94,7 +94,7 @@ function onClientIdAssigned(id) {
 
   if (this.server) this.server.removeAllListeners()
 
-  var conn = this.server = this.peer.connect(this.room)
+  var conn = this.server = this.peer.connect(this.room, {reliable: true})
   conn.on("open", onConnectedToServer.bind(this))
   conn.on("data", onServerData.bind(this))
   conn.on("close", onServerDisconnected.bind(this))
@@ -171,6 +171,7 @@ function onClientConnected(conn) {
     this.send("playerenter", player)
     // Send updated players listing to new player
     this.send("players", this.players, {relay: conn.peer})
+    console.log("playerenter, playersend")
   }).bind(this), 250)
 
   pingClient.call(this, player.id, MAX_PINGS)
@@ -178,7 +179,7 @@ function onClientConnected(conn) {
 
 function pingClient(id, times) {
   times = times || 1
-  
+
   while (times-- > 0) {
     setTimeout((function(){
       this.send("ping", {time : Date.now() / 1000, which : pingCounter++}, {relay : id})
@@ -202,14 +203,16 @@ function onPlayers (e) {
   Object.keys(e.context).forEach(function (id) {
     players[id] = e.context[id]
   })
+  console.log("players updated")
 }
 
 function onPlayerEnter (e) {
   this.players[e.context.id] = e.context
+  console.log("playerenter", e.context.id)
 }
 
 function onPlayerExit (e) {
-  console.log("Player exited", e)
+  console.log("Player exited", e.context.id)
   if (this.players[e.context.id])
     delete this.players[e.context.id]
 }
@@ -225,9 +228,7 @@ function onPong(e) {
 
   // We received a pong to our ping request.
   var latency = Date.now() / 1000 - e.context.time
-  
   var player = this.players[e.sender]
-  
   var latencies = player.latencies = player.latencies || []
   latencies.push(latency)
 
