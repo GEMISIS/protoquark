@@ -59,10 +59,10 @@ Connection.prototype = {
     var peer = this.peer = new Peer({key : API_KEY})
     peer.once("error", onJoinError.bind(this))
     peer.once("open", onClientIdAssigned.bind(this))
-    /*peer.on("connection", function (e) { console.log("connection!", e) })
+    peer.on("connection", function (e) { console.log("connection!", e) })
     peer.on("call", function (e) { console.log("call!", e) })
     peer.on("close", function (e) { console.log("close!", e) })
-    peer.on("disconnected", function (e) { console.log("disconnected!", e) })*/
+    peer.on("disconnected", function (e) { console.log("disconnected!", e) })
   },
 
   kill: function kill() {
@@ -107,17 +107,13 @@ function onConnectedToServer() {
 
 function onJoinError(err) {
   console.log("Unable to join room, starting up new server", err)
-
   // Kill any connections so that client doesn't end up joining to self
   this.peer.disconnect()
-
   serve.call(this)
 }
 
 function onServerData(data) {
-  if (data.event !== "entitiesupdate" && data.event !== "playerstate")
-    console.log("Received data from server", data)
-
+  //console.log("Received data from server", data)
   this.emit(data.event, data)
 }
 
@@ -160,25 +156,33 @@ function onClientDisconnected(conn) {
 function onClientConnected(conn) {
   console.log("Client connected ", conn.peer)
 
-  conn.on("data", onClientData.bind(this, conn))
-  conn.once("close", onClientDisconnected.bind(this, conn))
-  this.clients[conn.peer] = conn
-
   var player = this.players[conn.peer] = {
     id: conn.peer,
     name: this.generateName()
   }
 
-  setTimeout((function(){
+  this.clients[conn.peer] = conn
+  conn.on("data", onClientData.bind(this, conn))
+  conn.once("close", onClientDisconnected.bind(this, conn))
+  conn.once("open", (function(conn){
+    console.log("playerenter, playersend")
     // Send new player info to everyone including new player
     this.send("playerenter", player)
     // Send updated players listing to new player
+<<<<<<< HEAD
     this.send("players", this.players, {relay: conn.peer})
     console.log("playerenter, playersend")
 
   }).bind(this), 1000)
+=======
+    this.send("players", this.players, {relay: player.id})
+    pingClient.call(this, player.id, MAX_PINGS)
+  }).bind(this, conn))
+}
 
-  pingClient.call(this, player.id, MAX_PINGS)
+function onClientOpened (conn) {
+>>>>>>> 8444a7810b5c4c7b57bd0bb17d03b9475e5f4749
+
 }
 
 function pingClient(id, times) {
@@ -288,7 +292,7 @@ function migrate() {
     })[0]
 
   console.log("next host", nextHostId)
-  
+
   // Serve if we are next in line.
   if (id === nextHostId)
     serve.call(this, id)
