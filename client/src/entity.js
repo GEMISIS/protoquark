@@ -4,7 +4,7 @@ var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
 
 // View interpolation delay as done in Source engine to allow for dropped packets
-var INTERPOLATION_DELAY = .2
+var INTERPOLATION_DELAY = .1
 
 function Entity(context, id) {
   this.context = context
@@ -30,10 +30,11 @@ Entity.prototype = {
   getSnapshot: function getSnapshot(time) {
     var snapshots = this.snapshots
 
-    if (!snapshots.length) return
+    if (!snapshots.length)
+      return
 
     // Time is more recent than any entry. Return most recent
-    if (time > snapshots[snapshots.length - 1].time) 
+    if (time > snapshots[snapshots.length - 1].time)
       return snapshots[snapshots.length - 1];
 
     // Time is older than any snapshot. Return oldest snapshot
@@ -47,8 +48,11 @@ Entity.prototype = {
         var snapshotBefore = snapshots[i]
           , snapshotAfter = snapshots[i + 1]
           , t = (time - snapshotBefore.time) / (snapshotAfter.time - snapshotBefore.time)
-          , position = new Vector3(snapshotBefore.x, snapshotBefore.y, snapshotBefore.z).lerp(snapshotAfter, t)
           , rotation = new Quaternion()
+
+        var beforePosition = new Vector3(snapshotBefore.position.x, snapshotBefore.position.y, snapshotBefore.position.z)
+        var afterPosition = new Vector3(snapshotAfter.position.x, snapshotAfter.position.y, snapshotAfter.position.z)
+        var position = new Vector3().copy(beforePosition).lerp(afterPosition, t)
 
         var beforeRotation = new Quaternion(snapshotBefore.rotation.x, snapshotBefore.rotation.y,
           snapshotBefore.rotation.z, snapshotBefore.rotation.w)
@@ -95,8 +99,8 @@ Entity.prototype = {
   trimSnapshots: function trimSnapshots() {
     // Remove packets if too many
     var snapshots = this.snapshots
-    if (snapshots.length > 50) {
-      snapshots.splice(0, snapshots.length - 50)
+    if (snapshots.length > 240) {
+      snapshots.splice(0, snapshots.length - 240)
     }
   }
 }
