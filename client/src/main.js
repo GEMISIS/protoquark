@@ -1,4 +1,4 @@
-var Chat       = require("./chat")
+var Chat       = require("./interface/chat")
 var Connection = require("./connection")
 var Controller = require("./controller")
 var Engine     = require("./engine")

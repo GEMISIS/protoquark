@@ -173,10 +173,6 @@ function onClientConnected(conn) {
   }).bind(this, conn))
 }
 
-function onClientOpened (conn) {
-
-}
-
 function pingClient(id, times) {
   times = times || 1
 
