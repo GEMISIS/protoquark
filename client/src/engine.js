@@ -66,9 +66,9 @@ conn: {
     var ent = new Entity(e.context, this.generateId())
     ent.control = {}
     ent.type = owned ? "player" : "remoteplayer"
-    
     this.entities.push(ent)
     this.entityMap[e.context.id] = ent
+    console.log("onPlayerEnter")
   },
 
   playerexit: function onPlayerExit (e) {
@@ -94,6 +94,7 @@ conn: {
         self.entityMap[id] = ent
       }
     })
+    console.log("onPlayers")
   },
 
   playerstate: function onPlayerState(e) {

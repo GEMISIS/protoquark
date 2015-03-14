@@ -3,7 +3,7 @@ var emitter = require("component/emitter")
 var API_KEY = "98bn0vxj6aymygb9"
 
 // Max ping packets to send
-var MAX_PINGS = 10
+var MAX_PINGS = 15
 // Smaller amount of ping packets before we can accurately get latency & server time
 var MIN_PINGS = 5
 
@@ -115,13 +115,16 @@ function onJoinError(err) {
 }
 
 function onServerData(data) {
-  // console.log("Received data from server", data)
+  if (data.event !== "entitiesupdate" && data.event !== "playerstate")
+    console.log("Received data from server", data)
+
   this.emit(data.event, data)
 }
 
 function onServerTime(data) {
   if (this.isServer()) return
 
+  console.log("onServerTime")
   var serverTime = data.context.time + data.context.latency / 2
   this.serverTimeOffset = serverTime - Date.now() / 1000
 }
@@ -172,7 +175,8 @@ function onClientConnected(conn) {
     // Send updated players listing to new player
     this.send("players", this.players, {relay: conn.peer})
     console.log("playerenter, playersend")
-  }).bind(this), 250)
+
+  }).bind(this), 1000)
 
   pingClient.call(this, player.id, MAX_PINGS)
 }
