@@ -3,7 +3,7 @@ var emitter = require("component/emitter")
 var API_KEY = "98bn0vxj6aymygb9"
 
 // Max ping packets to send
-var MAX_PINGS = 10
+var MAX_PINGS = 15
 // Smaller amount of ping packets before we can accurately get latency & server time
 var MIN_PINGS = 5
 
@@ -94,7 +94,7 @@ function onClientIdAssigned(id) {
 
   if (this.server) this.server.removeAllListeners()
 
-  var conn = this.server = this.peer.connect(this.room, {reliable: true})
+  var conn = this.server = this.peer.connect(this.room)
   conn.on("open", onConnectedToServer.bind(this))
   conn.on("data", onServerData.bind(this))
   conn.on("close", onServerDisconnected.bind(this))
@@ -103,6 +103,7 @@ function onClientIdAssigned(id) {
 
 function onConnectedToServer() {
   console.log("Connected to server")
+  this.connected = true
 }
 
 function onJoinError(err) {
@@ -120,8 +121,10 @@ function onServerData(data) {
 function onServerTime(data) {
   if (this.isServer()) return
 
+  console.log("onServerTime")
   var serverTime = data.context.time + data.context.latency / 2
   this.serverTimeOffset = serverTime - Date.now() / 1000
+  console.log("Round trip time", data.context.latency)
 }
 
 function onServerDisconnected() {
@@ -242,6 +245,7 @@ function onPong(e) {
 
 function onServerStarted() {
   console.log("server started")
+  this.connected = true
   this.players[this.peer.id] = {
     id: this.peer.id,
     name: this.generateName(),
@@ -252,9 +256,8 @@ function onServerStarted() {
 
 function onServerError (e) {
   console.log("Server error:", e)
-  if (e.type === "unavailable-id") {
+  if (e.type === "unavailable-id")
     this.connect(this.room)
-  }
 }
 
 function serve() {

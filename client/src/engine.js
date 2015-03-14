@@ -28,7 +28,8 @@ var handle = {
     }
 
     // Queue up packets to send - we'll clear this once sent
-    ent.addSnapshot(this.conn.getServerTime())
+    if (this.conn.connected)
+      ent.addSnapshot(this.conn.getServerTime())
   },
 
   remoteplayer: function(ent, dt) {
@@ -66,9 +67,9 @@ conn: {
     var ent = new Entity(e.context, this.generateId())
     ent.control = {}
     ent.type = owned ? "player" : "remoteplayer"
-    
     this.entities.push(ent)
     this.entityMap[e.context.id] = ent
+    console.log("onPlayerEnter")
   },
 
   playerexit: function onPlayerExit (e) {
@@ -94,16 +95,24 @@ conn: {
         self.entityMap[id] = ent
       }
     })
+    console.log("onPlayers")
   },
 
   playerstate: function onPlayerState(e) {
     if (!this.conn.isServer()) return
 
     var ent = this.entityMap[e.sender]
-    if (!ent) return
+    if (!ent) {
+      console.log("Cant find sender")
+      return
+    }
 
     // Queue packets for future send - dont put in ent.snapshots since we'll handle that with
     // the entitiesupdate event for both client and server
+
+    // Ignore out of order packets
+    if (ent.lastSnapshotTime && e.context.time < ent.lastSnapshotTime) return
+    ent.lastSnapshotTime = e.context.time
 
     this.snapshots = this.snapshots || {}
     this.snapshots[e.sender] = (this.snapshots[e.sender] || []).concat(e.context.snapshots)
@@ -113,6 +122,9 @@ conn: {
     var entitySnapshots = e.context.snapshots
     var self = this
     var me = this.you()
+
+    if (this.lastServerTime && e.context.time < this.lastServerTime) return
+    this.lastServerTime = e.context.time
 
     Object.keys(entitySnapshots).forEach(function(id) {
       var ent = self.entityMap[id]
@@ -188,18 +200,21 @@ Engine.prototype = {
 function onIntervalSend() {
   var conn = this.conn
   var me = this.you()
-  if (me && me.snapshots.length) {
+  if (me && me.snapshots.length && conn.connected) {
     // Send queued up packets
     conn.send("playerstate", {
-      snapshots: me.snapshots
+      snapshots: me.snapshots,
+      time: conn.getServerTime()
     });
     // Clear for next send.
     me.snapshots = []
   }
 
   if (conn.isServer() && this.snapshots) {
+
     conn.send("entitiesupdate", {
-      snapshots: this.snapshots
+      snapshots: this.snapshots,
+      time: conn.getServerTime()
     });
     this.snapshots = {}
   }
