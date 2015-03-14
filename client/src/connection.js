@@ -169,19 +169,12 @@ function onClientConnected(conn) {
     // Send new player info to everyone including new player
     this.send("playerenter", player)
     // Send updated players listing to new player
-<<<<<<< HEAD
-    this.send("players", this.players, {relay: conn.peer})
-    console.log("playerenter, playersend")
-
-  }).bind(this), 1000)
-=======
     this.send("players", this.players, {relay: player.id})
     pingClient.call(this, player.id, MAX_PINGS)
   }).bind(this, conn))
 }
 
 function onClientOpened (conn) {
->>>>>>> 8444a7810b5c4c7b57bd0bb17d03b9475e5f4749
 
 }
 
