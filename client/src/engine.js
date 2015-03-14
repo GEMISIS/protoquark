@@ -52,8 +52,8 @@ control: {
 
     if (!me) return
 
-    // me.euler.x += state.x
-    // me.euler.y += state.y
+    me.euler.x += state.x
+    me.euler.y += state.y
 
     me.rotation = new Quaternion().multiplyQuaternions(
       new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -me.euler.y),
