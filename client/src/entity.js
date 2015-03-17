@@ -4,7 +4,7 @@ var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
 
 // View interpolation delay as done in Source engine to allow for dropped packets
-var INTERPOLATION_DELAY = .2
+// var INTERPOLATION_DELAY = .2 // Static latency value
 
 function Entity(context, id) {
   this.context = context
@@ -20,8 +20,9 @@ function Entity(context, id) {
 }
 
 Entity.prototype = {
-  interpolate: function interpolate(time) {
-    var snapshot = this.getSnapshot(time - INTERPOLATION_DELAY)
+  interpolate: function interpolate(time, delay) {
+    console.log(delay);
+    var snapshot = this.getSnapshot(time - delay)
     if (!snapshot || !snapshot.position) return
 
     this.position = new Vector3(snapshot.position.x, snapshot.position.y, snapshot.position.z)
