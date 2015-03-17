@@ -1,7 +1,15 @@
 var emitter = require("component/emitter")
 
 var API_KEY = "98bn0vxj6aymygb9"
+
+// Max ping packets to send
+var MAX_PINGS = 15
+// Smaller amount of ping packets before we can accurately get latency & server time
+var MIN_PINGS = 5
+
 var nameCounter = 0
+var pingCounter = 0
+var networkIdCounter = 0x10000
 
 function Connection() {
   this.players = {}
@@ -9,6 +17,9 @@ function Connection() {
   this.on("players", onPlayers.bind(this))
   this.on("playerenter", onPlayerEnter.bind(this))
   this.on("playerexit", onPlayerExit.bind(this))
+  this.on("ping", onPing.bind(this))
+  this.on("pong", onPong.bind(this))
+  this.on("servertime", onServerTime.bind(this))
 }
 
 Connection.prototype = {
@@ -22,7 +33,8 @@ Connection.prototype = {
       event : event,
       context : obj,
       sender : opts.sender || this.peer.id,
-      relay: opts.relay
+      relay: opts.relay,
+      broadcast: opts.broadcast
     }
 
     // If we are just a client send it now.
@@ -31,7 +43,7 @@ Connection.prototype = {
     // Handle relaying of data.
     if (clients[data.relay]) return clients[data.relay].send(data)
 
-    // Re-send ourself the event, because we are not a client.
+    // Re-send ourself the event, because we are not a client and we are broadcasting
     this.emit(data.event, data)
 
     // As server broadcast to all clients if there is no relay automatically.
@@ -47,14 +59,15 @@ Connection.prototype = {
     var peer = this.peer = new Peer({key : API_KEY})
     peer.once("error", onJoinError.bind(this))
     peer.once("open", onClientIdAssigned.bind(this))
-    /*peer.on("connection", function (e) { console.log("connection!", e) })
+    peer.on("connection", function (e) { console.log("connection!", e) })
     peer.on("call", function (e) { console.log("call!", e) })
     peer.on("close", function (e) { console.log("close!", e) })
-    peer.on("disconnected", function (e) { console.log("disconnected!", e) })*/
+    peer.on("disconnected", function (e) { console.log("disconnected!", e) })
   },
 
   kill: function kill() {
     this.peer.disconnect()
+    this.emit("connectionkill")
     console.log("connection killed")
   },
 
@@ -64,7 +77,16 @@ Connection.prototype = {
 
   generateName: function () {
     return "P" + ++nameCounter
-  }
+  },
+
+  getServerTime: function getServerTime() {
+    var serverTimeOffset = this.serverTimeOffset
+    return Date.now() / 1000 + (serverTimeOffset ? serverTimeOffset : 0)
+  },
+
+  isOwnId: function(id) {
+    return id === this.peer.id
+  },
 }
 
 function onClientIdAssigned(id) {
@@ -81,20 +103,28 @@ function onClientIdAssigned(id) {
 
 function onConnectedToServer() {
   console.log("Connected to server")
+  this.connected = true
 }
 
 function onJoinError(err) {
   console.log("Unable to join room, starting up new server", err)
-
   // Kill any connections so that client doesn't end up joining to self
   this.peer.disconnect()
-
   serve.call(this)
 }
 
 function onServerData(data) {
-  console.log("Received data from server", data)
+  //console.log("Received data from server", data)
   this.emit(data.event, data)
+}
+
+function onServerTime(data) {
+  if (this.isServer()) return
+
+  console.log("onServerTime")
+  var serverTime = data.context.time + data.context.latency / 2
+  this.serverTimeOffset = serverTime - Date.now() / 1000
+  console.log("Round trip time", data.context.latency)
 }
 
 function onServerDisconnected() {
@@ -102,18 +132,19 @@ function onServerDisconnected() {
 }
 
 function onClientData(conn, data) {
-  console.log("Received client data", data)
+  // console.log("Received client data", data)
 
-  var relay = data.relay
+  var relay = data.relay || ""
+  var broadcast = data.broadcast
 
   // If directed at a user other than us, forward data.
-  if (relay && relay != this.peer.id)
+  if (!broadcast && relay && relay != this.peer.id)
     return this.send(data.event, data.context, data)
 
   // If directed at the server emit it.
-  if (relay == this.peer.id) return this.emit(data.event, data)
+  if (relay == this.peer.id || !broadcast) return this.emit(data.event, data)
 
-  // Broadcast it.
+  // broadcast
   this.send(data.event, data.context, data)
 }
 
@@ -125,19 +156,34 @@ function onClientDisconnected(conn) {
 }
 
 function onClientConnected(conn) {
-  conn.on("data", onClientData.bind(this, conn))
-  conn.once("close", onClientDisconnected.bind(this, conn))
-  this.clients[conn.peer] = conn
-  this.players[conn.peer] = {
+  console.log("Client connected ", conn.peer)
+
+  var player = this.players[conn.peer] = {
     id: conn.peer,
     name: this.generateName()
   }
-  console.log("Client connected ", conn.peer, conn.id)
 
-  setTimeout((function(){
-    this.send("playerenter", this.players[conn.peer])
-    this.send("players", this.players, {relay: conn.peer})
-  }).bind(this), 250)
+  this.clients[conn.peer] = conn
+  conn.on("data", onClientData.bind(this, conn))
+  conn.once("close", onClientDisconnected.bind(this, conn))
+  conn.once("open", (function(conn){
+    console.log("playerenter, playersend")
+    // Send new player info to everyone including new player
+    this.send("playerenter", player)
+    // Send updated players listing to new player
+    this.send("players", this.players, {relay: player.id})
+    pingClient.call(this, player.id, MAX_PINGS)
+  }).bind(this, conn))
+}
+
+function pingClient(id, times) {
+  times = times || 1
+
+  while (times-- > 0) {
+    setTimeout((function(){
+      this.send("ping", {time : Date.now() / 1000, which : pingCounter++}, {relay : id})
+    }).bind(this), times * 250)
+  }
 }
 
 function sendPlayerUpdate (send, player) {
@@ -156,20 +202,50 @@ function onPlayers (e) {
   Object.keys(e.context).forEach(function (id) {
     players[id] = e.context[id]
   })
+  console.log("players updated")
 }
 
 function onPlayerEnter (e) {
   this.players[e.context.id] = e.context
+  console.log("playerenter", e.context.id)
 }
 
 function onPlayerExit (e) {
-  console.log("Player exited", e)
+  console.log("Player exited", e.context.id)
   if (this.players[e.context.id])
     delete this.players[e.context.id]
 }
 
+function onPing(e) {
+  // "Pong" back to sender - only if client
+  if (!this.isServer())
+    this.send("pong", e.context)
+}
+
+function onPong(e) {
+  if (!this.isServer()) return
+
+  // We received a pong to our ping request.
+  var latency = Date.now() / 1000 - e.context.time
+  var player = this.players[e.sender]
+  var latencies = player.latencies = player.latencies || []
+  latencies.push(latency)
+
+  if (latencies.length < MIN_PINGS) return
+
+  // Once we gathered enough packets, we can do a median check to get the latency
+  player.latency = latencies.sort()[Math.floor(latencies.length / 2)]
+  player.latencies = []
+
+  this.send("servertime", {
+    time: Date.now() / 1000,
+    latency: player.latency
+  })
+}
+
 function onServerStarted() {
   console.log("server started")
+  this.connected = true
   this.players[this.peer.id] = {
     id: this.peer.id,
     name: this.generateName(),
@@ -180,9 +256,8 @@ function onServerStarted() {
 
 function onServerError (e) {
   console.log("Server error:", e)
-  if (e.type === "unavailable-id") {
+  if (e.type === "unavailable-id")
     this.connect(this.room)
-  }
 }
 
 function serve() {
@@ -207,8 +282,10 @@ function migrate() {
       return !players[id].isHost
     })[0]
 
+  console.log("next host", nextHostId)
+
   // Serve if we are next in line.
-  if (id && id === nextHostId)
+  if (id === nextHostId)
     serve.call(this, id)
   else if (nextHostId)
     this.connect(nextHostId)
