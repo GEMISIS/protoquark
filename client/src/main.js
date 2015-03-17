@@ -6,9 +6,11 @@ var Radar      = require("./interface/radar")
 var Router     = require("./router")
 var Stage      = require("./stage")
 
-window.connection = new Connection();
+window.connection = new Connection()
 
 var PIXELS_PER_RADIAN = 250
+
+var last
 
 var keymap = {
   32: "jump",
@@ -51,13 +53,9 @@ var ons = {
     this.controller.set(mousemap[e.which], false)
   },
   mousemove: function onMouseMove (e) {
-    var pos = this.controller.mpos
-    var x = e.x
-    var y = e.y
-    var dx = (x - pos.x) * 1.0 / PIXELS_PER_RADIAN
-    var dy = (y - pos.y) * 1.0 / PIXELS_PER_RADIAN
-    pos.x = x
-    pos.y = y
+    if (!this.controller.canLook) return
+    var dx = e.movementX * 1.0 / PIXELS_PER_RADIAN
+    var dy = e.movementY * 1.0 / PIXELS_PER_RADIAN
     this.controller.set("look", {x:dx, y:dy})
   }
 }
@@ -79,10 +77,6 @@ document.addEventListener("DOMContentLoaded", function (e) {
   el.appendChild(chat.el)
 
   var controller = window.controller = new Controller
-  controller.mpos = {
-    x: rect.width * 0.5,
-    y: rect.height * 0.5
-  }
 
   var engine = window.engine = new Engine(conn, controller)
 
@@ -97,14 +91,34 @@ document.addEventListener("DOMContentLoaded", function (e) {
     window.addEventListener(ev, ons[ev].bind(window))
   })
 
+  // Handle pointer lock.
+  var mel = stage.renderer.domElement
+  mel.addEventListener("click", function (e) {
+    if (window.document.pointerLockElement == mel) return
+    mel.requestPointerLock()
+  })
+  window.document.addEventListener("pointerlockerror", function (e) {
+    alert(e.message)
+  })
+  window.document.addEventListener("pointerlockchange", function (e){
+    controller.canLook = window.document.pointerLockElement == mel
+  })
+
   router.listen()
+  last = timestamp()
   update([radar, engine, stage])
 })
 
+function timestamp() {
+  return (window.performance && window.performance.now) ? window.performance.now() : (new Date().getTime())
+}
+
 function update(things) {
-  var step = 1/60
+  var now = timestamp()
+  var step = (now - last) / 1000
   for (var i=0; i<things.length; i++) {
     things[i].update(step)
   }
+  last = now
   requestAnimationFrame(update.bind(this, things))
 }

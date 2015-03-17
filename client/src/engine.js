@@ -102,10 +102,7 @@ conn: {
     if (!this.conn.isServer()) return
 
     var ent = this.entityMap[e.sender]
-    if (!ent) {
-      console.log("Cant find sender")
-      return
-    }
+    if (!ent) return
 
     // Queue packets for future send - dont put in ent.snapshots since we'll handle that with
     // the entitiesupdate event for both client and server
