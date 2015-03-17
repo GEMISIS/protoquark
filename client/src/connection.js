@@ -28,7 +28,8 @@ Connection.prototype = {
 
     var clients = this.clients
     var server = this.server
-
+    var connType = data.reliable ? "reliable" : "unreliable"
+    
     var data = {
       event : event,
       context : obj,
@@ -38,7 +39,6 @@ Connection.prototype = {
       reliable: opts.reliable
     }
 
-    var connType = data.reliable ? "reliable" : "unreliable"
     // If we are just a client send it now.
     if (!this.isServer()) return server[connType].send(data)
 
