@@ -167,8 +167,19 @@ function onClientData(conn, data) {
 
 function onClientDisconnected(conn) {
   this.send("playerexit", this.players[conn.peer])
-  delete this.clients[conn.peer]
-  delete this.players[conn.peer]
+
+  var client = this.clients[conn.peer]
+  var connType = conn.reliable ? "reliable" : "unreliable"
+  if (client && client[connType]) {
+    delete client[connType]
+  }
+
+  // Both connections removed?
+  if (!client.reliable && !client.unreliable) {
+    delete this.players[conn.peer]
+    delete client
+  }
+  
   console.log("User closed", conn)
 }
 
