@@ -189,7 +189,6 @@ function onClientConnected(conn) {
   conn.once("open", (function(conn){
     console.log("playerenter, playersend")
     // Send new player info to everyone including new player
-
     if (conn.reliable) {
       this.send("playerenter", player)
       // Send updated players listing to new player

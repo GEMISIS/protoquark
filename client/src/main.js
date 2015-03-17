@@ -1,7 +1,8 @@
-var Chat       = require("./chat")
+var Chat       = require("./interface/chat")
 var Connection = require("./connection")
 var Controller = require("./controller")
 var Engine     = require("./engine")
+var Radar      = require("./interface/radar")
 var Router     = require("./router")
 var Stage      = require("./stage")
 
@@ -85,6 +86,9 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
   var engine = window.engine = new Engine(conn, controller)
 
+  var radar = new Radar(engine)
+  el.appendChild(radar.el)
+
   var stage = window.stage = new Stage(engine)
   el.appendChild(stage.el)
   stage.resize()
@@ -94,12 +98,13 @@ document.addEventListener("DOMContentLoaded", function (e) {
   })
 
   router.listen()
-  update(engine, stage)
+  update([radar, engine, stage])
 })
 
-function update(engine, stage) {
+function update(things) {
   var step = 1/60
-  engine.update(step)
-  stage.update(step)
-  requestAnimationFrame(update.bind(this, engine, stage))
+  for (var i=0; i<things.length; i++) {
+    things[i].update(step)
+  }
+  requestAnimationFrame(update.bind(this, things))
 }
