@@ -101,10 +101,18 @@ document.addEventListener("DOMContentLoaded", function (e) {
   update([radar, engine, stage])
 })
 
+function timestamp() {
+  return (window.performance && window.performance.now) ? window.performance.now() : (new Date().getTime())
+}
+
+var last = timestamp();
+
 function update(things) {
-  var step = 1/60
+  var now = timestamp()
+  var step = (now - last) / 1000;
   for (var i=0; i<things.length; i++) {
     things[i].update(step)
   }
+  last = now;
   requestAnimationFrame(update.bind(this, things))
 }
