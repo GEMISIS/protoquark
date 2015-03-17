@@ -99,6 +99,7 @@ Entity.prototype = {
   trimSnapshots: function trimSnapshots() {
     // Remove packets if too many
     var snapshots = this.snapshots
+    // Roughly 4 seconds worth of history in case of dropped packets
     if (snapshots.length > 240) {
       snapshots.splice(0, snapshots.length - 240)
     }
