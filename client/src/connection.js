@@ -34,21 +34,23 @@ Connection.prototype = {
       context : obj,
       sender : opts.sender || this.peer.id,
       relay: opts.relay,
-      broadcast: opts.broadcast
+      broadcast: opts.broadcast,
+      reliable: opts.reliable
     }
 
+    var connType = data.reliable ? "reliable" : "unreliable"
     // If we are just a client send it now.
-    if (!this.isServer()) return server.send(data)
+    if (!this.isServer()) return server[connType].send(data)
 
     // Handle relaying of data.
-    if (clients[data.relay]) return clients[data.relay].send(data)
+    if (clients[data.relay]) return clients[data.relay][connType].send(data)
 
     // Re-send ourself the event, because we are not a client and we are broadcasting
     this.emit(data.event, data)
 
     // As server broadcast to all clients if there is no relay automatically.
     Object.keys(clients).forEach(function (key) {
-      clients[key].send(data)
+      clients[key][connType].send(data)
     })
   },
 
@@ -91,14 +93,29 @@ Connection.prototype = {
 
 function onClientIdAssigned(id) {
   console.log("You are", this.peer.id)
+  removeServerListeners.call(this)
 
-  if (this.server) this.server.removeAllListeners()
+  var server = this.server = {
+    unreliable: this.peer.connect(this.room),
+    reliable: this.peer.connect(this.room, {reliable: true})
+  }
 
-  var conn = this.server = this.peer.connect(this.room)
-  conn.on("open", onConnectedToServer.bind(this))
-  conn.on("data", onServerData.bind(this))
-  conn.on("close", onServerDisconnected.bind(this))
-  conn.on("error", onServerError.bind(this))
+  Object.keys(server).forEach((function (type) {
+    var conn = server[type];
+    conn.on("open", onConnectedToServer.bind(this))
+    conn.on("data", onServerData.bind(this))
+    conn.on("close", onServerDisconnected.bind(this))
+    conn.on("error", onServerError.bind(this))
+  }).bind(this));
+}
+
+function removeServerListeners() {
+  var server = this.server
+  if (server) {
+    Object.keys(server).forEach(function(type) {
+      server[type].removeAllListeners()
+    })
+  }
 }
 
 function onConnectedToServer() {
@@ -163,21 +180,25 @@ function onClientConnected(conn) {
     name: this.generateName()
   }
 
-  this.clients[conn.peer] = conn
+  var client = this.clients[conn.peer] = this.clients[conn.peer] || {}
+  client[conn.reliable ? "reliable" : "unreliable"] = conn
+
   conn.on("data", onClientData.bind(this, conn))
   conn.once("close", onClientDisconnected.bind(this, conn))
+
   conn.once("open", (function(conn){
     console.log("playerenter, playersend")
     // Send new player info to everyone including new player
-    this.send("playerenter", player)
-    // Send updated players listing to new player
-    this.send("players", this.players, {relay: player.id})
-    pingClient.call(this, player.id, MAX_PINGS)
+
+    if (conn.reliable) {
+      this.send("playerenter", player)
+      // Send updated players listing to new player
+      this.send("players", this.players, {relay: player.id, reliable: true})
+    }
+    else {
+      pingClient.call(this, player.id, MAX_PINGS)
+    }
   }).bind(this, conn))
-}
-
-function onClientOpened (conn) {
-
 }
 
 function pingClient(id, times) {
@@ -267,7 +288,7 @@ function onServerError (e) {
 function serve() {
   console.log("starting server")
   // In case this was previously a client, delete the client to host connection
-  this.server.removeAllListeners()
+  removeServerListeners.call(this)
   delete this.server
   nameCounter = 0
   this.clients = {}
