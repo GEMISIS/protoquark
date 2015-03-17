@@ -28,8 +28,8 @@ Connection.prototype = {
 
     var clients = this.clients
     var server = this.server
-    var connType = data.reliable ? "reliable" : "unreliable"
-    
+    var connType = opts.reliable ? "reliable" : "unreliable"
+
     var data = {
       event : event,
       context : obj,
