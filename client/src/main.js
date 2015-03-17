@@ -6,9 +6,11 @@ var Radar      = require("./interface/radar")
 var Router     = require("./router")
 var Stage      = require("./stage")
 
-window.connection = new Connection();
+window.connection = new Connection()
 
 var PIXELS_PER_RADIAN = 250
+
+var last
 
 var keymap = {
   32: "jump",
@@ -98,6 +100,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
   })
 
   router.listen()
+  last = timestamp()
   update([radar, engine, stage])
 })
 
@@ -105,14 +108,12 @@ function timestamp() {
   return (window.performance && window.performance.now) ? window.performance.now() : (new Date().getTime())
 }
 
-var last = timestamp();
-
 function update(things) {
   var now = timestamp()
-  var step = (now - last) / 1000;
+  var step = (now - last) / 1000
   for (var i=0; i<things.length; i++) {
     things[i].update(step)
   }
-  last = now;
+  last = now
   requestAnimationFrame(update.bind(this, things))
 }
