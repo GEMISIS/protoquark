@@ -16,7 +16,7 @@ Player.prototype = {
     var o3d = this.o3d
     var e = this.entity
     o3d.position.copy(e.position)
-    o3d.rotation.copy(e.rotation)
+    o3d.rotation.setFromQuaternion(e.rotation)
   }
 }
 

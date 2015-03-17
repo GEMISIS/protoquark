@@ -34,8 +34,8 @@ Radar.prototype = {
       var y = (ent.position.z - me.position.z) / range
 
       // Standard 2d rotation matrix
-      var cosTheta = Math.cos(me.euler.y)
-      var sinTheta = Math.sin(me.euler.y)
+      var cosTheta = Math.cos(me.euler.x)
+      var sinTheta = Math.sin(me.euler.x)
       var transformedX = x * cosTheta + y * sinTheta
       var transformedY =  x * -sinTheta + y * cosTheta
 
