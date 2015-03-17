@@ -25,6 +25,7 @@ Entity.prototype = {
     if (!snapshot || !snapshot.position) return
 
     this.position = new Vector3(snapshot.position.x, snapshot.position.y, snapshot.position.z)
+    this.rotation = new Quaternion(snapshot.rotation.x, snapshot.rotation.y, snapshot.rotation.z, snapshot.rotation.w)
   },
 
   getSnapshot: function getSnapshot(time) {
@@ -58,7 +59,7 @@ Entity.prototype = {
           snapshotBefore.rotation.z, snapshotBefore.rotation.w)
         var afterRotation = new Quaternion(snapshotAfter.rotation.x, snapshotAfter.rotation.y,
           snapshotAfter.rotation.z, snapshotAfter.rotation.w)
-        Quaternion.slerp(rotation, beforeRotation, afterRotation, t)
+        rotation = Quaternion.slerp(beforeRotation, afterRotation, rotation, t)
 
         return this.createSnapshot(time, position, rotation)
       }
