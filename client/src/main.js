@@ -39,7 +39,9 @@ var ons = {
   },
   keydown: function onKeyDown (e) {
     var isenter = e.keyCode == 13
+    var istab = e.keyCode == 9
 
+    if (istab) return e.preventDefault()
     if (this.chat.hasfocus && !isenter) return
     if (isenter) return this.chat.toggle()
 
