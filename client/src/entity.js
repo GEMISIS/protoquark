@@ -21,7 +21,6 @@ function Entity(context, id) {
 
 Entity.prototype = {
   interpolate: function interpolate(time, delay) {
-    console.log(delay);
     var snapshot = this.getSnapshot(time - delay)
     if (!snapshot || !snapshot.position) return
 
@@ -37,7 +36,7 @@ Entity.prototype = {
 
     // Time is more recent than any entry. Return most recent
     if (time > snapshots[snapshots.length - 1].time)
-      return snapshots[snapshots.length - 1];
+      return snapshots[snapshots.length - 1]
 
     // Time is older than any snapshot. Return oldest snapshot
     if (time < snapshots[0].time)
