@@ -71,6 +71,13 @@ Connection.prototype = {
   },
 
   kill: function kill() {
+    var server = this.server
+    if (server) {
+      Object.keys(server).forEach(function(key) {
+        server[key].close()
+      })
+    }
+
     this.peer.disconnect()
     this.emit("connectionkill")
     console.log("connection killed")
