@@ -60,8 +60,9 @@ Connection.prototype = {
   connect: function connect(room) {
     console.log("connecting to", room)
     this.room = room
+    delete this.serving
 
-    var peer = this.peer = new Peer({key : API_KEY})
+    var peer = this.peer = new Peer({key : API_KEY, debug : 3})
     peer.once("error", onJoinError.bind(this))
     peer.once("open", onClientIdAssigned.bind(this))
     peer.on("connection", function (e) { console.log("connection!", e) })
@@ -83,8 +84,8 @@ Connection.prototype = {
     console.log("connection killed")
   },
 
-  isServer : function isServer() {
-    return !!this.clients
+  isServer: function isServer() {
+    return this.serving
   },
 
   generateName: function () {
@@ -296,12 +297,15 @@ function onServerStarted() {
     isHost: true
   }
   this.send("playerenter", this.players[this.peer.id])
+  this.serving = true
 }
 
 function onServerError (e) {
   console.log("Server error:", e)
-  if (e.type === "unavailable-id")
+  if (e.type === "unavailable-id") {
+    console.log("server id taken, connecting")
     this.connect(this.room)
+  }
 }
 
 function serve() {
