@@ -187,7 +187,7 @@ function onClientDisconnected(conn) {
 }
 
 function onClientConnected(conn) {
-  console.log("Client connected ", conn.peer)
+  console.log(conn.reliable ? "Reliable" : "Unreliable", " cient connected ", conn.peer)
 
   var player = this.players[conn.peer] = {
     id: conn.peer,
@@ -201,7 +201,6 @@ function onClientConnected(conn) {
   conn.once("close", onClientDisconnected.bind(this, conn))
 
   conn.once("open", (function(conn){
-    console.log("playerenter, playersend")
     if (conn.reliable) {
       // Send new player info to everyone including new player
       this.send("playerenter", player, {reliable: true})
