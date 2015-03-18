@@ -40,7 +40,7 @@ var handle = {
     var playerLatency = player && player.latency ? player.latency : .2
     var myLatency = conn.latency || .2
 
-    var lerpTime = Math.min(playerLatency / 2 + myLatency / 2 + SEND_INTERVAL * 2, .2)
+    var lerpTime = Math.min(playerLatency/2 + myLatency/2 + SEND_INTERVAL*2, .2)
     ent.interpolate(this.conn.getServerTime(), lerpTime)
     ent.trimSnapshots()
   }
