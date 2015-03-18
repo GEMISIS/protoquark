@@ -54,6 +54,7 @@ Stage.prototype = {
     this.camera.aspect = rect.width / rect.height
     this.camera.updateProjectionMatrix()
     this.renderer.setSize(rect.width, rect.height)
+    this.renderer.setPixelRatio(window.devicePixelRatio)
   },
 
   update: function update(dt) {
