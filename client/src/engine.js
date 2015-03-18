@@ -68,6 +68,8 @@ control: {
 },
 conn: {
   playerenter: function onPlayerEnter (e) {
+    if (this.entityMap[e.context.id]) return
+      
     console.log(e.context)
     var owned = this.conn.isOwnId(e.context.id)
     var ent = new Entity(e.context, this.generateId())
