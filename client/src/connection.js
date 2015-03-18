@@ -210,7 +210,7 @@ function onClientConnected(conn) {
     else {
       pingClient.call(this, player.id, MAX_PINGS)
     }
-  }).bind(this))
+  }).bind(this, conn))
 }
 
 function pingClient(id, times) {
