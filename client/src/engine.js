@@ -35,8 +35,12 @@ var handle = {
   remoteplayer: function(ent, dt) {
     // Note that since we dont know what order these events will arrive,
     // make sure Entity.prototype.trimSnapshots doesn't remove everything
-    var player = this.conn.players[ent.context.id]
-    var lerpTime = (player && player.latency) ? player.latency : .2
+    var conn = this.conn
+    var player = conn.players[ent.context.id]
+    var playerLatency = player && player.latency ? player.latency : .2
+    var myLatency = conn.latency || .2
+
+    var lerpTime = Math.min(playerLatency / 2 + myLatency / 2 + SEND_INTERVAL * 2, .2)
     ent.interpolate(this.conn.getServerTime(), lerpTime)
     ent.trimSnapshots()
   }
