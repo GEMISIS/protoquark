@@ -41,7 +41,7 @@ Connection.prototype = {
 
     // If we are just a client send it now.
     if (!this.isServer()) 
-      return server[connType] ? server[connType].send(data) : 0
+      return server && server[connType] ? server[connType].send(data) : 0
 
     // Handle relaying of data.
     if (clients[data.relay])
@@ -85,7 +85,7 @@ Connection.prototype = {
   },
 
   isServer: function isServer() {
-    return this.serving
+    return !!this.serving
   },
 
   generateName: function () {
@@ -290,6 +290,7 @@ function onPong(e) {
 
 function onServerStarted() {
   console.log("server started")
+  this.serving = true
   this.connected = true
   this.players[this.peer.id] = {
     id: this.peer.id,
@@ -297,7 +298,6 @@ function onServerStarted() {
     isHost: true
   }
   this.send("playerenter", this.players[this.peer.id])
-  this.serving = true
 }
 
 function onServerError (e) {
