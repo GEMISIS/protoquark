@@ -40,17 +40,20 @@ Connection.prototype = {
     }
 
     // If we are just a client send it now.
-    if (!this.isServer()) return server[connType].send(data)
+    if (!this.isServer()) 
+      return server[connType] ? server[connType].send(data) : 0
 
     // Handle relaying of data.
-    if (clients[data.relay]) return clients[data.relay][connType].send(data)
+    if (clients[data.relay])
+      return clients[data.relay][connType] ? clients[data.relay][connType].send(data) : 0
 
     // Re-send ourself the event, because we are not a client and we are broadcasting
     this.emit(data.event, data)
 
     // As server broadcast to all clients if there is no relay automatically.
     Object.keys(clients).forEach(function (key) {
-      clients[key][connType].send(data)
+      if (clients[key][connType])
+        clients[key][connType].send(data)
     })
   },
 
@@ -166,8 +169,6 @@ function onClientData(conn, data) {
 }
 
 function onClientDisconnected(conn) {
-  this.send("playerexit", this.players[conn.peer])
-
   var client = this.clients[conn.peer]
   var connType = conn.reliable ? "reliable" : "unreliable"
   if (client && client[connType]) {
@@ -176,10 +177,11 @@ function onClientDisconnected(conn) {
 
   // Both connections removed?
   if (!client.reliable && !client.unreliable) {
+    this.send("playerexit", this.players[conn.peer])
     delete this.players[conn.peer]
-    delete client
+    delete this.clients[conn.peer]
   }
-  
+
   console.log("User closed", conn)
 }
 
@@ -199,16 +201,16 @@ function onClientConnected(conn) {
 
   conn.once("open", (function(conn){
     console.log("playerenter, playersend")
-    // Send new player info to everyone including new player
     if (conn.reliable) {
-      this.send("playerenter", player)
+      // Send new player info to everyone including new player
+      this.send("playerenter", player, {reliable: true})
       // Send updated players listing to new player
       this.send("players", this.players, {relay: player.id, reliable: true})
     }
     else {
       pingClient.call(this, player.id, MAX_PINGS)
     }
-  }).bind(this, conn))
+  }).bind(this))
 }
 
 function pingClient(id, times) {
@@ -246,8 +248,8 @@ function onPlayerEnter (e) {
 }
 
 function onPlayerExit (e) {
-  console.log("Player exited", e.context.id)
-  if (this.players[e.context.id])
+  console.log("onPlayerExit", e)
+  if (e.context && this.players[e.context.id])
     delete this.players[e.context.id]
 }
 
