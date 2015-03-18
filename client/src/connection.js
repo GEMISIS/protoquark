@@ -326,11 +326,21 @@ function migrate() {
   console.log("migrating server")
   var id = this.peer.id
     , players = this.players
+    , pkeys = Object.keys(players)
+    , hostId = pkeys.filter(function (id) {
+      return players[id].isHost
+    })[0]
     , nextHostId = Object.keys(players).filter(function (id) {
       return !players[id].isHost
     })[0]
 
   console.log("next host", nextHostId)
+
+  // Remove player from ourself.
+  this.emit('playerexit', {
+    event: 'playerexit',
+    context: this.players[hostId]
+  })
 
   // Serve if we are next in line.
   if (id === nextHostId)
