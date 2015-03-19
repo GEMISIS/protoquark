@@ -45,8 +45,8 @@ Radar.prototype = {
       if (me.position.distanceTo(ent.position) < range) {
         var dx = (ent.position.x - me.position.x) / range
         var dy = (ent.position.z - me.position.z) / range
-        var cosTheta = Math.cos(me.euler.x)
-        var sinTheta = Math.sin(me.euler.x)
+        var cosTheta = Math.cos(me.euler.y)
+        var sinTheta = Math.sin(me.euler.y)
         x = (0.5 + (dx * cosTheta + dy * sinTheta) * 0.5) * 100
         y = (0.5 + (dx * -sinTheta + dy * cosTheta) * 0.5) * 100
       }

@@ -41,7 +41,7 @@ var handle = {
     var myLatency = conn.latency || .2
 
     var lerpTime = Math.max(playerLatency/2 + myLatency/2 + SEND_INTERVAL*2, .15)
-    ent.interpolate(this.conn.getServerTime(), lerpTime)
+    ent.interpolate(conn.getServerTime(), lerpTime)
     ent.trimSnapshots()
   }
 }
@@ -58,12 +58,12 @@ control: {
 
     if (!me) return
 
-    me.euler.x += state.x
-    me.euler.y += state.y
+    me.euler.y += state.x
+    me.euler.x += state.y
 
     me.rotation = new Quaternion().multiplyQuaternions(
-      new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -me.euler.y),
-      new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -me.euler.x))
+      new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -me.euler.x),
+      new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -me.euler.y))
   }
 },
 conn: {
