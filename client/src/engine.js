@@ -92,10 +92,14 @@ conn: {
   },
 
   playerexit: function onPlayerExit (e) {
+    console.log("onPlayerExit", e)
+    if (this.entityMap[e.context.id])
+      delete this.entityMap[e.context.id]
+
     var entities = this.entities
     var ent = entities.filter(function(ent){
       return ent.context.id == e.context.id
-    })[0]
+    })[0] 
     if (!ent) return
     this.entities.splice(this.entities.indexOf(ent), 1)
   },
@@ -105,14 +109,23 @@ conn: {
     var self = this
     var conn = this.conn
     Object.keys(e.context).forEach(function(id) {
-      if (!conn.isOwnId(id)) {
-        var ent = new Entity(e.context, self.genLocalId())
-        ent.control = {}
-        ent.type = "remoteplayer"
-        
-        self.entities.push(ent)
-        self.entityMap[id] = ent
+      if (conn.isOwnId(id)) {
+        self.entityMap[id].type = "player"
+        return
       }
+
+      var previousEnt = self.entityMap[id]
+      if (previousEnt) {
+        previousEnt.type = "remoteplayer"
+        return
+      }
+
+      var ent = new Entity(e.context[id], self.genLocalId())
+      ent.control = {}
+      ent.type = "remoteplayer"
+      
+      self.entities.push(ent)
+      self.entityMap[id] = ent
     })
     console.log("onPlayers")
   },

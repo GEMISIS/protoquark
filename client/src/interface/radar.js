@@ -38,9 +38,9 @@ Radar.prototype = {
     var imap = {}
     for (var i=0; i<engine.entities.length; i++) {
       var ent = engine.entities[i]
-      imap[ent.id] = true
-
+      
       if (ent.type != "remoteplayer") continue
+      imap[ent.id] = true
 
       if (me.position.distanceTo(ent.position) < range) {
         var dx = (ent.position.x - me.position.x) / range
