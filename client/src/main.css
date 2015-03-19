@@ -1,3 +1,5 @@
+@import './interface/style';
+
 * {
   margin: 0;
   padding: 0;
@@ -29,75 +31,7 @@ body {
   user-select: none;
 }
 
-.radar {
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 50%;
-  height: 100px;
-  overflow: hidden;
-  position: absolute;
-  right: 1em;
-  top: 1em;
-  width: 100px;
-}
-
-.radar .marker {
-  background: red;
-  border-radius: 100%;
-  height: 4px;
-  margin-left: -2px;
-  margin-top: -2px;
-  position: absolute;
-  width: 4px;
-}
-
 .stage {
   width: 100%;
   height: 100%;
-}
-
-.chat {
-  background: transparent;
-  bottom: 1em;
-  color: white;
-  left: 1em;
-  max-width: 512px;
-  position: absolute;
-  width: 100%;
-}
-
-.chat.focus > input {
-  background: dodgerblue;
-}
-
-.chat.focus > ul,
-.chat.focus > input {
-  pointer-events: all;
-}
-
-.chat > ul {
-  list-style: none;
-  pointer-events: none;
-  overflow-y: scroll;
-  max-height: 19.2ex;
-  line-height: 2.2ex;
-}
-
-.chat > input {
-  background: transparent;
-  border: none;
-  color: white;
-  font-size: 1em;
-  padding: 0.2em 0;
-  width: 100%;
-  pointer-events: none;
-}
-
-.chat > input::-webkit-input-placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-.chat > input::-moz-placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-.chat > input:-ms-input-placeholder  {
-  color: rgba(255, 255, 255, 0.6);
 }
