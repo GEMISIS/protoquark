@@ -41,10 +41,10 @@ Stage.prototype = {
 
     this.resize()
 
-    for (var angle = 0; angle < 360; angle += 90) {
-      var p = new representations.player(null, null, Math.max(Math.random() * 0xFFFFFF, 0xFF))
-      p.o3d.position.x = Math.cos(angle * Math.PI / 180) * 5
-      p.o3d.position.z = -Math.sin(angle * Math.PI / 180) * 5
+    for (var angle = 0; angle < 4; angle++) {
+      var p = new representations.player(null, null, [0x0000FF, 0x00FF00, 0xFF0000, 0xFFFFFF][angle])
+      p.o3d.position.x = Math.cos(angle * 90 * Math.PI / 180) * 5
+      p.o3d.position.z = -Math.sin(angle * 90 * Math.PI / 180) * 5
       this.scene.add(p.o3d)
     }
   },
@@ -79,7 +79,7 @@ Stage.prototype = {
 
       var Representation = getEntityRepresentation.call(this, me, e)
       if (Representation) {
-        rep = new Representation(e)
+        rep = new Representation(e, null, 0xAAAAAA)
         this.scene.add(rep.o3d)
       }
       else {

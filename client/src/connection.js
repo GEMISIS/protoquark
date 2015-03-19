@@ -59,16 +59,25 @@ Connection.prototype = {
 
   connect: function connect(room) {
     console.log("connecting to", room)
+
+    var migrating = this.room === room && this.connected
+
     this.room = room
     delete this.serving
 
-    var peer = this.peer = new Peer({key : API_KEY, debug : 3})
-    peer.once("error", onJoinError.bind(this))
-    peer.once("open", onClientIdAssigned.bind(this))
-    peer.on("connection", function (e) { console.log("connection!", e) })
-    peer.on("call", function (e) { console.log("call!", e) })
-    peer.on("close", function (e) { console.log("close!", e) })
-    peer.on("disconnected", function (e) { console.log("disconnected!", e) })
+    var peer = this.peer = migrating ? this.peer : new Peer({key: API_KEY, debug: 3})
+    if (!migrating) {
+      peer.once("error", onJoinError.bind(this))
+      peer.once("open", onClientIdAssigned.bind(this))
+      peer.on("connection", function (e) { console.log("connection!", e) })
+      peer.on("call", function (e) { console.log("call!", e) })
+      peer.on("close", function (e) { console.log("close!", e) })
+      peer.on("disconnected", function (e) { console.log("disconnected!", e) })
+    }
+    else {
+      this.connected = false
+      onClientConnected.call(this, this.peer.id)
+    }
   },
 
   kill: function kill() {
@@ -300,10 +309,10 @@ function onServerStarted() {
   this.send("playerenter", this.players[this.peer.id])
 }
 
-function onServerError (e) {
+function onServerError(e) {
   console.log("Server error:", e)
   if (e.type === "unavailable-id") {
-    console.log("server id taken, connecting")
+    console.log("server id taken, connecting to server")
     this.connect(this.room)
   }
 }
@@ -315,6 +324,7 @@ function serve() {
   delete this.server
   nameCounter = 0
   this.clients = {}
+  this.connected = false
 
   var peer = this.peer = new Peer(this.room, {key : API_KEY})
   peer.once("open", onServerStarted.bind(this))
@@ -336,10 +346,20 @@ function migrate() {
 
   console.log("next host", nextHostId)
 
-  // Remove player from ourself.
+  // Make sure we emit the migration event before the playerexit event so listeners can 
+  // handle the about to exit player before he actually exits
+  this.emit("migration", {
+    event: "migration",
+    context: {
+      previousHost: hostId,
+      newHost: nextHostId
+    }
+  })
+
+  // Remove new host player from ourself since he will have old host's id when he becomes server
   this.emit('playerexit', {
     event: 'playerexit',
-    context: this.players[hostId]
+    context: this.players[nextHostId]
   })
 
   // Serve if we are next in line.

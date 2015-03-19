@@ -68,16 +68,27 @@ control: {
 },
 conn: {
   playerenter: function onPlayerEnter (e) {
-    if (this.entityMap[e.context.id]) return
-      
-    console.log(e.context)
-    var owned = this.conn.isOwnId(e.context.id)
-    var ent = new Entity(e.context, this.generateId())
-    ent.control = {}
+    console.log("onPlayerEnter", e.context)
+
+    var contextId = e.context.id
+    var conn = this.conn
+    var owned = conn.isOwnId(contextId)
+    var exists = !!this.entityMap[contextId]
+
+    // If we get an existing entity context id, means we've migrated.
+    // The only case where this would need to be reset would be for the new 
+    if (exists && (!conn.isServer() || !owned))
+      return
+
+    // Create the entity only if we're not migrating
+    var ent = exists ? this.entityMap[contextId] : new Entity(e.context, this.genLocalId())
     ent.type = owned ? "player" : "remoteplayer"
+    
+    if (exists) return
+
+    ent.control = {}
     this.entities.push(ent)
     this.entityMap[e.context.id] = ent
-    console.log("onPlayerEnter")
   },
 
   playerexit: function onPlayerExit (e) {
@@ -95,7 +106,7 @@ conn: {
     var conn = this.conn
     Object.keys(e.context).forEach(function(id) {
       if (!conn.isOwnId(id)) {
-        var ent = new Entity(e.context, self.generateId())
+        var ent = new Entity(e.context, self.genLocalId())
         ent.control = {}
         ent.type = "remoteplayer"
         
@@ -142,6 +153,20 @@ conn: {
     })
   },
 
+  migration: function onMigration(e) {
+    // New host's player will be old host's player
+    var newPlayer = this.entityMap[e.context.previousHost]
+    var previousPlayer = this.entityMap[e.context.newHost]
+    if (!newPlayer || !previousPlayer) return
+
+    // Set new host's position into old
+    // Don't care what we do to newHostPlayer since he'll be removed during the migration.
+    newPlayer.snapshots = previousPlayer.snapshots
+    newPlayer.position = previousPlayer.position
+    newPlayer.rotation = previousPlayer.rotation
+    newPlayer.euler = previousPlayer.euler
+  },
+
   connectionkill: function onConnectionKill() {
     clearInterval(this.sendIntervalId)
   }
@@ -185,7 +210,7 @@ Engine.prototype = {
     return this.entityMap[this.conn.peer.id]
   },
 
-  generateId: function generateId() {
+  genLocalId: function genLocalId() {
     return localIdCounter++;
   },
 
