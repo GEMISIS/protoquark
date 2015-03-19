@@ -61,7 +61,7 @@ Stage.prototype = {
     var me = this.engine.you()
 
     if (me) {
-      this.camera.rotation.copy(new Euler(-me.euler.y, -me.euler.x, 0, "YXZ"))
+      this.camera.rotation.copy(new Euler(-me.euler.x, -me.euler.y, 0, "YXZ"))
       this.camera.position.copy(me.position)
     }
 

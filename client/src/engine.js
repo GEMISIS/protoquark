@@ -9,7 +9,7 @@ var SEND_INTERVAL = .05
 // Handler by entity type
 var handle = {
   player: function(ent, dt) {
-    var angle = ent.euler.x
+    var angle = ent.euler.y
     var sinAngle = Math.sin(angle)
     var cosAngle = Math.cos(angle)
     var speed = ent.speed || 2
@@ -24,8 +24,9 @@ var handle = {
       var multiplier = ent.control.straferight ? 1 : -1
       ent.position.x += cosAngle * speed * dt * multiplier
       ent.position.z += sinAngle * speed * dt * multiplier
-      ent.updateRotation()
     }
+
+    ent.updateRotation()
 
     // Queue up packets to send - we'll clear this once sent
     if (this.conn.connected)
@@ -61,9 +62,7 @@ control: {
     me.euler.y += state.x
     me.euler.x += state.y
 
-    me.rotation = new Quaternion().multiplyQuaternions(
-      new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -me.euler.x),
-      new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -me.euler.y))
+    me.updateRotation()
   }
 },
 conn: {

@@ -93,8 +93,8 @@ Entity.prototype = {
     var euler = this.euler
 
     this.rotation = new Quaternion().multiplyQuaternions(
-      new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -euler.y),
-      new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -euler.x))
+      new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -euler.x),
+      new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -euler.y))
   },
 
   trimSnapshots: function trimSnapshots() {
