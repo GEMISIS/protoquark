@@ -28,7 +28,7 @@ var handle = {
     }
 
     if (ent.control.shoot) {
-      bullet.create(this.genLocalId(), ent, "normal")
+      bullets.create(this.genLocalId(), ent, "normal")
     }
 
     ent.updateRotation()
