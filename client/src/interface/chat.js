@@ -46,8 +46,6 @@ function Chat (connection) {
   this.input = document.createElement("input")
   this.input.type = "text"
   this.input.placeholder = "Press enter to type..."
-  this.input.addEventListener("keyup", onKeyUp.bind(this))
-  this.input.addEventListener("blur", this.blur.bind(this))
   this.el.appendChild(this.input)
 }
 
@@ -61,13 +59,20 @@ Chat.prototype = {
     this.input.value = ""
   },
 
+  toggle: function toggle () {
+    if (this.hasfocus) return this.submit()
+    this.focus()
+  },
+
   focus: function focus() {
+    this.hasfocus = true
     this.el.classList.add("focus")
     this.input.placeholder = "Say something..."
     this.input.focus()
   },
 
   blur: function blur () {
+    this.hasfocus = false
     this.input.blur()
     this.el.classList.remove("focus")
     this.input.placeholder = "Press enter to type..."
