@@ -1,4 +1,4 @@
-var Entity     = require("./entity")
+var Entity = require("../entity")
 
 function createBullet(id, creator, type) {
   var bulletEnt = new Entity({}, id)
