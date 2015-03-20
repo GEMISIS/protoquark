@@ -75,14 +75,14 @@ conn: {
     var exists = !!this.entityMap[contextId]
 
     // If we get an existing entity context id, means we've migrated.
-    // The only case where this would need to be reset would be for the new 
+    // The only case where this would need to be reset would be for the new
     if (exists && (!conn.isServer() || !owned))
       return
 
     // Create the entity only if we're not migrating
     var ent = exists ? this.entityMap[contextId] : new Entity(e.context, this.genLocalId())
     ent.type = owned ? "player" : "remoteplayer"
-    
+
     if (exists) return
 
     ent.control = {}
@@ -98,7 +98,7 @@ conn: {
     var entities = this.entities
     var ent = entities.filter(function(ent){
       return ent.context.id == e.context.id
-    })[0] 
+    })[0]
     if (!ent) return
     this.entities.splice(this.entities.indexOf(ent), 1)
   },
@@ -122,7 +122,7 @@ conn: {
       var ent = new Entity(e.context[id], self.genLocalId())
       ent.control = {}
       ent.type = "remoteplayer"
-      
+
       self.entities.push(ent)
       self.entityMap[id] = ent
     })

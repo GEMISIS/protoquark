@@ -1,3 +1,9 @@
+.crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
 .health {
   height: 20px;
   left: 50%;

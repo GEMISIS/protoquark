@@ -1,6 +1,7 @@
 var Chat       = require("./interface/chat")
 var Connection = require("./connection")
 var Controller = require("./controller")
+var Crosshair  = require('./interface/crosshair')
 var Engine     = require("./engine")
 var Health     = require("./interface/health")
 var Radar      = require("./interface/radar")
@@ -89,6 +90,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
   var health = new Health(engine)
   el.appendChild(health.el)
 
+  var crosshair = new Crosshair()
+
   var stage = window.stage = new Stage(engine)
   el.appendChild(stage.el)
   stage.resize()
@@ -112,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
   router.listen()
   last = timestamp()
-  update([engine, radar, health, stage])
+  update([engine, radar, health, crosshair, stage])
 })
 
 function timestamp() {
