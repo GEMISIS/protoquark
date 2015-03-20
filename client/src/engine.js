@@ -2,6 +2,7 @@ var Entity     = require("./entity")
 var Matrix4    = require("./math").mat4
 var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
+var bullets    = require("./entities/bullets")
 
 var localIdCounter = 0
 var SEND_INTERVAL = .04
@@ -27,7 +28,7 @@ var handle = {
     }
 
     if (ent.control.shoot) {
-      
+      bullet.create(this.genLocalId(), ent, "normal")
     }
 
     ent.updateRotation()
