@@ -4,7 +4,7 @@ var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
 
 var localIdCounter = 0
-var SEND_INTERVAL = .05
+var SEND_INTERVAL = .04
 
 // Handler by entity type
 var handle = {
@@ -26,6 +26,10 @@ var handle = {
       ent.position.z += sinAngle * speed * dt * multiplier
     }
 
+    if (ent.control.shoot) {
+      
+    }
+
     ent.updateRotation()
 
     // Queue up packets to send - we'll clear this once sent
@@ -41,7 +45,7 @@ var handle = {
     var playerLatency = player && player.latency ? player.latency : .2
     var myLatency = conn.latency || .2
 
-    var lerpTime = Math.max(playerLatency/2 + myLatency/2 + SEND_INTERVAL*2, .15)
+    var lerpTime = Math.max(playerLatency/2 + myLatency/2 + SEND_INTERVAL*2, .10)
     ent.interpolate(conn.getServerTime(), lerpTime)
     ent.trimSnapshots()
   }
