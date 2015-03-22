@@ -8,52 +8,6 @@ var weapons    = require("./config/weapon")
 var localIdCounter = 0
 var SEND_INTERVAL = .04
 
-// Handler by entity type
-var handle = {
-  player: function(ent, dt) {
-    var angle = ent.euler.y
-    var sinAngle = Math.sin(angle)
-    var cosAngle = Math.cos(angle)
-    var speed = ent.speed || 2
-
-    if (ent.control.forward || ent.control.backward) {
-      var multiplier = ent.control.forward ? 1 : -1
-      ent.position.x += sinAngle * speed * dt * multiplier
-      ent.position.z -= cosAngle * speed * dt * multiplier
-    }
-
-    if (ent.control.strafeleft || ent.control.straferight) {
-      var multiplier = ent.control.straferight ? 1 : -1
-      ent.position.x += cosAngle * speed * dt * multiplier
-      ent.position.z += sinAngle * speed * dt * multiplier
-    }
-
-    if (ent.control.shoot) {
-      var bullet = bullets.create(this.genLocalId(), ent, "normal")
-      this.add(bullet)
-    }
-
-    ent.updateRotation()
-
-    // Queue up packets to send - we'll clear this once sent
-    if (this.conn.connected)
-      ent.addSnapshot(this.conn.getServerTime())
-  },
-
-  remoteplayer: function(ent, dt) {
-    // Note that since we dont know what order these events will arrive,
-    // make sure Entity.prototype.trimSnapshots doesn't remove everything
-    var conn = this.conn
-    var player = conn.players[ent.context.id]
-    var playerLatency = player && player.latency ? player.latency : .2
-    var myLatency = conn.latency || .2
-
-    var lerpTime = Math.max(playerLatency/2 + myLatency/2 + SEND_INTERVAL*2, .10)
-    ent.interpolate(conn.getServerTime(), lerpTime)
-    ent.trimSnapshots()
-  }
-}
-
 function handleDirection(control, down) {
   var me = this.you()
   if (me) me.control[control] = down
@@ -89,6 +43,9 @@ conn: {
     // Create the entity only if we're not migrating
     var ent = exists ? this.entityMap[contextId] : new Entity(e.context, owned ? conn.peer.id : this.genLocalId())
     ent.type = owned ? "player" : "remoteplayer"
+
+    if (!ent.update)
+      ent.update = require('./entities/' + ent.type)
 
     if (exists) return
 
@@ -134,6 +91,7 @@ conn: {
       ent.control = {}
       addStartingWeapon.call(this, ent)
       ent.type = "remoteplayer"
+      ent.update = require('./entities/remoteplayer')
       self.add(ent)
     })
     console.log("onPlayers")
@@ -249,20 +207,18 @@ Engine.prototype = {
 
     for (var i = 0; i < entities.length; i++) {
       var ent = entities[i]
-      var handler = handle[ent.type]
-
-      if (handler) handler.call(this, ent, dt)
+      if (ent.update) ent.update.call(this, dt, ent)
     }
   },
 
-  add: function (ent) {
+  add: function add (ent) {
     if (!ent.id) throw Error('Entity has not been assigned an id.')
     if (this.entityMap[ent.id]) throw Error('Entity with id already exists.')
     this.entities.push(ent)
     this.entityMap[ent.id] = ent
   },
 
-  remove: function (ent) {
+  remove: function remove (ent) {
     if (typeof ent == 'string') ent = this.entityMap[ent]
     if (!ent) throw Error('Entity not provided.')
     if (!ent.id || !this.entityMap[ent.id])
