@@ -1,6 +1,7 @@
 var Chat       = require("./interface/chat")
 var Connection = require("./connection")
 var Controller = require("./controller")
+var Crosshair  = require('./interface/crosshair')
 var Engine     = require("./engine")
 var Health     = require("./interface/health")
 var Radar      = require("./interface/radar")
@@ -88,6 +89,9 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
   var health = new Health(engine)
   el.appendChild(health.el)
+
+  var crosshair = new Crosshair
+  el.appendChild(crosshair.el)
 
   var stage = window.stage = new Stage(engine)
   el.appendChild(stage.el)
