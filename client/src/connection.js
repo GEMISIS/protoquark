@@ -127,6 +127,8 @@ function onClientIdAssigned(id) {
     conn.on("close", onServerDisconnected.bind(this))
     conn.on("error", onServerError.bind(this))
   }).bind(this));
+
+  this.emit('peeridassigned', this.peer.id)
 }
 
 function removeServerListeners() {
