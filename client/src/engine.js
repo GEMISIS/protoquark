@@ -87,7 +87,7 @@ conn: {
       return
 
     // Create the entity only if we're not migrating
-    var ent = exists ? this.entityMap[contextId] : new Entity(e.context, owned ? conn.peer.id : this.genLocalId())
+    var ent = exists ? this.entityMap[contextId] : new Entity(e.context, owned ? contextId : this.genLocalId())
     ent.type = owned ? "player" : "remoteplayer"
 
     if (exists) return
