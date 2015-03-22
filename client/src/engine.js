@@ -82,17 +82,17 @@ conn: {
     var exists = !!this.entityMap[contextId]
 
     // If we get an existing entity context id, means we've migrated.
-    // The only case where this would need to be reset would be for the new 
+    // The only case where this would need to be reset would be for the new
     if (exists && (!conn.isServer() || !owned))
       return
 
     // Create the entity only if we're not migrating
-    var ent = exists ? this.entityMap[contextId] : new Entity(e.context, this.genLocalId())
+    var ent = exists ? this.entityMap[contextId] : new Entity(e.context, owned ? conn.peer.id : this.genLocalId())
     ent.type = owned ? "player" : "remoteplayer"
 
     if (exists) return
 
-    addStartingWeapon.call(ent)
+    addStartingWeapon.call(this, ent)
 
     ent.control = {}
     this.add(ent)
@@ -132,7 +132,7 @@ conn: {
 
       var ent = new Entity(e.context[id], self.genLocalId())
       ent.control = {}
-      addStartingWeapon.call(ent)
+      addStartingWeapon.call(this, ent)
       ent.type = "remoteplayer"
       self.add(ent)
     })
