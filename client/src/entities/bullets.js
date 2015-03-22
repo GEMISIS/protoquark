@@ -9,10 +9,10 @@ var bullet = {
     return ent
   },
 
-  normal: function updateNormal (dt) {
-    this.position.x += this.velocity.x * this.direction.x
-    this.position.y += this.velocity.y * this.direction.y
-    this.position.z += this.velocity.z * this.direction.z
+  normal: function updateNormal (dt, ent) {
+    ent.position.x += ent.velocity.x * ent.direction.x
+    ent.position.y += ent.velocity.y * ent.direction.y
+    ent.position.z += ent.velocity.z * ent.direction.z
   }
 }
 
