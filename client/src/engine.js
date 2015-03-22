@@ -3,6 +3,7 @@ var Matrix4    = require("./math").mat4
 var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
 var bullets    = require("./entities/bullets")
+var weapons    = require("./config/weapon")
 
 var localIdCounter = 0
 var SEND_INTERVAL = .04
@@ -90,6 +91,8 @@ conn: {
     
     if (exists) return
 
+    addStartingWeapon.call(ent)
+
     ent.control = {}
     this.entities.push(ent)
     this.entityMap[e.context.id] = ent
@@ -126,6 +129,7 @@ conn: {
 
       var ent = new Entity(e.context[id], self.genLocalId())
       ent.control = {}
+      addStartingWeapon.call(ent)
       ent.type = "remoteplayer"
       
       self.entities.push(ent)
@@ -259,12 +263,18 @@ function onIntervalSend() {
   }
 
   if (conn.isServer() && this.snapshots) {
-
     conn.send("entitiesupdate", {
       snapshots: this.snapshots,
       time: conn.getServerTime()
     });
     this.snapshots = {}
+  }
+}
+
+function addStartingWeapon(ent) {
+  var weapon = ent.weapon = ent.weapon || {}
+  weapon.primary = {
+    id: "pistol"
   }
 }
 
