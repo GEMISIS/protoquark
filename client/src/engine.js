@@ -28,7 +28,8 @@ var handle = {
     }
 
     if (ent.control.shoot) {
-      bullets.create(this.genLocalId(), ent, "normal")
+      var bullet = bullets.create(this.genLocalId(), ent, "normal")
+      this.add(bullet)
     }
 
     ent.updateRotation()
@@ -87,25 +88,27 @@ conn: {
     // Create the entity only if we're not migrating
     var ent = exists ? this.entityMap[contextId] : new Entity(e.context, this.genLocalId())
     ent.type = owned ? "player" : "remoteplayer"
-    
+
     if (exists) return
 
     ent.control = {}
-    this.entities.push(ent)
-    this.entityMap[e.context.id] = ent
+    this.add(ent)
   },
 
   playerexit: function onPlayerExit (e) {
     console.log("onPlayerExit", e)
+
     if (this.entityMap[e.context.id])
       delete this.entityMap[e.context.id]
 
     var entities = this.entities
     var ent = entities.filter(function(ent){
       return ent.context.id == e.context.id
-    })[0] 
+    })[0]
+
     if (!ent) return
-    this.entities.splice(this.entities.indexOf(ent), 1)
+
+    this.remove(ent)
   },
 
   players: function onPlayers(e) {
@@ -127,9 +130,7 @@ conn: {
       var ent = new Entity(e.context[id], self.genLocalId())
       ent.control = {}
       ent.type = "remoteplayer"
-      
-      self.entities.push(ent)
-      self.entityMap[id] = ent
+      self.add(ent)
     })
     console.log("onPlayers")
   },
@@ -185,6 +186,10 @@ conn: {
     newPlayer.lastSnapshotTime = previousPlayer.lastSnapshotTime
   },
 
+  peeridassigned: function onPeerIdAssigned (e) {
+    this.localPrefixId = e.context
+  },
+
   connectionkill: function onConnectionKill() {
     clearInterval(this.sendIntervalId)
   }
@@ -192,11 +197,13 @@ conn: {
 }
 
 function Engine (connection, controller) {
+  this.localPrefixId = ''
   this.conn = connection
   this.control = controller
   this.entities = []
   this.entityMap = {}
-  this.sendIntervalId = setInterval(onIntervalSend.bind(this), SEND_INTERVAL * 1000)
+  this.sendIntervalId = setInterval(onIntervalSend.bind(this),
+    SEND_INTERVAL * 1000)
 
   var self = this
 
@@ -229,7 +236,7 @@ Engine.prototype = {
   },
 
   genLocalId: function genLocalId() {
-    return localIdCounter++;
+    return this.localPrefixId + '-' + localIdCounter++;
   },
 
   update: function update(dt) {
@@ -242,6 +249,23 @@ Engine.prototype = {
 
       if (handler) handler.call(this, ent, dt)
     }
+  },
+
+  add: function (ent) {
+    if (!ent.id) throw Error('Entity has not been assigned an id.')
+    if (this.entityMap[ent.id]) throw Error('Entity with id already exists.')
+    this.entities.push(ent)
+    this.entityMap[ent.id] = ent
+  },
+
+  remove: function (ent) {
+    if (typeof ent == 'string') ent = this.entityMap[ent]
+    if (!ent) throw Error('Entity not provided.')
+    if (!ent.id || !this.entityMap[ent.id])
+      throw Error('Invalid entity requested to be removed')
+
+    this.entities.splice(this.entities.indexOf(ent), 1)
+    delete this.entityMap[ent.id]
   }
 }
 

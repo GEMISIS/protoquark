@@ -1,23 +1,18 @@
 var Entity = require("../entity")
 
-function createBullet(id, creator, type) {
-  var bulletEnt = new Entity({}, id)
-  bulletEnt.update = bullet[type]
-  bulletEnt.position.copy(creator.position)
-  bulletEnt.direction = creator.rotation.clone()
-  return bulletEnt
-}
-
 var bullet = {
-  create: createBullet,
+  create: function create(id, creator, type) {
+    var ent = new Entity({}, id)
+    ent.update = bullet[type]
+    ent.position.copy(creator.position)
+    ent.direction = creator.rotation.clone()
+    return ent
+  },
 
   normal: function updateNormal (dt) {
-      this.position.x += this.velocity.x * this.direction.x
-      this.position.y += this.velocity.y * this.direction.y
-      this.position.z += this.velocity.z * this.direction.z
-  },
-  rocket: function updateRocket (dt) {
-    // wat
+    this.position.x += this.velocity.x * this.direction.x
+    this.position.y += this.velocity.y * this.direction.y
+    this.position.z += this.velocity.z * this.direction.z
   }
 }
 
