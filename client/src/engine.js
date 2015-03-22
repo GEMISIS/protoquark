@@ -81,7 +81,7 @@ conn: {
     var exists = !!this.entityMap[contextId]
 
     // If we get an existing entity context id, means we've migrated.
-    // The only case where this would need to be reset would be for the new 
+    // The only case where this would need to be reset would be for the new
     if (exists && (!conn.isServer() || !owned))
       return
 
