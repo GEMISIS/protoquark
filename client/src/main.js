@@ -90,7 +90,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
   var health = new Health(engine)
   el.appendChild(health.el)
 
-  var crosshair = new Crosshair()
+  var crosshair = new Crosshair
+  el.appendChild(crosshair.el)
 
   var stage = window.stage = new Stage(engine)
   el.appendChild(stage.el)
@@ -115,7 +116,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
   router.listen()
   last = timestamp()
-  update([engine, radar, health, crosshair, stage])
+  update([engine, radar, health, stage])
 })
 
 function timestamp() {

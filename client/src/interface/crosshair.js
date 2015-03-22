@@ -3,7 +3,4 @@ function Crosshair () {
   this.el.className = 'crosshair'
 }
 
-Crosshair.prototype = {
-  update: function update (dt) {
-  }
-}
+module.exports = Crosshair

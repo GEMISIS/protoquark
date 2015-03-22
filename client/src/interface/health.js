@@ -5,21 +5,10 @@ function Health (engine) {
   this.bar = document.createElement('div')
   this.bar.className = 'bar'
   this.el.appendChild(this.bar)
-  this.last = 100
-  this.test = 100
-  this.increment = 1
 }
 
 Health.prototype = {
   update: function update (dt) {
-    this.test += this.increment * dt
-    if (this.test <= 0) {
-      this.increment = 5
-    }
-    else if (this.test >= 100) {
-      this.increment = -5
-    }
-
     var me = this.engine.you()
 
     if (!me) return
@@ -43,8 +32,6 @@ Health.prototype = {
       if (el.classList.contains('warning'))
         el.classList.remove('warning')
     }
-
-    this.last = p
   }
 }
 
