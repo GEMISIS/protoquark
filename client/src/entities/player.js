@@ -20,10 +20,11 @@ module.exports = function updatePlayer (dt, ent) {
   }
 
   var weapon = ent.weapon.primary
+  var weaponStats = weapons[weapon.id]
   weapon.shotTimer -= dt
-  if (ent.control.shoot && weapon.shotTimer <= 0) {
-    weapon.shotTimer = 1 / weapons[weapon.id].firerate
-    //this.add(bullets.create(this.genLocalId(), ent, "normal"))
+  if (ent.control.shoot && (!ent.lastControl.shoot || weaponStats.automatic) && weapon.shotTimer <= 0) {
+    weapon.shotTimer = 1 / weaponStats.firerate
+    this.add(bullets.create(this.genLocalId(), ent, "normal"))
   }
 
   ent.updateRotation()

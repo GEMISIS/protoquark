@@ -10,7 +10,9 @@ var SEND_INTERVAL = .04
 
 function handleDirection(control, down) {
   var me = this.you()
-  if (me) me.control[control] = down
+  if (!me) return
+  me.lastControl[control] = me.control[control]
+  me.control[control] = down
 }
 
 var ons = {
@@ -58,6 +60,7 @@ conn: {
     addStartingWeapon.call(this, ent)
 
     ent.control = {}
+    ent.lastControl = {}
     this.add(ent)
   },
 
@@ -92,6 +95,7 @@ conn: {
 
       var ent = new Entity(e.context[id], id)
       ent.control = {}
+      ent.lastControl = {}
       addStartingWeapon.call(this, ent)
       ent.type = "remoteplayer"
       ent.update = require('./entities/remoteplayer')
@@ -222,7 +226,6 @@ Engine.prototype = {
   add: function add (ent) {
     if (!ent.id) throw Error('Entity has not been assigned an id.')
     if (this.entityMap[ent.id]) throw Error('Entity with id already exists.')
-    console.log("added", ent)
     this.entities.push(ent)
     this.entityMap[ent.id] = ent
   },

@@ -75,32 +75,13 @@ Entity.prototype = {
           }
         }
 
-        return this.createSnapshot(time, position, rotation, combinedControls)
+        return createSnapshot(time, position, rotation, combinedControls)
       }
     }
   },
 
-  createSnapshot: function createSnapshot(time, position, rotation, control) {
-    return {
-      time: time,
-      // peerjs throws type error function (x, y, z) if using threejs obj created with Vector3
-      position : {
-        x: position.x,
-        y: position.y,
-        z: position.z
-      },
-      rotation: {
-        x: rotation.x,
-        y: rotation.y,
-        z: rotation.z,
-        w: rotation.w
-      },
-      control: control
-    }
-  },
-
   addSnapshot: function addSnapshot(time, control) {
-    var snapshot = this.createSnapshot(time, this.position, this.rotation, control)
+    var snapshot = createSnapshot(time, this.position, this.rotation, control)
     this.snapshots.push(snapshot)
   },
 
@@ -119,6 +100,25 @@ Entity.prototype = {
     if (snapshots.length > 240) {
       snapshots.splice(0, snapshots.length - 240)
     }
+  }
+}
+
+ function createSnapshot(time, position, rotation, control) {
+  return {
+    time: time,
+    // peerjs throws type error function (x, y, z) if using threejs obj created with Vector3
+    position : {
+      x: position.x,
+      y: position.y,
+      z: position.z
+    },
+    rotation: {
+      x: rotation.x,
+      y: rotation.y,
+      z: rotation.z,
+      w: rotation.w
+    },
+    control: control
   }
 }
 
