@@ -64,9 +64,6 @@ conn: {
   playerexit: function onPlayerExit (e) {
     console.log("onPlayerExit", e)
 
-    if (this.entityMap[e.context.id])
-      delete this.entityMap[e.context.id]
-
     var entities = this.entities
     var ent = entities.filter(function(ent){
       return ent.context.id == e.context.id
@@ -93,7 +90,7 @@ conn: {
         return
       }
 
-      var ent = new Entity(e.context[id], self.genLocalId())
+      var ent = new Entity(e.context[id], id)
       ent.control = {}
       addStartingWeapon.call(this, ent)
       ent.type = "remoteplayer"
