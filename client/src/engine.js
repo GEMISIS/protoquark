@@ -2,8 +2,8 @@ var Entity     = require("./entity")
 var Matrix4    = require("./math").mat4
 var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
-var bullets    = require("./entities/bullets")
 var weapons    = require("./config/weapon")
+require('./entities/player')
 
 var localIdCounter = 0
 var SEND_INTERVAL = .04
@@ -44,8 +44,13 @@ conn: {
     var ent = exists ? this.entityMap[contextId] : new Entity(e.context, owned ? contextId : this.genLocalId())
     ent.type = owned ? "player" : "remoteplayer"
 
-    if (!ent.update)
-      ent.update = require('./entities/' + ent.type)
+    try {
+      if (!ent.update)
+        ent.update = require('./entities/' + ent.type)
+    }
+    catch (e) {
+      console.log(e)
+    }
 
     if (exists) return
 
@@ -166,6 +171,7 @@ function Engine (connection, controller) {
   this.entityMap = {}
   this.sendIntervalId = setInterval(onIntervalSend.bind(this),
     SEND_INTERVAL * 1000)
+  this.sendInterval = SEND_INTERVAL
 
   var self = this
 
@@ -207,7 +213,7 @@ Engine.prototype = {
 
     for (var i = 0; i < entities.length; i++) {
       var ent = entities[i]
-      if (ent.update) ent.update.call(this, dt, ent)
+      if (ent.update) ent.update.call(this, ent, dt)
     }
   },
 
@@ -253,8 +259,10 @@ function onIntervalSend() {
 
 function addStartingWeapon(ent) {
   var weapon = ent.weapon = ent.weapon || {}
+  weapon.active = "primary"
   weapon.primary = {
-    id: "pistol"
+    id: "pistol",
+    shotTimer: 0
   }
 }
 
