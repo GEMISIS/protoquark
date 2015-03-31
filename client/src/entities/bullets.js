@@ -14,14 +14,10 @@ var bullet = {
     return ent
   },
 
-  normal: function updateNormal (ent, dt) {
-    var vel = ent.velocity
-    var pos = ent.position
-    pos.x += vel.x * dt
-    pos.y += vel.y * dt
-    pos.z += vel.z * dt
-
-    console.log(pos)
+  normal: function updateNormal (dt, ent) {
+    ent.position.x += ent.velocity.x * dt
+    ent.position.y += ent.velocity.y * dt
+    ent.position.z += ent.velocity.z * dt
   }
 }
 

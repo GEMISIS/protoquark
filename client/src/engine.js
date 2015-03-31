@@ -213,7 +213,7 @@ Engine.prototype = {
 
     for (var i = 0; i < entities.length; i++) {
       var ent = entities[i]
-      if (ent.update) ent.update.call(this, ent, dt)
+      if (ent.update) ent.update.call(this, dt, ent)
     }
   },
 

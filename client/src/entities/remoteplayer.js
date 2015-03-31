@@ -1,7 +1,7 @@
 var bullets    = require("./bullets")
 var weapons    = require("../config/weapon")
 
-module.exports = function updateRemotePlayer (ent, dt) {
+module.exports = function updateRemotePlayer (dt, ent) {
   // Note that since we dont know what order these events will arrive,
   // make sure Entity.prototype.trimSnapshots doesn't remove everything
   var conn = this.conn

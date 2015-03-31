@@ -1,7 +1,7 @@
 var bullets    = require("./bullets")
 var weapons    = require("../config/weapon")
 
-module.exports = function updatePlayer (ent, dt) {
+module.exports = function updatePlayer (dt, ent) {
   var angle = ent.euler.y
   var sinAngle = Math.sin(angle)
   var cosAngle = Math.cos(angle)
