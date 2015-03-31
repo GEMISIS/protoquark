@@ -41,7 +41,8 @@ conn: {
       return
 
     // Create the entity only if we're not migrating
-    var ent = exists ? this.entityMap[contextId] : new Entity(e.context, owned ? contextId : this.genLocalId())
+    // var ent = exists ? this.entityMap[contextId] : new Entity(e.context, owned ? contextId : this.genLocalId())
+    var ent = new Entity(e.context, contextId)
     ent.type = owned ? "player" : "remoteplayer"
 
     try {
@@ -106,7 +107,10 @@ conn: {
     if (!this.conn.isServer()) return
 
     var ent = this.entityMap[e.sender]
-    if (!ent) return
+    if (!ent) {
+      console.log("Cant find", e.sender)
+      return
+    }
 
     // Queue packets for future send - dont put in ent.snapshots since we'll handle that with
     // the entitiesupdate event for both client and server
@@ -221,6 +225,7 @@ Engine.prototype = {
   add: function add (ent) {
     if (!ent.id) throw Error('Entity has not been assigned an id.')
     if (this.entityMap[ent.id]) throw Error('Entity with id already exists.')
+    console.log("added", ent)
     this.entities.push(ent)
     this.entityMap[ent.id] = ent
   },
@@ -231,6 +236,7 @@ Engine.prototype = {
     if (!ent.id || !this.entityMap[ent.id])
       throw Error('Invalid entity requested to be removed')
 
+    console.log("Removing", ent)
     this.entities.splice(this.entities.indexOf(ent), 1)
     delete this.entityMap[ent.id]
   }

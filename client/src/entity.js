@@ -32,8 +32,9 @@ Entity.prototype = {
   getSnapshot: function getSnapshot(time) {
     var snapshots = this.snapshots
 
-    if (!snapshots.length)
+    if (!snapshots.length) {
       return
+    }
 
     // Time is more recent than any entry. Return most recent
     if (time > snapshots[snapshots.length - 1].time)

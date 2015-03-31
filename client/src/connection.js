@@ -67,7 +67,6 @@ Connection.prototype = {
 
     var peer = this.peer = migrating ? this.peer : new Peer({key: API_KEY, debug: 3})
     if (!migrating) {
-      this.emit("opening")
       peer.once("error", onJoinError.bind(this))
       peer.once("open", onClientIdAssigned.bind(this))
       peer.on("connection", function (e) { console.log("connection!", e) })
@@ -144,7 +143,6 @@ function removeServerListeners() {
 function onConnectedToServer() {
   console.log("Connected to server")
   this.connected = true
-  this.emit("connected")
 }
 
 function onJoinError(err) {
@@ -301,7 +299,6 @@ function onPong(e) {
 
 function onServerStarted() {
   console.log("server started")
-  this.emit('createdserver')
   this.serving = true
   this.connected = true
   this.players[this.peer.id] = {
@@ -313,13 +310,10 @@ function onServerStarted() {
 }
 
 function onServerError(e) {
-  console.error("Server error:", e)
+  console.log("Server error:", e)
   if (e.type === "unavailable-id") {
     console.log("server id taken, connecting to server")
     this.connect(this.room)
-  }
-  else {
-    this.emit('createservererror', e)
   }
 }
 
@@ -331,7 +325,6 @@ function serve() {
   nameCounter = 0
   this.clients = {}
   this.connected = false
-  this.emit("createserver")
 
   var peer = this.peer = new Peer(this.room, {key : API_KEY})
   peer.once("open", onServerStarted.bind(this))
