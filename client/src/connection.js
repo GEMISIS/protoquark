@@ -160,10 +160,8 @@ function onServerData(data) {
 function onServerTime(data) {
   if (this.isServer()) return
 
-  console.log("onServerTime")
   var serverTime = data.context.time + data.context.latency / 2
   this.serverTimeOffset = serverTime - Date.now() / 1000
-  console.log("Round trip time", data.context.latency)
   this.latency = data.context.latency
 }
 

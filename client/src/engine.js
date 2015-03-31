@@ -154,7 +154,8 @@ conn: {
   },
 
   peeridassigned: function onPeerIdAssigned (e) {
-    this.localPrefixId = e.context
+    console.log("peerid", e)
+    this.localPrefixId = e
   },
 
   connectionkill: function onConnectionKill() {
