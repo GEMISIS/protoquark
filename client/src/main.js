@@ -1,6 +1,6 @@
 var Chat       = require("./interface/chat")
 var Connection = require("./connection")
-var Status     = require("./conncetion-status")
+var Status     = require("./interface/connection-status")
 var Controller = require("./controller")
 var Crosshair  = require('./interface/crosshair')
 var Engine     = require("./engine")
