@@ -33,10 +33,13 @@ function onStatusEvent (ev, message) {
 }
 
 function Status (connection) {
+  var self = this
   this.conn = connection
   this.el = document.createElement('label')
   this.el.className = "connection-status"
   Object.keys(ons).forEach(function (key){
-    connection.add(key, onStatusEvent.bind(@, key, ons[key]))
+    connection.on(key, onStatusEvent.bind(self, key, ons[key]))
   })
 }
+
+module.exports = Status
