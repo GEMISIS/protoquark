@@ -26,7 +26,7 @@ module.exports = function updatePlayer (dt, ent) {
     ent.addSnapshot(this.conn.getServerTime(), ent.control)
 
   var weapon = ent.weapon.active === "primary" ? ent.weapon.primary : ent.weapon.secondary
-  if (weapon) return
+  if (!weapon) return
   var weaponStats = weapons[weapon.id]
   weapon.shotTimer -= dt
   if (ent.control.shoot && (!ent.lastControl.shoot || weaponStats.automatic) && weapon.shotTimer <= 0 && weapon.ammunition > 0) {
