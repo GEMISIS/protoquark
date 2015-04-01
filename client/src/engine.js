@@ -2,15 +2,17 @@ var Entity     = require("./entity")
 var Matrix4    = require("./math").mat4
 var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
-var bullets    = require("./entities/bullets")
 var weapons    = require("./config/weapon")
+require('./entities/player')
 
 var localIdCounter = 0
 var SEND_INTERVAL = .04
 
 function handleDirection(control, down) {
   var me = this.you()
-  if (me) me.control[control] = down
+  if (!me) return
+  me.lastControl[control] = me.control[control]
+  me.control[control] = down
 }
 
 var ons = {
@@ -41,25 +43,29 @@ conn: {
       return
 
     // Create the entity only if we're not migrating
-    var ent = exists ? this.entityMap[contextId] : new Entity(e.context, owned ? contextId : this.genLocalId())
+    // var ent = exists ? this.entityMap[contextId] : new Entity(e.context, owned ? contextId : this.genLocalId())
+    var ent = new Entity(e.context, contextId)
     ent.type = owned ? "player" : "remoteplayer"
 
-    if (!ent.update)
-      ent.update = require('./entities/' + ent.type)
+    try {
+      if (!ent.update)
+        ent.update = require('./entities/' + ent.type)
+    }
+    catch (e) {
+      console.log(e)
+    }
 
     if (exists) return
 
     addStartingWeapon.call(this, ent)
 
     ent.control = {}
+    ent.lastControl = {}
     this.add(ent)
   },
 
   playerexit: function onPlayerExit (e) {
     console.log("onPlayerExit", e)
-
-    if (this.entityMap[e.context.id])
-      delete this.entityMap[e.context.id]
 
     var entities = this.entities
     var ent = entities.filter(function(ent){
@@ -87,8 +93,9 @@ conn: {
         return
       }
 
-      var ent = new Entity(e.context[id], self.genLocalId())
+      var ent = new Entity(e.context[id], id)
       ent.control = {}
+      ent.lastControl = {}
       addStartingWeapon.call(this, ent)
       ent.type = "remoteplayer"
       ent.update = require('./entities/remoteplayer')
@@ -101,7 +108,10 @@ conn: {
     if (!this.conn.isServer()) return
 
     var ent = this.entityMap[e.sender]
-    if (!ent) return
+    if (!ent) {
+      console.log("Cant find", e.sender)
+      return
+    }
 
     // Queue packets for future send - dont put in ent.snapshots since we'll handle that with
     // the entitiesupdate event for both client and server
@@ -149,7 +159,8 @@ conn: {
   },
 
   peeridassigned: function onPeerIdAssigned (e) {
-    this.localPrefixId = e.context
+    console.log("peerid", e)
+    this.localPrefixId = e
   },
 
   connectionkill: function onConnectionKill() {
@@ -166,6 +177,7 @@ function Engine (connection, controller) {
   this.entityMap = {}
   this.sendIntervalId = setInterval(onIntervalSend.bind(this),
     SEND_INTERVAL * 1000)
+  this.sendInterval = SEND_INTERVAL
 
   var self = this
 
@@ -224,6 +236,7 @@ Engine.prototype = {
     if (!ent.id || !this.entityMap[ent.id])
       throw Error('Invalid entity requested to be removed')
 
+    console.log("Removing", ent)
     this.entities.splice(this.entities.indexOf(ent), 1)
     delete this.entityMap[ent.id]
   }
@@ -253,8 +266,10 @@ function onIntervalSend() {
 
 function addStartingWeapon(ent) {
   var weapon = ent.weapon = ent.weapon || {}
+  weapon.active = "primary"
   weapon.primary = {
-    id: "pistol"
+    id: "pistol",
+    shotTimer: 0
   }
 }
 

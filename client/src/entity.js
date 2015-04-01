@@ -26,13 +26,15 @@ Entity.prototype = {
 
     this.position = new Vector3(snapshot.position.x, snapshot.position.y, snapshot.position.z)
     this.rotation = new Quaternion(snapshot.rotation.x, snapshot.rotation.y, snapshot.rotation.z, snapshot.rotation.w)
+    this.control = snapshot.control
   },
 
   getSnapshot: function getSnapshot(time) {
     var snapshots = this.snapshots
 
-    if (!snapshots.length)
+    if (!snapshots.length) {
       return
+    }
 
     // Time is more recent than any entry. Return most recent
     if (time > snapshots[snapshots.length - 1].time)
@@ -46,46 +48,40 @@ Entity.prototype = {
     for (var i = snapshots.length - 2; i > -1; i--) {
       if (snapshots[i].time < time) {
         // Snapshot between i and i + 1
-        var snapshotBefore = snapshots[i]
-          , snapshotAfter = snapshots[i + 1]
-          , t = (time - snapshotBefore.time) / (snapshotAfter.time - snapshotBefore.time)
+        var before = snapshots[i]
+          , after = snapshots[i + 1]
+          , t = (time - before.time) / (after.time - before.time)
           , rotation = new Quaternion()
 
-        var beforePosition = new Vector3(snapshotBefore.position.x, snapshotBefore.position.y, snapshotBefore.position.z)
-        var afterPosition = new Vector3(snapshotAfter.position.x, snapshotAfter.position.y, snapshotAfter.position.z)
+        var beforePosition = new Vector3(before.position.x, before.position.y, before.position.z)
+        var afterPosition = new Vector3(after.position.x, after.position.y, after.position.z)
         var position = new Vector3().copy(beforePosition).lerp(afterPosition, t)
 
-        var beforeRotation = new Quaternion(snapshotBefore.rotation.x, snapshotBefore.rotation.y,
-          snapshotBefore.rotation.z, snapshotBefore.rotation.w)
-        var afterRotation = new Quaternion(snapshotAfter.rotation.x, snapshotAfter.rotation.y,
-          snapshotAfter.rotation.z, snapshotAfter.rotation.w)
+        var beforeRotation = new Quaternion(before.rotation.x, before.rotation.y,
+          before.rotation.z, before.rotation.w)
+        var afterRotation = new Quaternion(after.rotation.x, after.rotation.y,
+          after.rotation.z, after.rotation.w)
         rotation = Quaternion.slerp(beforeRotation, afterRotation, rotation, t)
 
-        return this.createSnapshot(time, position, rotation)
+        // Combine keys that were pressed
+        var combinedControls = {}
+        var controls = [before.control, after.control]
+        for (var i = 0; i < controls.length; i++) {
+          var control = controls[i]
+          var keys = Object.keys(control)
+          for (var j = 0; j < keys.length; j++) {
+            var key = keys[j]
+            combinedControls[key] = combinedControls[key] || control[key]
+          }
+        }
+
+        return createSnapshot(time, position, rotation, combinedControls)
       }
     }
   },
 
-  createSnapshot: function createSnapshot(time, position, rotation) {
-    return {
-      time: time,
-      // peerjs throws type error function (x, y, z) if using threejs obj created with Vector3
-      position : {
-        x: position.x,
-        y: position.y,
-        z: position.z
-      },
-      rotation: {
-        x: rotation.x,
-        y: rotation.y,
-        z: rotation.z,
-        w: rotation.w
-      }
-    }
-  },
-
-  addSnapshot: function addSnapshot(time) {
-    var snapshot = this.createSnapshot(time, this.position, this.rotation)
+  addSnapshot: function addSnapshot(time, control) {
+    var snapshot = createSnapshot(time, this.position, this.rotation, control)
     this.snapshots.push(snapshot)
   },
 
@@ -104,6 +100,25 @@ Entity.prototype = {
     if (snapshots.length > 240) {
       snapshots.splice(0, snapshots.length - 240)
     }
+  }
+}
+
+ function createSnapshot(time, position, rotation, control) {
+  return {
+    time: time,
+    // peerjs throws type error function (x, y, z) if using threejs obj created with Vector3
+    position : {
+      x: position.x,
+      y: position.y,
+      z: position.z
+    },
+    rotation: {
+      x: rotation.x,
+      y: rotation.y,
+      z: rotation.z,
+      w: rotation.w
+    },
+    control: control
   }
 }
 

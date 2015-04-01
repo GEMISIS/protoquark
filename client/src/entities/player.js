@@ -1,3 +1,6 @@
+var bullets    = require("./bullets")
+var weapons    = require("../config/weapon")
+
 module.exports = function updatePlayer (dt, ent) {
   var angle = ent.euler.y
   var sinAngle = Math.sin(angle)
@@ -16,14 +19,17 @@ module.exports = function updatePlayer (dt, ent) {
     ent.position.z += sinAngle * speed * dt * multiplier
   }
 
-  if (ent.control.shoot) {
-    var bullet = bullets.create(this.genLocalId(), ent, "normal")
-    this.add(bullet)
+  var weapon = ent.weapon.primary
+  var weaponStats = weapons[weapon.id]
+  weapon.shotTimer -= dt
+  if (ent.control.shoot && (!ent.lastControl.shoot || weaponStats.automatic) && weapon.shotTimer <= 0) {
+    weapon.shotTimer = 1 / weaponStats.firerate
+    this.add(bullets.create(this.genLocalId(), ent, "normal"))
   }
 
   ent.updateRotation()
 
   // Queue up packets to send - we'll clear this once sent
   if (this.conn.connected)
-    ent.addSnapshot(this.conn.getServerTime())
+    ent.addSnapshot(this.conn.getServerTime(), ent.control)
 }
