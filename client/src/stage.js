@@ -4,8 +4,9 @@ var Quaternion = require("./math").quat
 var Euler      = require("./math").euler
 
 var representations = {
-  remoteplayer: require("./obj3d/player"),
-  bullet: require('./obj3d/bullet')
+  box:          require('./obj3d/box'),
+  bullet:       require('./obj3d/bullet'),
+  remoteplayer: require("./obj3d/player")
 }
 
 function Stage (engine) {
@@ -37,8 +38,10 @@ Stage.prototype = {
 
     this.resize()
 
+    var colors = [0x0000FF, 0x00FF00, 0xFF0000, 0xFF00FF]
     for (var angle = 0; angle < 4; angle++) {
-      var p = new representations.player(null, null, [0x0000FF, 0x00FF00, 0xFF0000, 0xFF00FF][angle])
+      var p = new representations.box(null,
+        colors[angle])
       p.o3d.position.x = Math.cos(angle * 90 * Math.PI / 180) * 5
       p.o3d.position.z = -Math.sin(angle * 90 * Math.PI / 180) * 5
       this.scene.add(p.o3d)

@@ -27,4 +27,4 @@ Bullet.prototype = {
   }
 }
 
-module.exports = Player
+module.exports = Bullet
