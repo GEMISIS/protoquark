@@ -13,7 +13,8 @@ module.exports = function updateRemotePlayer (dt, ent) {
   ent.interpolate(conn.getServerTime(), lerpTime)
   ent.trimSnapshots()
 
-  var weapon = ent.weapon.primary
+  var weapon = ent.weapon.active === "primary" ? ent.weapon.primary : ent.weapon.secondary
+  if (!weapon) return
   weapon.shotTimer -= dt
   if (ent.control.shoot && weapon.shotTimer <= 0 && weapon.ammunition > 0) {
     weapon.shotTimer = 1 / weapons[weapon.id].firerate
