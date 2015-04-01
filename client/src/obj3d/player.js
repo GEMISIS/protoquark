@@ -1,14 +1,33 @@
-function Player (entity, geo, color) {
+function hashCode(str) {
+    var hash = 0;
+    for (var i = 0; i < str.length; i++) {
+       hash = str.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    return hash
+}
+
+function intToARGB(i){
+    return ((i>>24)&0xFF).toString(16) +
+           ((i>>16)&0xFF).toString(16) +
+           ((i>>8)&0xFF).toString(16) +
+           (i&0xFF).toString(16)
+}
+
+var geometry;
+function getGeometry() {
+  if (!geometry) geometry = new THREE.BoxGeometry(1, 1, 1)
+  return geometry
+}
+
+function Player (entity) {
   this.entity = entity
   this.o3d = new THREE.Object3D()
 
   var material = new THREE.MeshBasicMaterial({
-    color: color || 0xff0000
+    color: intToARGB(hashCode(entity.context.id))
   })
-  var geometry = geo || new THREE.BoxGeometry(1, 1, 1)
-  var mesh = new THREE.Mesh(geometry, material)
 
-  this.o3d.add(mesh)
+  this.o3d.add(new THREE.Mesh(getGeometry(), material))
 }
 
 Player.prototype = {

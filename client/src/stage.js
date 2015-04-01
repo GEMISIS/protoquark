@@ -4,12 +4,9 @@ var Quaternion = require("./math").quat
 var Euler      = require("./math").euler
 
 var representations = {
-  player: require("./obj3d/player")
-}
-
-function getEntityRepresentation (me, entity) {
-  if (me && me.context.id == entity.context.id) return
-  return representations.player
+  box:          require('./obj3d/box'),
+  bullet:       require('./obj3d/bullet'),
+  remoteplayer: require("./obj3d/player")
 }
 
 function Stage (engine) {
@@ -41,8 +38,10 @@ Stage.prototype = {
 
     this.resize()
 
+    var colors = [0x0000FF, 0x00FF00, 0xFF0000, 0xFF00FF]
     for (var angle = 0; angle < 4; angle++) {
-      var p = new representations.player(null, null, [0x0000FF, 0x00FF00, 0xFF0000, 0xFF00FF][angle])
+      var p = new representations.box(null,
+        colors[angle])
       p.o3d.position.x = Math.cos(angle * 90 * Math.PI / 180) * 5
       p.o3d.position.z = -Math.sin(angle * 90 * Math.PI / 180) * 5
       this.scene.add(p.o3d)
@@ -77,9 +76,10 @@ Stage.prototype = {
 
       if (map[e.id]) continue
 
-      var Representation = getEntityRepresentation.call(this, me, e)
+      var Representation = representations[e.type]
       if (Representation) {
-        rep = new Representation(e, null, 0xFFFFFF)
+        rep = new Representation(e)
+        if (!rep.o3d) throw Error('Tried to add representation with no o3d.')
         this.scene.add(rep.o3d)
       }
       else {
@@ -99,7 +99,7 @@ Stage.prototype = {
         continue
       }
 
-      this.scene.remove(rep.o3d)
+      if (rep.o3d) this.scene.remove(rep.o3d) 
       delete map[id]
       ids.splice(i, 1)
       i--
