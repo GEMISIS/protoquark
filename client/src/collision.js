@@ -3,8 +3,8 @@ var Vector3 = require("./math").vec3
 
 module.exports = {
   collides: function collides(a, b) {
-    var boxA = a.box.clone() || new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
-    var boxB = b.box.clone() || new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
+    var boxA = a.box ? a.box.clone() : new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
+    var boxB = b.box ? b.box.clone() : new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
 
     boxA.min.add(a.position)
     boxA.max.add(a.position)

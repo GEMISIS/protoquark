@@ -46,6 +46,7 @@ conn: {
     // var ent = exists ? this.entityMap[contextId] : new Entity(e.context, owned ? contextId : this.genLocalId())
     var ent = new Entity(e.context, contextId)
     ent.type = owned ? "player" : "remoteplayer"
+    ent.health = {max: 1, current: 1}
 
     try {
       if (!ent.update)
