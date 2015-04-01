@@ -15,8 +15,9 @@ module.exports = function updateRemotePlayer (dt, ent) {
 
   var weapon = ent.weapon.primary
   weapon.shotTimer -= dt
-  if (ent.control.shoot && weapon.shotTimer <= 0) {
+  if (ent.control.shoot && weapon.shotTimer <= 0 && weapon.ammunition > 0) {
     weapon.shotTimer = 1 / weapons[weapon.id].firerate
     this.add(bullets.create(this.genLocalId(), ent, "normal"))
+    weapon.ammunition--
   }
 }
