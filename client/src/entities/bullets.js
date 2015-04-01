@@ -1,5 +1,6 @@
 var Entity   = require("../entity")
 var Vector3  = require("../math").vec3
+var collision = require("../collision")
 
 var bullet = {
   create: function create(id, creator, bulletType) {
@@ -11,14 +12,39 @@ var bullet = {
     ent.velocity.applyQuaternion(creator.rotation)
     ent.speed = 50
     ent.type = "bullet"
+    ent.creator = creator.id
 
     return ent
   },
 
   normal: function updateNormal (dt, ent) {
-    ent.position.x += ent.velocity.x * dt * ent.speed
-    ent.position.y += ent.velocity.y * dt * ent.speed
-    ent.position.z += ent.velocity.z * dt * ent.speed
+    var from = ent.position.clone()
+    var to = ent.position.clone()
+    to.x += ent.velocity.x * dt * ent.speed
+    to.y += ent.velocity.y * dt * ent.speed
+    to.z += ent.velocity.z * dt * ent.speed
+
+    // TODO: Use some type of tree to limit number of entities checked
+    var entities = this.entities
+    var enemyHit = null
+    var closestTime = Number.POSITIVE_INFINITY
+    for (var i = 0; i < entities.length; i++) {
+      var other = entities[i]
+      if ((other.type == "player" || other.type == "remoteplayer") && other.id != ent.creator) {
+        var collisionTime = collision.collidesSwept(ent, other, from, to)
+        if (collisionTime > 1.0 || collisionTime > closestTime) continue
+        closestTime = collisionTime
+        enemyHit = other
+      }
+    }
+
+    if (enemyHit) {
+      ent.markedForDeletion = true
+      ent.position.copy(enemyHit.position)
+    }
+    else {
+      ent.position.copy(to)
+    }
   }
 }
 

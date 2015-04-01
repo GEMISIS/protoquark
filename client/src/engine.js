@@ -221,6 +221,15 @@ Engine.prototype = {
       var ent = entities[i]
       if (ent.update) ent.update.call(this, dt, ent)
     }
+
+    // 2nd pass to delete
+    for (var i = 0; i < entities.length; i++) {
+      var ent = entities[i]
+      if (ent.markedForDeletion) {
+        this.remove(ent)
+        i--
+      }
+    }
   },
 
   add: function add (ent) {
