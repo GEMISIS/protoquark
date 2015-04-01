@@ -1,4 +1,4 @@
-var configs = require('../config/weapons')
+var configs = require('../config/weapon')
 
 var weapons = ['primary', 'secondary']
 
@@ -18,13 +18,18 @@ function addSpan (name, el) {
 }
 
 function swapWeapon(el, weaponId) {
-  var weapon = configs[weapon]
+  var weapon = configs[weaponId]
   el.wepname.textContent = weapon.name
 }
 
 function updateAmmunition(el, amount) {
   if (el.ammunition.amount != amount) {
-    el.ammunition.textContent = ("00" + ammount).slice(-3)
+    if (amount == null) {
+      el.ammunition.textContent = "∞"
+    }
+    else {
+      el.ammunition.textContent = ("00" + amount).slice(-3)
+    }
 
     if (amount == 0) {
       el.ammunition.classList.add('empty')
@@ -44,7 +49,8 @@ function Weapon (engine) {
   this.el.className = "weapon"
   this.primary = createWeaponLabel('primary')
   this.secondary = createWeaponLabel('secondary')
-  this.el.appendChild(this.primary, this.secondary)
+  this.el.appendChild(this.primary)
+  this.el.appendChild(this.secondary)
 }
 
 Weapon.prototype = {
@@ -54,13 +60,17 @@ Weapon.prototype = {
     if (!me) return
 
     if (me.weapon.active != this.current.active) {
-      this[this.current.active].classList.remove('active')
+      if (this.current.active)
+        this[this.current.active].classList.remove('active')
       this[me.weapon.active].classList.add('active')
       this.current.active = me.weapon.active
     }
 
     for (var i = 0; i < weapons.length; i++) {
       var weap = weapons[i]
+
+      if (!me.weapon[weap]) continue
+
       if (me.weapon[weap].id != this.current[weap]) {
         swapWeapon(this[weap], me.weapon[weap].id)
         this.current[weap] = me.weapon[weap].id

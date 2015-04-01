@@ -8,6 +8,7 @@ var Health     = require("./interface/health")
 var Radar      = require("./interface/radar")
 var Router     = require("./router")
 var Stage      = require("./stage")
+var Weapon     = require('./interface/weapon')
 
 window.connection = new Connection()
 
@@ -22,7 +23,8 @@ var keymap = {
   70: "grenade",
   82: "reload",
   83: "backward",
-  87: "forward"
+  87: "forward",
+  86: "swapweapon"
 }
 
 var mousemap = {
@@ -97,6 +99,9 @@ document.addEventListener("DOMContentLoaded", function (e) {
   var status = new Status(conn)
   el.appendChild(status.el)
 
+  var weapon = new Weapon(engine)
+  el.appendChild(weapon.el)
+
   var stage = window.stage = new Stage(engine)
   el.appendChild(stage.el)
   stage.resize()
@@ -120,7 +125,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
   router.listen()
   last = timestamp()
-  update([engine, radar, health, stage])
+  update([engine, radar, health, weapon, stage])
 })
 
 function timestamp() {

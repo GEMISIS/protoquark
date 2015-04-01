@@ -1,3 +1,21 @@
+.weapon {
+  background: transparent;
+  color: white;
+  font-size: 110%;
+  font-weight: bold;
+  left: 1em;
+  position: absolute;
+  top: 1em;
+}
+
+.weapon > label > span:first-child {
+  margin-right: 0.5em;
+}
+
+.weapon > label.active {
+  background: dodgerblue;
+}
+
 .connection-status {
   display: none;
   position: absolute;
