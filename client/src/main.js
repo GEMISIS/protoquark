@@ -1,13 +1,14 @@
 var Chat       = require("./interface/chat")
 var Connection = require("./connection")
-var Status     = require("./interface/connection-status")
 var Controller = require("./controller")
 var Crosshair  = require('./interface/crosshair')
 var Engine     = require("./engine")
 var Health     = require("./interface/health")
 var Radar      = require("./interface/radar")
 var Router     = require("./router")
+var Score      = require("./interface/score")
 var Stage      = require("./stage")
+var Status     = require("./interface/connection-status")
 var Weapon     = require('./interface/weapon')
 
 window.connection = new Connection()
@@ -101,6 +102,9 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
   var weapon = new Weapon(engine)
   el.appendChild(weapon.el)
+
+  var score = new Score(conn)
+  el.appendChild(score.el)
 
   var stage = window.stage = new Stage(engine)
   el.appendChild(stage.el)
