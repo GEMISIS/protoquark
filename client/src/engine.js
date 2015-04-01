@@ -266,10 +266,12 @@ function onIntervalSend() {
 
 function addStartingWeapon(ent) {
   var weapon = ent.weapon = ent.weapon || {}
+  var weaponId = "pistol"
   weapon.active = "primary"
   weapon.primary = {
-    id: "pistol",
-    shotTimer: 0
+    id: weaponId,
+    shotTimer: 0,
+    ammunition: weapons[weaponId].ammunition
   }
 }
 
