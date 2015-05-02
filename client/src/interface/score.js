@@ -30,7 +30,7 @@ function Score (connection) {
       }]
     }]
   })
-  this.el = tree.el
+  this.el = this.tree.el
   this.scores = []
 
   connection.on('scoreboard', onScoreBoard.bind(this))
