@@ -47,7 +47,10 @@ var ons = {
     var isenter = e.keyCode == 13
     var istab = e.keyCode == 9
 
-    if (istab) return e.preventDefault()
+    if (istab) {
+      this.score.toggle()
+      return e.preventDefault()
+    }
     if (this.chat.hasfocus && !isenter) return
     if (isenter) return this.chat.toggle()
 
@@ -103,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
   var weapon = new Weapon(engine)
   el.appendChild(weapon.el)
 
-  var score = new Score(conn)
+  var score = window.score = new Score(conn)
   el.appendChild(score.el)
 
   var stage = window.stage = new Stage(engine)
