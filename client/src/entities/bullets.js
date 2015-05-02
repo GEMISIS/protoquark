@@ -8,11 +8,15 @@ var bullet = {
     ent.update = bullet[bulletType]
     ent.position.copy(creator.position)
     ent.direction = creator.rotation.clone()
-    ent.velocity = new Vector3(0, 0, -1)
-    ent.velocity.applyQuaternion(creator.rotation)
+    ent.velocity = new Vector3(
+      Math.sin(creator.euler.y) * Math.cos(creator.euler.x), 
+      -Math.sin(creator.euler.x), 
+      -Math.cos(creator.euler.y) * Math.cos(creator.euler.x))
     ent.speed = 50
     ent.type = "bullet"
     ent.creator = creator.id
+
+    console.log(ent.velocity)
 
     return ent
   },
