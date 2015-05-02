@@ -16,8 +16,6 @@ var bullet = {
     ent.type = "bullet"
     ent.creator = creator.id
 
-    console.log(ent.velocity)
-
     return ent
   },
 
