@@ -15,7 +15,7 @@ function getCollidedPos(spherePos, vel, tris) {
     , temp = new Vector3()
     , slidePlane = new Plane()
     , endPos = new Vector3()
-    , maxIterations = 1
+    , maxIterations = 10
 
   for (var i = 0; i < maxIterations; i++) {
     endPos.addVectors(newPos, newVel)
