@@ -64,6 +64,8 @@ function parseLevel(level) {
   level.blocks.forEach((function(block) {
     var ent = new Entity(block, this.genLocalId())
     ent.type = 'block'
+    var pos = block.position
+    ent.position = new Vector3(pos.x, pos.y, pos.z)
     this.add(ent)
   }).bind(this))
 }

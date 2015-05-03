@@ -13,6 +13,13 @@ function Box (entity) {
   })
 
   this.o3d.add(new THREE.Mesh(getGeometry(), material))
+
+  var scale = entity.context.scale || {x: 1, y: 1, z: 1}
+  // Setting directly a new scale seems to bug out for some reason
+  this.o3d.scale.x = scale.x
+  this.o3d.scale.y = scale.y
+  this.o3d.scale.z = scale.z
+  this.o3d.updateMatrix()
 }
 
 Box.prototype = {
