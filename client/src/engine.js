@@ -26,7 +26,7 @@ function loadLevel(url, done) {
   var req = new XMLHttpRequest()
   var resp = {
     progress: function (ev) {
-      this.emit('levelloadprogress', 0 /* 0 ~ 1 calc progress here */)
+      //this.emit('levelloadprogress', 0 /* 0 ~ 1 calc progress here */)
     },
     load: function (ev) {
       try {
@@ -45,7 +45,7 @@ function loadLevel(url, done) {
   req.overrideMimeType("application/json")
   req.open('GET', url, true)
   Object.keys(resp).forEach((function (key) {
-    req.addEventListener.bind(this, key, resp[key])
+    req.addEventListener(key, resp[key].bind(this))
   }).bind(this))
   req.send()
 }
