@@ -24,7 +24,9 @@ module.exports = function updatePlayer (dt, ent) {
 
   var colliders = this.colliders
   var vel = new Vector3().subVectors(ent.position, prev)
-  if (colliders) ent.position = collision.getCollidedPos(prev, vel, colliders)
+  ent.position = collision.getCollidedPos(prev, vel, colliders)
+  ent.position.y -= dt * 10
+  ent.position.y = Math.max(ent.position.y, 0)
 
   ent.updateRotation()
 

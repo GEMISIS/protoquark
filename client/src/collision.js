@@ -15,17 +15,19 @@ function getCollidedPos(spherePos, vel, tris) {
     , temp = new Vector3()
     , slidePlane = new Plane()
     , endPos = new Vector3()
+    , maxIterations = 1
 
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < maxIterations; i++) {
     endPos.addVectors(newPos, newVel)
 
     var info = getCollision(newPos, newVel, tris)
+
     if (!isFinite(info.t)) return endPos
 
     touchPoint.copy(info.collisionPoint)
     touchSpherePoint.addVectors(newPos, temp.copy(newVel).multiplyScalar(info.t))
 
-    var slideNormal = new Vector3().subVectors(touchSpherePoint, touchPoint)
+    var slideNormal = new Vector3().subVectors(touchSpherePoint, touchPoint).normalize()
     slidePlane.setFromNormalAndCoplanarPoint(slideNormal, touchPoint)
     var endTouchPoint = new Vector3().addVectors(endPos, new Vector3().copy(slidePlane.normal).multiplyScalar(-slidePlane.distanceToPoint(endPos)))
 
@@ -61,10 +63,10 @@ function getCollision(spherePos, vel, tris) {
     var normal = temp.crossVectors(cb, ab).normalize()
     plane.set(normal, -normal.dot(tri.a))
 
-    var velDotNormal = invVelNorm.dot(normal)
-    if (velDotNormal < 0) continue
+    var velDotNormal = velNorm.dot(normal)
+    if (velDotNormal > Number.EPSILON) continue
 
-    var parallel = velDotNormal <= Number.EPSILON
+    var parallel = velDotNormal <= Number.EPSILON && velDotNormal >= -Number.EPSILON
     if (parallel && plane.distanceToPoint(spherePos) >= 1 + Number.EPSILON) continue
 
     if (!parallel) {
@@ -73,11 +75,11 @@ function getCollision(spherePos, vel, tris) {
       var t1 = Math.max(collisions.t0, collisions.t1)
 
       if (t0 > 1 || t1 < 0) continue
-
-      collisionPoint.addVectors(spherePos, new Vector3().copy(vel).multiplyScalar(t0).sub(plane.normal))
-      if (math.isInside(collisionPoint, tri) && t0 < timeOfImpact) {
+      var tempPoint = new Vector3().addVectors(spherePos, new Vector3().copy(vel).multiplyScalar(t0).sub(plane.normal))
+      if (math.isInside(tempPoint, tri) && t0 < timeOfImpact) {
         collision = triCollision = true
         timeOfImpact = t0
+        collisionPoint = tempPoint
       }
     }
 

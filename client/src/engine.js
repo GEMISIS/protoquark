@@ -338,9 +338,9 @@ Engine.prototype = {
     var colliders = this.colliders
     var scale = ent.context.scale
       , pos = ent.context.position
-      , w = scale.x
-      , h = scale.y
-      , d = scale.z
+      , w = scale.x / 2
+      , h = scale.y / 2
+      , d = scale.z / 2
       , x = pos.x
       , y = pos.y
       , z = pos.z
@@ -352,23 +352,28 @@ Engine.prototype = {
       , f = new Vector3().addVectors(pos, new Vector3(-w, -h, -d))
       , g = new Vector3().addVectors(pos, new Vector3(w, -h, -d))
       , h = new Vector3().addVectors(pos, new Vector3(w, h, -d))
+    // back front
+    // e-h   a-d
+    // f-g   b-c
 
     // front
     colliders.push(new Triangle(a, b, c))
     colliders.push(new Triangle(a, c, d))
-    // // back
-    colliders.push(new Triangle(g, h, f))
-    colliders.push(new Triangle(g, h, e))
-    // // left
+    // back
+    colliders.push(new Triangle(h, g, f))
+    colliders.push(new Triangle(h, f, e))
+    // left
     colliders.push(new Triangle(e, f, b))
     colliders.push(new Triangle(e, b, a))
-    // // right
-    colliders.push(new Triangle(d, c, h))
-    colliders.push(new Triangle(d, h, g))
-
-      // back front
-      // e-g   a-d
-      // f-h   b-c
+    // right
+    colliders.push(new Triangle(d, c, g))
+    colliders.push(new Triangle(d, g, h))
+    // top
+    colliders.push(new Triangle(e, a, d))
+    colliders.push(new Triangle(e, d, h))
+    // bottom
+    colliders.push(new Triangle(b, f, g))
+    colliders.push(new Triangle(b, g, c))
   }
 }
 
