@@ -352,6 +352,7 @@ Engine.prototype = {
       , f = new Vector3().addVectors(pos, new Vector3(-w, -h, -d))
       , g = new Vector3().addVectors(pos, new Vector3(w, -h, -d))
       , h = new Vector3().addVectors(pos, new Vector3(w, h, -d))
+    // poly faces
     // back front
     // e-h   a-d
     // f-g   b-c

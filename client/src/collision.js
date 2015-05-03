@@ -36,8 +36,7 @@ function getCollidedPos(spherePos, vel, tris) {
     newVel.subVectors(endTouchPoint, touchPoint)
   }
 
-  touchSpherePoint.addVectors(newPos, newVel)
-  return touchSpherePoint
+  return touchSpherePoint.addVectors(newPos, newVel)
 }
 
 // Returns time of impact from a swept sphere against a polygon soup
