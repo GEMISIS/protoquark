@@ -6,7 +6,11 @@ var bullet = {
   create: function create(id, creator, bulletType) {
     var ent = new Entity({id: id}, id)
     ent.update = bullet[bulletType]
+
     ent.position.copy(creator.position)
+    ent.rotation.copy(creator.rotation)
+    ent.euler.copy(creator.euler)
+
     ent.direction = creator.rotation.clone()
     ent.velocity = new Vector3(
       Math.sin(creator.euler.y) * Math.cos(creator.euler.x), 
