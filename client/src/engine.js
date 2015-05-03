@@ -6,6 +6,12 @@ var Vector3    = require("./math").vec3
 var weapons    = require("./config/weapon")
 require('./entities/player')
 
+var representations = {
+  box:          require('./obj3d/box'),
+  bullet:       require('./obj3d/bullet'),
+  remoteplayer: require("./obj3d/player")
+}
+
 var localIdCounter = 0
 var SEND_INTERVAL = .04
 
@@ -17,11 +23,39 @@ function handleDirection(control, down) {
 }
 
 function loadLevel(url, done) {
-  done(Error('not implemented!'))
+  var req = new XMLHttpRequest()
+  var resp = {
+    progress: function (ev) {
+      this.emit('levelloadprogress', 0 /* 0 ~ 1 calc progress here */)
+    },
+    load: function (ev) {
+      try {
+        var data = JSON.parse(req.responseText)
+      }
+      catch(e) {
+        var err = e
+      }
+      done(err, data)
+    },
+    error: function (ev) {
+      done(err)
+    }
+  }
+
+  req.overrideMimeType("application/json")
+  req.open('GET', url, true)
+  Object.keys(resp).forEach((function (key) {
+    req.addEventListener.bind(this, key, resp[key])
+  }).bind(this))
+  req.send()
 }
 
 function parseLevel(level) {
-  // TODO ... 
+  level.blocks.forEach((function(block) {
+    var ent = new Entity(block, this.genLocalId())
+    ent.type = 'block'
+    this.add(ent)
+  }).bind(this))
 }
 
 var ons = {
@@ -175,7 +209,7 @@ conn: {
   peeridassigned: function onPeerIdAssigned (e) {
     console.log("peerid", e)
     this.localPrefixId = e
-    this.setting.update('mapUrl', '/defaultmap.json')
+    this.settings.update('mapUrl', '/defaultmap.json')
   },
 
   connectionkill: function onConnectionKill() {
