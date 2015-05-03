@@ -1,5 +1,7 @@
 var bullets    = require("./bullets")
 var weapons    = require("../config/weapon")
+var collision    = require("../collision")
+var Vector3    = require("../math").vec3
 
 module.exports = function updatePlayer (dt, ent) {
   var angle = ent.euler.y
@@ -7,6 +9,7 @@ module.exports = function updatePlayer (dt, ent) {
   var cosAngle = Math.cos(angle)
   var speed = ent.speed || 2
 
+  var prev = new Vector3().copy(ent.position)
   if (ent.control.forward || ent.control.backward) {
     var multiplier = ent.control.forward ? 1 : -1
     ent.position.x += sinAngle * speed * dt * multiplier
@@ -18,6 +21,10 @@ module.exports = function updatePlayer (dt, ent) {
     ent.position.x += cosAngle * speed * dt * multiplier
     ent.position.z += sinAngle * speed * dt * multiplier
   }
+
+  var colliders = this.colliders
+  var vel = new Vector3().subVectors(ent.position, prev)
+  if (colliders) ent.position = collision.getCollidedPos(prev, vel, colliders)
 
   ent.updateRotation()
 

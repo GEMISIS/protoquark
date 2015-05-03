@@ -4,6 +4,7 @@ var Matrix4    = require("./math").mat4
 var Quaternion = require("./math").quat
 var Settings   = require('./settings')
 var Vector3    = require("./math").vec3
+var Triangle   = require("./math").triangle
 var weapons    = require("./config/weapon")
 require('./entities/player')
 
@@ -255,6 +256,7 @@ function Engine (connection, controller) {
   this.sendIntervalId = setInterval(onIntervalSend.bind(this),
     SEND_INTERVAL * 1000)
   this.sendInterval = SEND_INTERVAL
+  this.colliders = []
 
   var self = this
 
@@ -314,6 +316,10 @@ Engine.prototype = {
     if (this.entityMap[ent.id]) throw Error('Entity with id already exists.')
     this.entities.push(ent)
     this.entityMap[ent.id] = ent
+
+    // Batch blocks into one polygon soup if it's a collision block
+    if (ent.type === 'block')
+      this.addCollider(ent)
   },
 
   remove: function remove (ent) {
@@ -325,6 +331,44 @@ Engine.prototype = {
     console.log("Removing", ent)
     this.entities.splice(this.entities.indexOf(ent), 1)
     delete this.entityMap[ent.id]
+  },
+
+  addCollider: function addCollider(ent) {
+    if (!ent.context || !ent.context.scale || !ent.context.position) return
+    var colliders = this.colliders
+    var scale = ent.context.scale
+      , pos = ent.context.position
+      , w = scale.x
+      , h = scale.y
+      , d = scale.z
+      , x = pos.x
+      , y = pos.y
+      , z = pos.z
+      , a = new Vector3().addVectors(pos, new Vector3(-w, h, d))
+      , b = new Vector3().addVectors(pos, new Vector3(-w, -h, d))
+      , c = new Vector3().addVectors(pos, new Vector3(w, -h, d))
+      , d = new Vector3().addVectors(pos, new Vector3(w, h, d))
+      , e = new Vector3().addVectors(pos, new Vector3(-w, h, -d))
+      , f = new Vector3().addVectors(pos, new Vector3(-w, -h, -d))
+      , g = new Vector3().addVectors(pos, new Vector3(w, -h, -d))
+      , h = new Vector3().addVectors(pos, new Vector3(w, h, -d))
+
+    // front
+    colliders.push(new Triangle(a, b, c))
+    colliders.push(new Triangle(a, c, d))
+    // // back
+    colliders.push(new Triangle(g, h, f))
+    colliders.push(new Triangle(g, h, e))
+    // // left
+    colliders.push(new Triangle(e, f, b))
+    colliders.push(new Triangle(e, b, a))
+    // // right
+    colliders.push(new Triangle(d, c, h))
+    colliders.push(new Triangle(d, h, g))
+
+      // back front
+      // e-g   a-d
+      // f-h   b-c
   }
 }
 
