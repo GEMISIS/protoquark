@@ -5,6 +5,7 @@ var Euler      = require("./math").euler
 
 var representations = {
   box:          require('./obj3d/box'),
+  block:        require('./obj3d/block'),
   bullet:       require('./obj3d/bullet'),
   remoteplayer: require("./obj3d/player")
 }
