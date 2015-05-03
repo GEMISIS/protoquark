@@ -6,6 +6,12 @@ var Vector3    = require("./math").vec3
 var weapons    = require("./config/weapon")
 require('./entities/player')
 
+var representations = {
+  box:          require('./obj3d/box'),
+  bullet:       require('./obj3d/bullet'),
+  remoteplayer: require("./obj3d/player")
+}
+
 var localIdCounter = 0
 var SEND_INTERVAL = .04
 
@@ -17,11 +23,25 @@ function handleDirection(control, down) {
 }
 
 function loadLevel(url, done) {
-  done(Error('not implemented!'))
+    var xmlHttpRequest = new XMLHttpRequest()
+    xmlHttpRequest.overrideMimeType("application/json")
+    xmlHttpRequest.open('GET', url, true)
+    xmlHttpRequest.addEventListener("load", function(evt){
+      try {
+        var levelData = JSON.parse(xmlHttpRequest.responseText)
+      }
+      catch(e) {
+        var error = e
+      }
+      done(levelData, error)
+    }, false)
+    xmlHttpRequest.send()
 }
 
 function parseLevel(level) {
-  // TODO ... 
+  var ent = new Entity(this.e.context, contextId)
+  ent.type = 'block'
+  this.add(ent)
 }
 
 var ons = {
@@ -38,9 +58,9 @@ control: {
   }
 },
 conn: {
-  setting: function (e) {
+  settings: function (e) {
     console.log('setting changed!', e.context)
-    this.setting.update(e.context.key, e.context.value)
+    this.settings.update(e.context.key, e.context.value)
   },
   playerenter: function onPlayerEnter (e) {
     console.log("onPlayerEnter", e.context)
@@ -175,7 +195,7 @@ conn: {
   peeridassigned: function onPeerIdAssigned (e) {
     console.log("peerid", e)
     this.localPrefixId = e
-    this.setting.update('mapUrl', '/defaultmap.json')
+    this.settings.update('mapUrl', '/defaultmap.json')
   },
 
   connectionkill: function onConnectionKill() {
@@ -185,9 +205,9 @@ conn: {
 settings: {
   update: function onSettingsUpdate (settings, key, value) {
     if (key == 'mapUrl') {
-      this.loadLevel.call(this, this.settings.mapUrl, function (err, level) {
-        this.parseLevel.call(this, level)
-      })
+      loadLevel.call(this, this.settings.mapUrl, (function (err, level) {
+        parseLevel.call(this, level)
+      }).bind(this))
     }
 
     if (this.conn.isServer()) {
