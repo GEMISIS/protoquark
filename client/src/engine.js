@@ -27,7 +27,7 @@ function loadLevel(url, done) {
   var req = new XMLHttpRequest()
   var resp = {
     progress: function (ev) {
-      this.emit('levelloadprogress', 0 /* 0 ~ 1 calc progress here */)
+      //this.emit('levelloadprogress', 0 /* 0 ~ 1 calc progress here */)
     },
     load: function (ev) {
       var err, data
