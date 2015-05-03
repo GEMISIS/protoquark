@@ -1,7 +1,8 @@
 var Entity     = require("./entity")
 var Matrix4    = require("./math").mat4
-var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
+var Settings   = require('./settings')
+var Vector3    = require("./math").vec3
 var weapons    = require("./config/weapon")
 require('./entities/player')
 
@@ -13,6 +14,14 @@ function handleDirection(control, down) {
   if (!me) return
   me.lastControl[control] = me.control[control]
   me.control[control] = down
+}
+
+function loadLevel(url, done) {
+  done(Error('not implemented!'))
+}
+
+function parseLevel(level) {
+  // TODO ... 
 }
 
 var ons = {
@@ -29,6 +38,10 @@ control: {
   }
 },
 conn: {
+  setting: function (e) {
+    console.log('setting changed!', e.context)
+    this.setting.update(e.context.key, e.context.value)
+  },
   playerenter: function onPlayerEnter (e) {
     console.log("onPlayerEnter", e.context)
 
@@ -162,16 +175,33 @@ conn: {
   peeridassigned: function onPeerIdAssigned (e) {
     console.log("peerid", e)
     this.localPrefixId = e
+    this.setting.update('mapUrl', '/defaultmap.json')
   },
 
   connectionkill: function onConnectionKill() {
     clearInterval(this.sendIntervalId)
+  }
+},
+settings: {
+  update: function onSettingsUpdate (settings, key, value) {
+    if (key == 'mapUrl') {
+      this.loadLevel.call(this, this.settings.mapUrl, function (err, level) {
+        this.parseLevel.call(this, level)
+      })
+    }
+
+    if (this.conn.isServer()) {
+      this.conn.send('setting',
+        { key: key, value: value },
+        { broadcast: true })
+    }
   }
 }
 }
 
 function Engine (connection, controller) {
   this.localPrefixId = ''
+  this.settings = new Settings
   this.conn = connection
   this.control = controller
   this.entities = []
@@ -205,7 +235,7 @@ function Engine (connection, controller) {
 }
 
 Engine.prototype = {
-  you: function () {
+  you: function you () {
     if (!this.conn.peer) return
     return this.entityMap[this.conn.peer.id]
   },
