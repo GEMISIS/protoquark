@@ -39,7 +39,7 @@ control: {
 },
 conn: {
   setting: function (e) {
-    console.log('setting changed!', e.context)
+    if (this.conn.isServer()) return
     this.setting.update(e.context.key, e.context.value)
   },
   playerenter: function onPlayerEnter (e) {
@@ -185,16 +185,19 @@ conn: {
 settings: {
   update: function onSettingsUpdate (settings, key, value) {
     if (key == 'mapUrl') {
-      this.loadLevel.call(this, this.settings.mapUrl, function (err, level) {
-        this.parseLevel.call(this, level)
-      })
+      loadLevel.call(this, this.settings.mapUrl, (function (err, level) {
+        parseLevel.call(this, level)
+      }).bind(this))
     }
 
-    if (this.conn.isServer()) {
-      this.conn.send('setting',
-        { key: key, value: value },
-        { broadcast: true })
-    }
+    if (!this.conn.isServer()) return
+
+    this.conn.send('setting', {
+      key: key,
+      value: value
+    }, {
+      broadcast: true
+    })
   }
 }
 }
