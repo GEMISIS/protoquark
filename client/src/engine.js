@@ -1,3 +1,4 @@
+var emitter    = require('component/emitter')
 var Entity     = require("./entity")
 var Matrix4    = require("./math").mat4
 var Quaternion = require("./math").quat
@@ -29,12 +30,20 @@ function loadLevel(url, done) {
       this.emit('levelloadprogress', 0 /* 0 ~ 1 calc progress here */)
     },
     load: function (ev) {
-      try {
-        var data = JSON.parse(req.responseText)
+      var err, data
+
+      if (req.status == 200) {
+        try {
+          data = JSON.parse(req.responseText)
+        }
+        catch(e) {
+          err = e
+        }
       }
-      catch(e) {
-        var err = e
+      else {
+        err = Error('An error occured while loading the level data.')
       }
+
       done(err, data)
     },
     error: function (ev) {
@@ -45,7 +54,7 @@ function loadLevel(url, done) {
   req.overrideMimeType("application/json")
   req.open('GET', url, true)
   Object.keys(resp).forEach((function (key) {
-    req.addEventListener.bind(this, key, resp[key])
+    req.addEventListener(key, resp[key].bind(this))
   }).bind(this))
   req.send()
 }
@@ -351,5 +360,7 @@ function addStartingWeapon(ent) {
     ammunition: weapons[weaponId].ammunition
   }
 }
+
+emitter(Engine.prototype)
 
 module.exports = Engine
