@@ -106,6 +106,7 @@ conn: {
     var ent = new Entity(e.context, contextId)
     ent.type = owned ? "player" : "remoteplayer"
     ent.health = {max: 1, current: 1}
+    ent.jump = 0
 
     try {
       if (!ent.update)
@@ -270,7 +271,8 @@ function Engine (connection, controller) {
     "reload",
     "backward",
     "forward",
-    "shoot"
+    "shoot",
+    "jump"
   ]
 
   controls.forEach(function(c) {
@@ -340,20 +342,20 @@ Engine.prototype = {
     var colliders = this.colliders
     var scale = ent.context.scale
       , pos = ent.context.position
-      , w = scale.x / 2
-      , h = scale.y / 2
-      , d = scale.z / 2
+      , width = scale.x / 2
+      , height = scale.y / 2
+      , depth = scale.z / 2
       , x = pos.x
       , y = pos.y
       , z = pos.z
-      , a = new Vector3().addVectors(pos, new Vector3(-w, h, d))
-      , b = new Vector3().addVectors(pos, new Vector3(-w, -h, d))
-      , c = new Vector3().addVectors(pos, new Vector3(w, -h, d))
-      , d = new Vector3().addVectors(pos, new Vector3(w, h, d))
-      , e = new Vector3().addVectors(pos, new Vector3(-w, h, -d))
-      , f = new Vector3().addVectors(pos, new Vector3(-w, -h, -d))
-      , g = new Vector3().addVectors(pos, new Vector3(w, -h, -d))
-      , h = new Vector3().addVectors(pos, new Vector3(w, h, -d))
+      , a = new Vector3().addVectors(pos, new Vector3(-width, height, depth))
+      , b = new Vector3().addVectors(pos, new Vector3(-width, -height, depth))
+      , c = new Vector3().addVectors(pos, new Vector3(width, -height, depth))
+      , d = new Vector3().addVectors(pos, new Vector3(width, height, depth))
+      , e = new Vector3().addVectors(pos, new Vector3(-width, height, -depth))
+      , f = new Vector3().addVectors(pos, new Vector3(-width, -height, -depth))
+      , g = new Vector3().addVectors(pos, new Vector3(width, -height, -depth))
+      , h = new Vector3().addVectors(pos, new Vector3(width, height, -depth))
     // poly faces
     // back front
     // e-h   a-d
@@ -372,8 +374,8 @@ Engine.prototype = {
     colliders.push(new Triangle(d, c, g))
     colliders.push(new Triangle(d, g, h))
     // top
-    colliders.push(new Triangle(e, a, d))
-    colliders.push(new Triangle(e, d, h))
+    colliders.push(new Triangle(e.clone(), a.clone(), d.clone()))
+    colliders.push(new Triangle(e.clone(), d.clone(), h.clone()))
     // bottom
     colliders.push(new Triangle(b, f, g))
     colliders.push(new Triangle(b, g, c))

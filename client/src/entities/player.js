@@ -3,30 +3,49 @@ var weapons    = require("../config/weapon")
 var collision    = require("../collision")
 var Vector3    = require("../math").vec3
 
+function applyDelta(ent, delta, collision, colliders, stick) {
+  var prev = new Vector3().copy(ent.position)
+  var hit = collision.getSweptCollision(prev, delta, colliders, stick)
+  ent.position = hit.position
+  return hit.collision
+}
+
 module.exports = function updatePlayer (dt, ent) {
   var angle = ent.euler.y
   var sinAngle = Math.sin(angle)
   var cosAngle = Math.cos(angle)
   var speed = ent.speed || 2
 
-  var prev = new Vector3().copy(ent.position)
+  var delta = new Vector3(0, 0, 0)
+  var colliders = this.colliders
+
   if (ent.control.forward || ent.control.backward) {
     var multiplier = ent.control.forward ? 1 : -1
-    ent.position.x += sinAngle * speed * dt * multiplier
-    ent.position.z -= cosAngle * speed * dt * multiplier
+    delta.x += sinAngle * speed * dt * multiplier
+    delta.z -= cosAngle * speed * dt * multiplier
   }
 
   if (ent.control.strafeleft || ent.control.straferight) {
     var multiplier = ent.control.straferight ? 1 : -1
-    ent.position.x += cosAngle * speed * dt * multiplier
-    ent.position.z += sinAngle * speed * dt * multiplier
+    delta.x += cosAngle * speed * dt * multiplier
+    delta.z += sinAngle * speed * dt * multiplier
   }
 
-  var colliders = this.colliders
-  var vel = new Vector3().subVectors(ent.position, prev)
-  ent.position = collision.getCollidedPos(prev, vel, colliders)
-  ent.position.y -= dt * 10
-  ent.position.y = Math.max(ent.position.y, 0)
+  applyDelta(ent, delta, collision, colliders)
+
+  if (ent.control.jump && !ent.jumping) {
+    ent.jumping = true
+    ent.jump = 6
+  }
+
+  // apply gravity
+  ent.jump -= dt * 12
+  var gravity = new Vector3(0, ent.jump * dt, 0)
+  if (applyDelta(ent, gravity, collision, colliders, true) || ent.position.y < 0) {
+    ent.position.y = Math.max(ent.position.y, 0)
+    ent.jumping = false
+    ent.jump = 0
+  }
 
   ent.updateRotation()
 
