@@ -6,7 +6,8 @@ var Vector3    = require("../math").vec3
 function applyDelta(ent, delta, collision, colliders, stick) {
   var prev = new Vector3().copy(ent.position)
   var hit = collision.getSweptCollision(prev, delta, colliders, stick)
-  ent.position = hit.position
+  if (hit.collision) ent.position = hit.position
+  else ent.position.add(delta)
   return hit.collision
 }
 
