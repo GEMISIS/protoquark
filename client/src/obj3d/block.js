@@ -9,7 +9,7 @@ function Box (entity) {
   this.o3d = new THREE.Object3D()
 
   var material = new THREE.MeshBasicMaterial({
-    color: 0xFFF000
+    color: typeof entity.context.color === 'string' ? parseInt(entity.context.color, 16) : 0xFFF000
   })
 
   this.o3d.add(new THREE.Mesh(getGeometry(), material))

@@ -29,7 +29,11 @@ function getSweptCollision(spherePos, vel, tris, stick) {
 
     collision = true
     touchPoint.copy(info.collisionPoint)
-    touchSpherePoint.addVectors(newPos, temp.copy(newVel).multiplyScalar(info.t))
+    // adding this check seems to fix some of the glitches
+    if (info.t > epsilon)
+      touchSpherePoint.addVectors(newPos, temp.copy(newVel).multiplyScalar(info.t))
+    else
+      touchSpherePoint.copy(newPos)
 
     var slideNormal = new Vector3().subVectors(touchSpherePoint, touchPoint).normalize()
     slidePlane.setFromNormalAndCoplanarPoint(slideNormal, touchPoint)
