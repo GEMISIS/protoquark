@@ -66,6 +66,9 @@ function parseLevel(level) {
     ent.type = 'block'
     var pos = block.position
     ent.position = new Vector3(pos.x, pos.y, pos.z)
+    //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
+    var color = Math.floor(Math.random()*128) + 10
+    ent.context.color = (color | (color << 8) | (color << 16)).toString(16)
     this.add(ent)
   }).bind(this))
 }
@@ -323,7 +326,7 @@ Engine.prototype = {
 
     // Batch blocks into one polygon soup if it's a collision block
     if (ent.type === 'block')
-      this.addCollider(ent)
+      this.addBoxCollider(ent)
   },
 
   remove: function remove (ent) {
@@ -337,7 +340,7 @@ Engine.prototype = {
     delete this.entityMap[ent.id]
   },
 
-  addCollider: function addCollider(ent) {
+  addBoxCollider: function addBoxCollider(ent) {
     if (!ent.context || !ent.context.scale || !ent.context.position) return
     var colliders = this.colliders
     var scale = ent.context.scale
@@ -371,8 +374,8 @@ Engine.prototype = {
     colliders.push(new Triangle(d, c, g))
     colliders.push(new Triangle(d, g, h))
     // top
-    colliders.push(new Triangle(e.clone(), a.clone(), d.clone()))
-    colliders.push(new Triangle(e.clone(), d.clone(), h.clone()))
+    colliders.push(new Triangle(e, a, d))
+    colliders.push(new Triangle(e, d, h))
     // bottom
     colliders.push(new Triangle(b, f, g))
     colliders.push(new Triangle(b, g, c))

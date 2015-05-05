@@ -5,11 +5,12 @@ var Plane = math.plane
 var Triangle = math.triangle
 
 // vel is unnormalized
-function getSweptCollision(spherePos, vel, tris, stick) {
+function getSweptCollision(spherePos, vel, tris, sphereShape, stick) {
   if (vel.lengthSq() < Number.EPSILON) return { position: spherePos, collision: false }
+  sphereShape = sphereShape instanceof Vector3 ? sphereShape : new Vector3(1, 1, 1)
 
-  var newPos = new Vector3().copy(spherePos)
-    , newVel = new Vector3().copy(vel)
+  var newPos = new Vector3().copy(spherePos).divide(sphereShape)
+    , newVel = new Vector3().copy(vel).divide(sphereShape)
     , touchPoint = new Vector3(0, 0, 0)
     , touchSpherePoint = new Vector3(0, 0, 0)
     , temp = new Vector3()
@@ -18,14 +19,17 @@ function getSweptCollision(spherePos, vel, tris, stick) {
     , maxIterations = 10
     , epsilon = Number.EPSILON * 2
     , collision = false
+    , hit
 
   for (var i = 0; i < maxIterations; i++) {
     endPos.addVectors(newPos, newVel)
 
-    var info = getCollision(newPos, newVel, tris)
+    var info = getCollision(newPos, newVel, tris, sphereShape)
 
-    if (!isFinite(info.t))
-      return { position: endPos, collision: collision }
+    if (!isFinite(info.t)) {
+      hit = { position: endPos, collision: collision }
+      break
+    }
 
     collision = true
     touchPoint.copy(info.collisionPoint)
@@ -38,10 +42,11 @@ function getSweptCollision(spherePos, vel, tris, stick) {
     var slideNormal = new Vector3().subVectors(touchSpherePoint, touchPoint).normalize()
     slidePlane.setFromNormalAndCoplanarPoint(slideNormal, touchPoint)
     if (stick) {
-      return {
+      hit = {
         position: newPos.copy(touchSpherePoint).add(slideNormal.multiplyScalar(epsilon)),
         collision: true
       }
+      break
     }
     // Projected end point
     var endTouchPoint = new Vector3().addVectors(endPos, new Vector3().copy(slidePlane.normal).multiplyScalar(-slidePlane.distanceToPoint(endPos)))
@@ -51,16 +56,21 @@ function getSweptCollision(spherePos, vel, tris, stick) {
     newVel.subVectors(endTouchPoint, touchPoint)
   }
 
-  return {
-    position: touchSpherePoint.addVectors(newPos, newVel),
-    collision: collision
+  if (!hit) {
+    hit = {
+      position: touchSpherePoint.addVectors(newPos, newVel),
+      collision: collision
+    }
   }
+
+  hit.position.multiply(sphereShape)
+  return hit
 }
 
 // Returns time of impact from a swept sphere against a polygon soup
 // Note that collisionPoint is point on triangle that sphere collides with and t is point it takes for sphere
 // to touch so p + v*getCollision().t != getCollision().collisionPoint
-function getCollision(spherePos, vel, tris) {
+function getCollision(spherePos, vel, tris, sphereShape) {
   var plane = new Plane()
     , cb = new Vector3()
     , ab = new Vector3()
@@ -72,7 +82,9 @@ function getCollision(spherePos, vel, tris) {
     , invVelNorm = new Vector3().copy(velNorm).negate()
 
   for (var i = 0; i < tris.length; i++) {
-    var tri = tris[i]
+    var original = tris[i]
+      , tri = new Triangle(original.a.clone().divide(sphereShape), original.b.clone().divide(sphereShape), original.c.clone().divide(sphereShape))
+
     var triCollision = false
     ab.subVectors(tri.a, tri.b).normalize()
     cb.subVectors(tri.c, tri.b).normalize()
@@ -193,7 +205,7 @@ function getTCollisionOnEdges(tri, spherePos, vel) {
     collisionPoint.copy(point).add(edge.multiplyScalar(f))
   }
 
-  resultingCollisionPoint = collisionPoint;
+  resultingCollisionPoint = collisionPoint
 
   return {
     collisionPoint: collisionPoint,
