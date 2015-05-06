@@ -3,7 +3,7 @@ var weapons    = require("../config/weapon")
 var collision    = require("../collision")
 var Vector3    = require("../math").vec3
 
-var playerShape = new Vector3(.25, 1, .25)
+var playerShape = new Vector3(.25, .5, .25)
 
 function applyDelta(ent, delta, collision, colliders, stick) {
   var prev = new Vector3().copy(ent.position)
