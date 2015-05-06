@@ -54,7 +54,7 @@ function getSweptCollision(spherePos, vel, tris, sphereShape, stick) {
     var endTouchPoint = new Vector3().addVectors(endPos, new Vector3().copy(slidePlane.normal).multiplyScalar(-slidePlane.distanceToPoint(endPos)))
 
     // Can modify
-    newPos.copy(touchSpherePoint).add(slideNormal.multiplyScalar(epsilon))
+    newPos.copy(touchSpherePoint).add(slideNormal.multiplyScalar(epsilon*2))
     newVel.subVectors(endTouchPoint, touchPoint)
   }
 
