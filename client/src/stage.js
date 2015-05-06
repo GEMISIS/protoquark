@@ -7,7 +7,8 @@ var representations = {
   box:          require('./obj3d/box'),
   block:        require('./obj3d/block'),
   bullet:       require('./obj3d/bullet'),
-  remoteplayer: require("./obj3d/player")
+  remoteplayer: require("./obj3d/player"),
+  gib:          require('./obj3d/block')
 }
 
 function Stage (engine) {
@@ -84,6 +85,7 @@ Stage.prototype = {
         this.scene.add(rep.o3d)
       }
       else {
+        console.log("No rep for", e)
         rep = {entity: e}
       }
 

@@ -4,10 +4,12 @@ var Vector3 = math.vec3
 var Plane = math.plane
 var Triangle = math.triangle
 
+var defaultSphereShape = new Vector3(1, 1, 1)
+
 // vel is unnormalized
 function getSweptCollision(spherePos, vel, tris, sphereShape, stick) {
   if (vel.lengthSq() < Number.EPSILON) return { position: spherePos, collision: false }
-  sphereShape = sphereShape instanceof Vector3 ? sphereShape : new Vector3(1, 1, 1)
+  sphereShape = sphereShape instanceof Vector3 ? sphereShape : defaultSphereShape
 
   var newPos = new Vector3().copy(spherePos).divide(sphereShape)
     , newVel = new Vector3().copy(vel).divide(sphereShape)
