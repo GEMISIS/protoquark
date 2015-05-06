@@ -67,7 +67,7 @@ function parseLevel(level) {
     var pos = block.position
     ent.position = new Vector3(pos.x, pos.y, pos.z)
     //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
-    var color = Math.floor(Math.random()*128) + 10
+    var color = Math.floor(Math.random()*50) + 25
     ent.context.color = (color | (color << 8) | (color << 16)).toString(16)
     this.add(ent)
   }).bind(this))

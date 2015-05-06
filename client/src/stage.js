@@ -27,7 +27,7 @@ function Stage (engine) {
 Stage.prototype = {
   init: function init() {
     this.scene = new THREE.Scene()
-    this.camera = new THREE.PerspectiveCamera(50, 0, .25, 1000)
+    this.camera = new THREE.PerspectiveCamera(50, 0, .05, 1000)
     this.renderer = new THREE.WebGLRenderer()
     this.emap = {}
 

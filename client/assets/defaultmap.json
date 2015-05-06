@@ -3,15 +3,23 @@
   "blocks": [
     {
       "geometry": { "x": 1, "y": 1, "z": 1 },
+      "position": { "x": 0, "y": -0.065, "z": 0.0},
+      "scale": { "x": 10, "y": 0.125, "z": 14 },
+      "opacity": 1,
+      "rotation": { "x": 0, "y": 0, "z": 0 }
+    },
+
+    {
+      "geometry": { "x": 1, "y": 1, "z": 1 },
       "position": { "x": 3, "y": 1.25, "z": 0.0},
-      "scale": { "x": 4, "y": 2.5, "z": 1 },
+      "scale": { "x": 3.8, "y": 2.5, "z": 1 },
       "opacity": 1,
       "rotation": { "x": 0, "y": 0, "z": 0 }
     },
     {
       "geometry": { "x": 1, "y": 1, "z": 1 },
       "position": { "x": -3, "y": 1.25, "z": 0.0},
-      "scale": { "x": 4, "y": 2.5, "z": 1 },
+      "scale": { "x": 3.8, "y": 2.5, "z": 1 },
       "opacity": 1,
       "rotation": { "x": 0, "y": 0, "z": 0 }
     },

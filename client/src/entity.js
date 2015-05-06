@@ -6,7 +6,7 @@ var Quaternion = require("./math").quat
 function Entity(context, id) {
   this.context = context
 
-  this.position = new Vector3(0, 0, 0)
+  this.position = new Vector3(0, 2, 0)
   this.rotation = new Quaternion()
   this.euler = new Vector3()
 

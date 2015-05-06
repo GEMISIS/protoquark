@@ -44,7 +44,7 @@ module.exports = function updatePlayer (dt, ent) {
   // apply gravity
   ent.jump -= dt * 12
   var gravity = new Vector3(0, ent.jump * dt, 0)
-  var minY = 1.0
+  var minY = -1.0
   if (applyDelta(ent, gravity, collision, colliders, false) || ent.position.y < minY) {
     ent.position.y = Math.max(ent.position.y, minY)
     ent.jumping = false
