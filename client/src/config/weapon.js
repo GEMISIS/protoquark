@@ -1,8 +1,8 @@
 module.exports = {
   pistol: {
-    ammunition: 25,
+    ammunition: 50,
     automatic: false,
-    firerate: 2,
+    firerate: 1,
     name: "Pistol"
   }
 }
