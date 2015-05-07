@@ -85,7 +85,6 @@ Stage.prototype = {
         this.scene.add(rep.o3d)
       }
       else {
-        console.log("No rep for", e)
         rep = {entity: e}
       }
 

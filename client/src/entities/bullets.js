@@ -29,6 +29,7 @@ var bullet = {
     var from = ent.position.clone()
     var delta = new Vector3().copy(ent.velocity).multiplyScalar(dt * ent.speed)
     var to = ent.position.clone().add(delta)
+    var hitPoint
 
     var hit = collision.getSweptCollision(from, delta, this.colliders, ent.shape, true)
     if (hit.collision) {
@@ -44,16 +45,24 @@ var bullet = {
     for (var i = 0; i < entities.length; i++) {
       var other = entities[i]
       if ((other.type == "player" || other.type == "remoteplayer") && other.id != ent.creator) {
-        var collisionTime = collision.collidesSwept(ent, other, from, to)
-        if (collisionTime > 1.0 || collisionTime > closestTime) continue
-        closestTime = collisionTime
-        enemyHit = other
+        // var collisionTime = collision.collidesSwept(ent, other, from, to)
+        // if (collisionTime > 1.0 || collisionTime > closestTime) continue
+        // closestTime = collisionTime
+
+        var hit = collision.getSweptBoxCollision(from, delta, ent.shape, other.position, new Vector3(.5, .5, .5), other.rotation)
+        if (hit.collision) {
+          enemyHit = other
+          hitPoint = hit.position
+        }
+
+        if (hit.collision && other.type != "player")
+          this.addStateCommand({command: "hit", target: other.id, shooter: ent.creator})
       }
     }
 
     if (enemyHit) {
       ent.markedForDeletion = true
-      ent.position.copy(enemyHit.position)
+      ent.position.copy(hitPoint ? hitPoint : enemyHit.position)
       for (var i = 0; i < 5; i++) {
         this.add(gib.create(this.genLocalId(), ent))
       }

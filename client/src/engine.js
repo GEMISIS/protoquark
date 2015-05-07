@@ -15,6 +15,7 @@ var representations = {
 }
 
 var localIdCounter = 0
+var startingHealth = 1
 var SEND_INTERVAL = .04
 
 function handleDirection(control, down) {
@@ -108,7 +109,7 @@ conn: {
     // var ent = exists ? this.entityMap[contextId] : new Entity(e.context, owned ? contextId : this.genLocalId())
     var ent = new Entity(e.context, contextId)
     ent.type = owned ? "player" : "remoteplayer"
-    ent.health = {max: 1, current: 1}
+    ent.health = {max: startingHealth, current: startingHealth}
     ent.jump = 0
 
     try {
@@ -158,6 +159,7 @@ conn: {
       }
 
       var ent = new Entity(e.context[id], id)
+      ent.health = {max: startingHealth, current: startingHealth}
       ent.control = {}
       ent.lastControl = {}
       addStartingWeapon.call(this, ent)
@@ -167,7 +169,6 @@ conn: {
     })
     console.log("onPlayers")
   },
-
   playerstate: function onPlayerState(e) {
     if (!this.conn.isServer()) return
 
@@ -187,7 +188,36 @@ conn: {
     this.snapshots = this.snapshots || {}
     this.snapshots[e.sender] = (this.snapshots[e.sender] || []).concat(e.context.snapshots)
   },
+  death: function onPlayerDeath(e) {
+    // our death usually
+    var id = e.context.id
+    var entity = this.entityMap[id]
+    if (!entity || id != this.you().id) return
 
+    var pos = e.context.position
+    entity.position.set(pos.x, pos.y, pos.z)
+    entity.health.current = entity.health.max
+  },
+  gamestate: function onGameState(e) {
+    var entityMap = this.entityMap
+    var states = e.context.states
+    for (var i = 0; i < states.length; i++) {
+      var state = states[i]
+      var player = entityMap[state.id]
+      if (player) player.health.current = state.currentHealth
+    }
+  },
+  statecommand: function onStateCommand(e) {
+    var entityMap = this.entityMap
+    var states = e.context.states
+    for (var i = 0; i < states.length; i++) {
+      var state = states[i]
+      var target = entityMap[state.target]
+      if (state.command == 'hit' && target) {
+        processCommandHit.call(this, target, state)
+      }
+    }
+  },
   entitiesupdate: function onEntitiesUpdate(e) {
     var entitySnapshots = e.context.snapshots
     var self = this
@@ -230,6 +260,7 @@ conn: {
 
   connectionkill: function onConnectionKill() {
     clearInterval(this.sendIntervalId)
+    clearInterval(this.stateIntervalId)
   }
 },
 settings: {
@@ -261,6 +292,7 @@ function Engine (connection, controller) {
   this.entityMap = {}
   this.sendIntervalId = setInterval(onIntervalSend.bind(this),
     SEND_INTERVAL * 1000)
+  this.stateIntervalId = setInterval(onStateSend.bind(this), 500)
   this.sendInterval = SEND_INTERVAL
   this.colliders = []
 
@@ -296,7 +328,7 @@ Engine.prototype = {
   },
 
   genLocalId: function genLocalId() {
-    return this.localPrefixId + '-' + localIdCounter++;
+    return this.localPrefixId + '-' + localIdCounter++
   },
 
   update: function update(dt) {
@@ -379,18 +411,45 @@ Engine.prototype = {
     // bottom
     colliders.push(new Triangle(b, f, g))
     colliders.push(new Triangle(b, g, c))
+  },
+
+  addStateCommand: function addStateCommand(obj) {
+    var states = this.stateCommands = this.stateCommands || []
+    states.push(obj)
+  }
+}
+
+function onStateSend() {
+  var conn = this.conn
+  if (!conn.isServer()) return
+
+  var states = []
+  var self = this
+  Object.keys(conn.players).forEach(function(id) {
+    states.push({
+      id: id,
+      currentHealth: self.entityMap[id].health.current
+    })
+  })
+
+  if (states.length) {
+    conn.send("gamestate", {
+      states: states
+    },
+    {reliable: true})
   }
 }
 
 function onIntervalSend() {
   var conn = this.conn
   var me = this.you()
+  var states = this.stateCommands
   if (me && me.snapshots.length && conn.connected) {
     // Send queued up packets
     conn.send("playerstate", {
       snapshots: me.snapshots,
       time: conn.getServerTime()
-    });
+    })
     // Clear for next send.
     me.snapshots = []
   }
@@ -399,8 +458,15 @@ function onIntervalSend() {
     conn.send("entitiesupdate", {
       snapshots: this.snapshots,
       time: conn.getServerTime()
-    });
+    })
     this.snapshots = {}
+  }
+
+  if (states && states.length) {
+    conn.send("statecommand", {
+      states: states
+    })
+    this.stateCommands = []
   }
 }
 
@@ -412,6 +478,15 @@ function addStartingWeapon(ent) {
     id: weaponId,
     shotTimer: 0,
     ammunition: weapons[weaponId].ammunition
+  }
+}
+
+function processCommandHit(target, command) {
+  target.health.current -= .34
+  if (target.health.current <= Number.EPSILON) {
+    target.health.current = target.health.max
+    target.position.set(0, 3, 0)
+    this.conn.send("death", {killer: command.shooter, id:target.id, position: {x: 0, y: 3, z: 0}}, {relay:target.id})
   }
 }
 

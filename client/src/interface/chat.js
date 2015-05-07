@@ -1,10 +1,12 @@
 function add (ul, name, text) {
   if (!text) return
   var li = document.createElement("li")
-  var span = document.createElement("span")
-  span.textContent = name + ": "
+  if (name) {
+    var span = document.createElement("span")
+    span.textContent = name + ": "
+    li.appendChild(span)
+  }
   var msg = document.createTextNode(text)
-  li.appendChild(span)
   li.appendChild(msg)
 
   ul.appendChild(li)
@@ -22,6 +24,15 @@ function onChat (e) {
   add(this.ul, this.names[e.sender] || e.sender, e.context)
 }
 
+function onDeath (e) {
+  add(this.ul, "", translatePlayer.call(this, e.context.killer) + " killed " + translatePlayer.call(this, e.context.id))
+}
+
+function translatePlayer(name) {
+  var peer = this.conn.peer
+  if (!peer) return name
+  return peer.id == name ? "you" : name
+}
 function onPlayers (e) {
   names = this.names
   Object.keys(e.context).forEach(function (key) {
@@ -36,6 +47,7 @@ function onPlayerEnter (e) {
 function Chat (connection) {
   var conn = this.conn = connection
   conn.on("chat", onChat.bind(this))
+  conn.on("death", onDeath.bind(this))
   conn.on("players", onPlayers.bind(this))
   conn.on("playerenter", onPlayerEnter.bind(this))
   this.names = {}

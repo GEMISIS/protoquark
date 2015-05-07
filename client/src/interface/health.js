@@ -14,7 +14,7 @@ Health.prototype = {
     if (!me) return
 
     var el = this.el
-    var p = this.test
+    var p = Math.floor(me.health.current * 100)
 
     this.bar.style.width = p + '%'
 

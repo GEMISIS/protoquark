@@ -24,7 +24,8 @@ function Player (entity) {
   this.o3d = new THREE.Object3D()
 
   var material = new THREE.MeshBasicMaterial({
-    color: intToARGB(hashCode(entity.context.id))
+    //color: intToARGB(hashCode(entity.context.id))
+    color: 0xAAAAAA
   })
 
   this.o3d.add(new THREE.Mesh(getGeometry(), material))

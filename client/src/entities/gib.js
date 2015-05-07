@@ -2,7 +2,7 @@ var Entity   = require("../entity")
 var Vector3  = require("../math").vec3
 var collision = require("../collision")
 
-var gibShape = new Vector3(.1, .1, .1)
+var gibShape = new Vector3(.025, .025, .025)
 
 function signedRandom() {
   return (Math.random() * 200 - 100) / 100
@@ -14,7 +14,7 @@ var gib = {
 
     ent.update = gib.update
     ent.position.copy(creator.position)
-    ent.life = Math.random() * 5 + .25
+    ent.life = Math.random() * 5 + 2.0
     ent.velocity = new Vector3(signedRandom(), Math.random() * 3 + 1, signedRandom())
     ent.accel = new Vector3(0, -5, 0)
     ent.type = "gib"
@@ -28,9 +28,11 @@ var gib = {
     var delta = new Vector3().copy(ent.velocity).multiplyScalar(dt)
     var to = ent.position.clone().add(delta)
 
-    if (ent.velocity.y < 0 && collision.getSweptCollision(from, delta, this.colliders, gibShape, true).collision) {
-      ent.position = collision.position
+    var hit = collision.getSweptCollision(from, delta, this.colliders, gibShape, true)
+    if (ent.velocity.y < 0 && hit.collision) {
+      ent.position = hit.position
       ent.markedForDeletion = true
+      ent.velocity.set(0, 0, 0)
       return
     }
 
