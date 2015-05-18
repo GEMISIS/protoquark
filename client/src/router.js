@@ -1,7 +1,7 @@
 var emitter = require("component/emitter");
 
 function isSupported () {
-  return !!(window.history && window.history.pushState && 
+  return !!(window.history && window.history.pushState &&
     window.onpopstate !== undefined);
 }
 

@@ -222,60 +222,59 @@ function getTCollisionOnEdges(tri, spherePos, vel) {
   }
 }
 
-function getSweptBoxCollision() {
-  var triangles = []
-    , a = new Vector3()
-    , b = new Vector3()
-    , c = new Vector3()
-    , d = new Vector3()
-    , e = new Vector3()
-    , f = new Vector3()
-    , g = new Vector3()
-    , h = new Vector3()
-
-  for (var i = 0; i < 12; i++) triangles.push(new Triangle(new Vector3(), new Vector3(), new Vector3()))
-
-  return function(from, vel, shape, boxPos, boxSize, quat) {
-    var width = boxSize.x
-      , height = boxSize.y
-      , depth = boxSize.z
-
-    a.addVectors(boxPos, new Vector3(-width, height, depth).applyQuaternion(quat))
-    b.addVectors(boxPos, new Vector3(-width, -height, depth).applyQuaternion(quat))
-    c.addVectors(boxPos, new Vector3(width, -height, depth).applyQuaternion(quat))
-    d.addVectors(boxPos, new Vector3(width, height, depth).applyQuaternion(quat))
-    e.addVectors(boxPos, new Vector3(-width, height, -depth).applyQuaternion(quat))
-    f.addVectors(boxPos, new Vector3(-width, -height, -depth).applyQuaternion(quat))
-    g.addVectors(boxPos, new Vector3(width, -height, -depth).applyQuaternion(quat))
-    h.addVectors(boxPos, new Vector3(width, height, -depth).applyQuaternion(quat))
-
-    var index = 0
-    triangles[index++].set(a, b, c)
-    triangles[index++].set(a, c, d)
-    // back
-    triangles[index++].set(h, g, f)
-    triangles[index++].set(h, f, e)
-    // left
-    triangles[index++].set(e, f, b)
-    triangles[index++].set(e, b, a)
-    // right
-    triangles[index++].set(d, c, g)
-    triangles[index++].set(d, g, h)
-    // top
-    triangles[index++].set(e, a, d)
-    triangles[index++].set(e, d, h)
-    // bottom
-    triangles[index++].set(b, f, g)
-    triangles[index++].set(b, g, c)
-
-    return getSweptCollision(from, vel, triangles, shape, true)
-  }
-}
-
 module.exports = {
   getSweptCollision: getSweptCollision,
 
-  getSweptBoxCollision: getSweptBoxCollision(),
+  getSweptBoxCollision: (function() {
+    var triangles = []
+      , a = new Vector3()
+      , b = new Vector3()
+      , c = new Vector3()
+      , d = new Vector3()
+      , e = new Vector3()
+      , f = new Vector3()
+      , g = new Vector3()
+      , h = new Vector3()
+
+    for (var i = 0; i < 12; i++)
+      triangles.push(new Triangle(new Vector3(), new Vector3(), new Vector3()))
+
+    return function(from, vel, shape, boxPos, boxSize, quat) {
+      var width = boxSize.x
+        , height = boxSize.y
+        , depth = boxSize.z
+
+      a.addVectors(boxPos, new Vector3(-width, height, depth).applyQuaternion(quat))
+      b.addVectors(boxPos, new Vector3(-width, -height, depth).applyQuaternion(quat))
+      c.addVectors(boxPos, new Vector3(width, -height, depth).applyQuaternion(quat))
+      d.addVectors(boxPos, new Vector3(width, height, depth).applyQuaternion(quat))
+      e.addVectors(boxPos, new Vector3(-width, height, -depth).applyQuaternion(quat))
+      f.addVectors(boxPos, new Vector3(-width, -height, -depth).applyQuaternion(quat))
+      g.addVectors(boxPos, new Vector3(width, -height, -depth).applyQuaternion(quat))
+      h.addVectors(boxPos, new Vector3(width, height, -depth).applyQuaternion(quat))
+
+      var index = 0
+      triangles[index++].set(a, b, c)
+      triangles[index++].set(a, c, d)
+      // back
+      triangles[index++].set(h, g, f)
+      triangles[index++].set(h, f, e)
+      // left
+      triangles[index++].set(e, f, b)
+      triangles[index++].set(e, b, a)
+      // right
+      triangles[index++].set(d, c, g)
+      triangles[index++].set(d, g, h)
+      // top
+      triangles[index++].set(e, a, d)
+      triangles[index++].set(e, d, h)
+      // bottom
+      triangles[index++].set(b, f, g)
+      triangles[index++].set(b, g, c)
+
+      return getSweptCollision(from, vel, triangles, shape, true)
+    }
+  }()),
 
   getCollision: getCollision,
 
@@ -379,9 +378,10 @@ module.exports = {
 
     if (entry > exit) return Number.POSITIVE_INFINITY
     if (entryX < 0 && entryY < 0 && entryZ < 0) return Number.POSITIVE_INFINITY
-    if (entryX < 0 && (boxA.x + boxA.w < boxB.x || boxA.x > boxB.x + boxB.w)) return Number.POSITIVE_INFINITY
-    if (entryY < 0 && (boxA.y + boxA.h < boxB.y || boxA.y > boxB.y + boxB.h)) return Number.POSITIVE_INFINITY
-    if (entryZ < 0 && (boxA.z + boxA.d < boxB.z || boxA.z > boxB.z + boxB.d)) return Number.POSITIVE_INFINITY
+    if ((entryX < 0 && (boxA.x + boxA.w < boxB.x || boxA.x > boxB.x + boxB.w)) ||
+       (entryY < 0 && (boxA.y + boxA.h < boxB.y || boxA.y > boxB.y + boxB.h)) ||
+       (entryZ < 0 && (boxA.z + boxA.d < boxB.z || boxA.z > boxB.z + boxB.d)))
+      return Number.POSITIVE_INFINITY
 
     return entry
   },

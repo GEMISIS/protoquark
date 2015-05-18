@@ -33,6 +33,7 @@ function translatePlayer(name) {
   if (!peer) return name
   return peer.id == name ? "you" : name
 }
+
 function onPlayers (e) {
   names = this.names
   Object.keys(e.context).forEach(function (key) {
