@@ -68,16 +68,25 @@ var ons = {
 }
 
 function onRoom (name) {
+  function leavingRoom(e) {
+    var xmlHttp = new XMLHttpRequest()
+    xmlHttp.open("POST", "http://localhost:1337/quit/" + name, false)
+    xmlHttp.setRequestHeader("content-type","application/x-www-form-urlencoded");
+    xmlHttp.send(null)
+  }
+  window.onbeforeunload=leavingRoom
+
   window.connection.connect(name)
 }
 
 document.addEventListener("DOMContentLoaded", function (e) {
+
   var conn = window.connection
   var el = document.body
   var rect = el.getBoundingClientRect()
 
   var router = new Router()
-  router.add("room", /^\/([^\/]+)\/?$/)
+  router.add("room", new RegExp('rooms\/([^\/]+)\/?$'))
   router.on("route:room", onRoom)
 
   var chat = window.chat = new Chat(conn)
@@ -141,3 +150,4 @@ function update(things) {
   last = now
   requestAnimationFrame(update.bind(this, things))
 }
+

@@ -1,0 +1,17 @@
+doctype html
+html
+	head
+		title Quack
+		link(rel="stylesheet" href="/style.css")
+	body
+		div(class="mainStart")
+			h1(style="font-size: 400%;") Welcome to Quack
+			br
+			h3 Leave the room name blank to join a random room!
+			br
+			form(action="rooms/")
+				| Room Name:
+				input(type="text", name="name", placeholder="Leave empty to join random", autofocus)
+				br
+				br
+				input(type="submit", value="Join Room")
