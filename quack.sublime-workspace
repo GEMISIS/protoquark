@@ -1,0 +1,825 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"con",
+				"console"
+			],
+			[
+				"en",
+				"entity"
+			],
+			[
+				"V",
+				"Vector3"
+			],
+			[
+				"level",
+				"levelData"
+			],
+			[
+				"err",
+				"error"
+			],
+			[
+				"speec",
+				"speechVoice"
+			],
+			[
+				"tra",
+				"translatedText"
+			],
+			[
+				"video",
+				"videoElement"
+			],
+			[
+				"conn",
+				"connection"
+			],
+			[
+				"vid",
+				"videoElement"
+			],
+			[
+				"selec",
+				"selection"
+			],
+			[
+				"off",
+				"offsetX"
+			],
+			[
+				"pro",
+				"prototype"
+			],
+			[
+				"w",
+				"width"
+			],
+			[
+				"tile",
+				"tile_width"
+			],
+			[
+				"fun",
+				"funSphere2"
+			],
+			[
+				"secon",
+				"secondaryLightSphere"
+			],
+			[
+				"sun",
+				"sunSphere"
+			],
+			[
+				"fl",
+				"mainFloor"
+			],
+			[
+				"mia",
+				"mainMenu"
+			],
+			[
+				"perm",
+				"permissionsList"
+			],
+			[
+				"github",
+				"github-projfects"
+			],
+			[
+				"marign",
+				"margin-top"
+			],
+			[
+				"margin",
+				"margin-top"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "client/src/entities/player.js",
+			"settings":
+			{
+				"buffer_size": 2235,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "server.js",
+			"settings":
+			{
+				"buffer_size": 2267,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "client/src/main.js",
+			"settings":
+			{
+				"buffer_size": 3928,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "index.jade",
+			"settings":
+			{
+				"buffer_size": 477,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "html.jade",
+			"settings":
+			{
+				"buffer_size": 269,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "build.bat",
+			"settings":
+			{
+				"buffer_size": 164,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "client/src/main.css",
+			"settings":
+			{
+				"buffer_size": 716,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "client/src/engine.js",
+			"settings":
+			{
+				"buffer_size": 13537,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/C/Users/GEMISIS/Documents/GitHub/quack",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/assets",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/bin",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/config",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/entities",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/interface",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/obj3d"
+	],
+	"file_history":
+	[
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/config/weapon.js",
+		"/C/Users/GEMISIS/Downloads/cam.txt",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/index.jdae",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/main.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/main.css",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/settings.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/bin/defaultmap.json",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/obj3d/box.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/stage.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/engine.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/entity.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/entities/bullets.js",
+		"/C/Users/GEMISIS/Downloads/Public/How to use the Public folder.txt",
+		"/C/Users/GEMISIS/Downloads/f.txt",
+		"/C/Users/GEMISIS/AppData/Local/Temp/scp03016/var/www/geraldmcalister.com/public_html/index.html",
+		"/C/Users/GEMISIS/Documents/GitHub/Google-Code-Jam-2015/Haircut/test.txt",
+		"/C/Users/GEMISIS/Downloads/B-small-practice (4).in",
+		"/C/Users/GEMISIS/Documents/GitHub/Google-Code-Jam-2015/Infinite House of Pancakes/in.txt",
+		"/C/Users/GEMISIS/Downloads/B-small-practice (3).in",
+		"/C/Users/GEMISIS/Downloads/B-large-practice (2).in",
+		"/C/Users/GEMISIS/Documents/GitHub/CardboardMoonwalk/AndroidManifest.xml",
+		"/C/Users/GEMISIS/Documents/GitHub/CardboardMoonwalk/src/com/cardboardmoonwalk/MainActivity.java",
+		"/C/Users/GEMISIS/Documents/GitHub/VRSoundages/app/src/main/java/gemisis/vrsoundages/PhotoInfo.java",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/level.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/entities/entities.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/defaultmap.json",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/test.json",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/obj3d/bullet.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/collision.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/interface/weapon.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/build.bat",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/entities/player.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/server.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/controller.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/entities/remoteplayer.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/math.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/client/src/interface/score.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quark/nodemon.json",
+		"/C/Users/GEMISIS/Documents/GitHub/quark/public/javascripts/main.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quark/views/layout.jade",
+		"/C/Users/GEMISIS/Documents/GitHub/quark/public/stylesheets/style.css",
+		"/C/Users/GEMISIS/Documents/GitHub/quark/components/duo.json",
+		"/C/Users/GEMISIS/Documents/GitHub/quark/views/index.jade",
+		"/C/Users/GEMISIS/Documents/GitHub/quark/routes/index.js",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/build.sh",
+		"/C/Users/GEMISIS/Documents/GitHub/quark/.gitignore",
+		"/C/Users/GEMISIS/Documents/GitHub/quark/bin/www",
+		"/C/Users/GEMISIS/Documents/GitHub/quack/.gitignore",
+		"/C/Users/GEMISIS/Documents/GitHub/quark/package.json",
+		"/C/Users/GEMISIS/Downloads/Box2D_v2.3.0/Box2D_v2.3.0/Box2D/Box2D/Box2D.h",
+		"/C/Users/GEMISIS/AppData/Local/Temp/scp12628/var/www/geraldmcalister.com/public_html/css/style.css",
+		"/C/Users/GEMISIS/Documents/GitHub/Google-Code-Jam-2015/Logging/test.txt",
+		"/C/Users/GEMISIS/Documents/GitHub/Google-Code-Jam-2015/Logging/out.txt",
+		"/C/Users/GEMISIS/AppData/Local/Temp/Rar$DIa0.439/b.cpp",
+		"/C/Users/GEMISIS/Documents/GitHub/Google-Code-Jam-2015/Muschroom Monster/test.txt",
+		"/C/Users/GEMISIS/Documents/GitHub/Google-Code-Jam-2015/Muschroom Monster/out.txt",
+		"/C/Users/GEMISIS/Documents/GitHub/Google-Code-Jam-2015/z0aaianv.5oy.txt",
+		"/C/Users/GEMISIS/Documents/GitHub/Google-Code-Jam-2015/mk2bv3w1.4cf.txt",
+		"/C/Users/GEMISIS/Documents/GitHub/Google-Code-Jam-2015/tsmvs3ug.ffh.txt",
+		"/C/Users/GEMISIS/Downloads/A-small-practice (7).in",
+		"/C/Users/GEMISIS/AppData/Local/Temp/Rar$DIa0.659/a.cpp",
+		"/C/Users/GEMISIS/Documents/GitHub/Google-Code-Jam-2015/Haircut/out.txt",
+		"/C/Users/GEMISIS/Downloads/B-small-attempt0 (1).in",
+		"/C/Users/GEMISIS/Downloads/A-small-attempt1.in",
+		"/C/Users/GEMISIS/Downloads/A-large (1).in",
+		"/C/Users/GEMISIS/Downloads/A-small-attempt0 (1).in",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015 Practice/Alien Code/test.txt",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015 Practice/Alien Code/out.txt",
+		"/C/Users/GEMISIS/Downloads/A-small-practice (6).in",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015 Practice/Minimum Scalar Product/out.txt",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015 Practice/Minimum Scalar Product/test.txt",
+		"/C/Users/GEMISIS/Downloads/A-large-practice (3).in",
+		"/C/Users/GEMISIS/Downloads/A-small-practice (5).in",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015 Practice/Reverse Words/test.txt",
+		"/C/Users/GEMISIS/Downloads/B-small-practice.in",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015 Practice/Reverse Words/out.txt",
+		"/C/Users/GEMISIS/Downloads/B-large-practice.in",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015 Practice/Store Credit/out.txt",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015 Practice/Store Credit/test.txt",
+		"/C/Users/GEMISIS/Downloads/A-large-practice (2).in",
+		"/C/Users/GEMISIS/Downloads/A-small-practice (4).in",
+		"/C/Users/GEMISIS/Downloads/A-small-practice (3).in",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015 Practice/Charging Chaos/test.txt",
+		"/C/Users/GEMISIS/AppData/Local/Temp/Rar$DIa0.888/GCJR1A.java",
+		"/C/Users/GEMISIS/Downloads/A-large-practice (1).in",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015 Practice/Charging Chaos/out.txt",
+		"/C/Users/GEMISIS/Downloads/A-large-practice.in",
+		"/C/Users/GEMISIS/AppData/Local/Temp/Rar$DIa0.602/B.java",
+		"/C/Users/GEMISIS/AppData/Local/Microsoft/Windows/INetCache/IE/8S8KUQYY/calibration[1].xml",
+		"/C/Users/GEMISIS/AppData/Local/Microsoft/Windows/INetCache/IE/ZR2FXETY/tango_analytics_log[1].txt",
+		"/C/Users/GEMISIS/Downloads/A-small-practice (2).in",
+		"/C/Users/GEMISIS/AppData/Local/Temp/Rar$DIa0.447/A.java",
+		"/C/Users/GEMISIS/AppData/Local/Temp/Rar$DIa0.621/GCJR1A.java",
+		"/C/Users/GEMISIS/AppData/Local/Temp/Rar$DIa0.353/소스.cpp",
+		"/C/Users/GEMISIS/Downloads/A-small-practice (1).in",
+		"/C/Users/GEMISIS/Downloads/B-small-attempt2.in",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015/Infinite House of Pancakes/old.txt",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015/Infinite House of Pancakes/out.txt",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015/Infinite House of Pancakes/in.txt",
+		"/C/Users/GEMISIS/Downloads/B-small-attempt4 (1).in",
+		"/C/Users/GEMISIS/AppData/Local/Temp/Rar$DIa0.517/B.java",
+		"/C/Users/GEMISIS/Documents/GitHub/Google-Code-Jam-2015/Standing Ovation/main.cpp",
+		"/C/Users/GEMISIS/Downloads/B-small-attempt3.in",
+		"/C/Users/GEMISIS/Downloads/C-large.in",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015/Dijkstra/out.txt",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015/Dijkstra/in.txt",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015/Dijkstra/new.txt",
+		"/C/Users/GEMISIS/Downloads/C-small-attempt6.in",
+		"/C/Users/GEMISIS/Downloads/C-small-attempt5.in",
+		"/C/Users/GEMISIS/Downloads/C-small-attempt4.in",
+		"/C/Users/GEMISIS/Downloads/C-small-attempt3.in",
+		"/C/Users/GEMISIS/Downloads/C-small-attempt2.in",
+		"/C/Users/GEMISIS/Downloads/C-small-attempt1.in",
+		"/C/Users/GEMISIS/Downloads/C-small-attempt0.in",
+		"/C/Users/GEMISIS/Downloads/B-small-attempt0.in",
+		"/C/Users/GEMISIS/Downloads/B-small-attempt1.in",
+		"/C/Users/GEMISIS/Downloads/sub-4.out",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015/Infinite House of Pancakes/main.cpp",
+		"/C/Users/GEMISIS/Downloads/A-large.in",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015/Standing Ovation/test.txt",
+		"/C/Users/GEMISIS/Downloads/A-small-attempt0.in",
+		"/C/Users/GEMISIS/AppData/Local/Temp/Rar$DIa0.984/main.cpp",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam 2015/Standing Ovation/out.txt",
+		"/C/Users/GEMISIS/Documents/GitHub/Google Code Jam/A Magic Trick/main.cpp",
+		"/C/Users/GEMISIS/Downloads/Gennady.Korotkevich_0_0/sol.cpp",
+		"/C/Users/GEMISIS/Downloads/A-small-practice.in",
+		"/C/Users/GEMISIS/Documents/Google Code Jam/2014/A Magic Trick/main.cpp",
+		"/C/Users/GEMISIS/Documents/Google Code Jam/2014/A Magic Trick/run.bat"
+	],
+	"find":
+	{
+		"height": 34.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"room",
+			"gemisis",
+			"onbeforeunload",
+			"kills",
+			"score",
+			"default",
+			"context",
+			"emit",
+			"settings.update",
+			"update",
+			"parseLevel",
+			"loadLevel",
+			"parseLevel",
+			"add(",
+			"add*",
+			"loadLevel",
+			"parseEngineLevel",
+			"levelData",
+			"loadLevel",
+			"parse",
+			"parsel",
+			"loadLevel",
+			"parseLevel",
+			"loadLevel",
+			"Stage",
+			"parseLevel",
+			"x",
+			"loadlevel",
+			"loadLevel",
+			"loadlevel.call",
+			"setting",
+			"settings",
+			"emm",
+			"this.",
+			"loadLevel",
+			"parseLevel",
+			"parse",
+			"engine",
+			"Engine",
+			"player",
+			"euler",
+			"updateRotation",
+			"0000101111",
+			"2 7 6",
+			"0",
+			"insert",
+			"gtk",
+			"mingw",
+			"	for(int i = 1;i < argc;i += 1)\n	{\n		printf(\"Arg %d: %s\", i - 1, argv[i]);\n	}\n",
+			"label_87",
+			"svcSendSyncRequest",
+			"command",
+			"srvGetServiceHandle",
+			"3000",
+			"translateText",
+			"results",
+			"j",
+			"sameLanguage",
+			"recognition",
+			"this",
+			"recognition",
+			"append",
+			"data",
+			"English",
+			"this",
+			"this.mainConnection",
+			"dataHandlers",
+			"videoID",
+			"sendmessage",
+			"handleData",
+			"90",
+			" width: 90%; height: 45%;",
+			"div",
+			"makeCall",
+			"					$(\"#textMessages\").append(data);\n					var elem = document.getElementById('textMessages');\n					elem.scrollTop = elem.scrollHeight;\n",
+			"this",
+			"div",
+			"10",
+			"span",
+			" height: 25%;",
+			"90",
+			"50",
+			"90",
+			"80",
+			" width=50%",
+			"45",
+			"50",
+			"Express",
+			"%",
+			"videoID",
+			"sender",
+			"peer",
+			"err",
+			"audio",
+			"make-call",
+			"#step",
+			"step3",
+			"step2",
+			"#",
+			"errorPreviewItem",
+			"pic1",
+			"50",
+			"composition=((((0_c_6)_(3_e_4)_(4_d_5)_(7_e_4)_(8_c_6)_(b_e_4)_(c_d_5)_(f_e_4)_(10_c_6)_(13_e_4)_(14_d_5)_(17_e_4)_(18_c_6)_(1b_e_4)_(1c_d_5)_(1f_e_4)_(20_c_6)_(23_e_4)_(24_d_5)_(27_e_4)_(28_c_6)_(2b_e_4)_(2c_d_5)_(2f_e_4)_(30_c_6)_(33_e_4)_(34_d_5)_(37_e_4)_(38_c_6)_(3b_e_4)_(3c_d_5)_(3f_e_4))_((0_-15b.4a2e3fd6e91_3e.1ab3f_46_b387ff_e)_(1_-9a.15e27cc3d11_df.24f473_23_4527a0_d)_(2_2.185b03339ccb0f_-117.4b1a13_96_ede7f6_c)_(3_-27.be11f76f7c32_9.2d13759_46_b387ff_e)_(4_e9.5d81e68a7cf_136.1836e21_23_4527a0_d)_(5_17b.6b265c366cf_0.53d1ac1_96_ede7f6_c))_((-c8_2bc_2)_(0_2bc_4)_(fa_2bc_8)))_(((4_1b_0)_(5_1a_14)_(8_1a_14)_(a_19_7)_(d_1c_f)_(e_1b_0)_(11_1a_14)_(13_19_7)_(15_1c_f)_(17_1b_0)_(19_1c_f)_(1a_1b_0)_(1b_19_7)_(1d_1a_14)_(1f_1c_f)_(21_1b_0)_(24_1b_0)_(25_19_7)_(29_1a_14)_(2a_1b_0)_(2b_1c_f)_(2d_1b_0)_(30_1b_0)_(31_19_7)_(35_1a_14)_(35_1b_0)_(37_1c_f)_(3a_1b_0)_(3a_1c_f)_(3c_1b_0)_(3e_19_7))_((0_4_b)_(7_0_a)_(f_1_8)_(14_7_6))_3_5)_(((3e_16_5.1_0)_(1e_18_5.6_2))_((16_ffffff_f2fbfd)_(17_4dd0e0_3dccde)_(18_b1eaf2_9fe6ee)_(14_97a7_a9bd)_(15_6064_7b85))))",
+			"composition=((((0_c_6)_(3_e_4)_(4_d_5)_(7_e_4)_(8_c_6)_(b_e_4)_(c_d_5)_(f_e_4)_(10_c_6)_(13_e_4)_(14_d_5)_(17_e_4)_(18_c_6)_(1b_e_4)_(1c_d_5)_(1f_e_4)_(20_c_6)_(23_e_4)_(24_d_5)_(27_e_4)_(28_c_6)_(2b_e_4)_(2c_d_5)_(2f_e_4)_(30_c_6)_(33_e_4)_(34_d_5)_(37_e_4)_(38_c_6)_(3b_e_4)_(3c_d_5)_(3f_e_4))_((0_-15b.4a2e3fd6e91_3e.1ab3f_46_b387ff_e)_(1_-9a.15e27cc3d11_df.24f473_23_4527a0_d)_(2_2.185b03339ccb0f_-117.4b1a13_96_ede7f6_c)_(3_-27.be11f76f7c32_9.2d13759_46_b387ff_e)_(4_e9.5d81e68a7cf_136.1836e21_23_4527a0_d)_(5_17b.6b265c366cf_0.53d1ac1_96_ede7f6_c))_((-c8_2bc_2)_(0_2bc_4)_(fa_2bc_8)))_(((4_1b_0)_(5_1a_14)_(8_1a_14)_(a_19_7)_(d_1c_f)_(e_1b_0)_(11_1a_14)_(13_19_7)_(15_1c_f)_(17_1b_0)_(19_1c_f)_(1a_1b_0)_(1b_19_7)_(1d_1a_14)_(1f_1c_f)_(21_1b_0)_(24_1b_0)_(25_19_7)_(29_1a_14)_(2a_1b_0)_(2b_1c_f)_(2d_1b_0)_(30_1b_0)_(31_19_7)_(35_1a_14)_(35_1b_0)_(37_1c_f)_(3a_1b_0)_(3a_1c_f)_(3c_1b_0)_(3e_19_7))_((0_4_b)_(7_0_a)_(f_1_8)_(14_7_6))_3_5)_(((3e_16_5.1_0)_(1e_18_5.6_2))_((16_ffffff_f2fbfd)_(17_4dd0e0_3dccde)_(18_b1eaf2_9fe6ee)_(14_97a7_a9bd)_(15_6064_7b85)))) \n",
+			"composition=((((0_c_6)_(3_e_4)_(4_d_5)_(7_e_4)_(8_c_6)_(b_e_4)_(c_d_5)_(f_e_4)_(10_c_6)_(13_e_4)_(14_d_5)_(17_e_4)_(18_c_6)_(1b_e_4)_(1c_d_5)_(1f_e_4)_(20_c_6)_(23_e_4)_(24_d_5)_(27_e_4)_(28_c_6)_(2b_e_4)_(2c_d_5)_(2f_e_4)_(30_c_6)_(33_e_4)_(34_d_5)_(37_e_4)_(38_c_6)_(3b_e_4)_(3c_d_5)_(3f_e_4))_((0_-15b.4a2e3fd6e91_3e.1ab3f_46_b387ff_e)_(1_-9a.15e27cc3d11_df.24f473_23_4527a0_d)_(2_2.185b03339ccb0f_-117.4b1a13_96_ede7f6_c)_(3_-27.be11f76f7c32_9.2d13759_46_b387ff_e)_(4_e9.5d81e68a7cf_136.1836e21_23_4527a0_d)_(5_17b.6b265c366cf_0.53d1ac1_96_ede7f6_c))_((-c8_2bc_2)_(0_2bc_4)_(fa_2bc_8)))_(((4_1b_0)_(5_1a_14)_(8_1a_14)_(a_19_7)_(d_1c_f)_(e_1b_0)_(11_1a_14)_(13_19_7)_(15_1c_f)_(17_1b_0)_(19_1c_f)_(1a_1b_0)_(1b_19_7)_(1d_1a_14)_(1f_1c_f)_(21_1b_0)_(24_1b_0)_(25_19_7)_(29_1a_14)_(2a_1b_0)_(2b_1c_f)_(2d_1b_0)_(30_1b_0)_(31_19_7)_(35_1a_14)_(35_1b_0)_(37_1c_f)_(3a_1b_0)_(3a_1c_f)_(3c_1b_0)_(3e_19_7))_((0_4_b)_(7_0_a)_(f_1_8)_(14_7_6))_3_5)_(((3e_16_5.1_0)_(1e_18_5.6_2))_((16_ffffff_f2fbfd)_(17_",
+			"composition=((((0_c_6)_(3_e_4)_(4_d_5)_(7_e_4)_(8_c_6)_(b_e_4)_(c_d_5)_(f_e_4)_(10_c_6)_(13_e_4)_(14_d_5)_(17_e_4)_(18_c_6)_(1b_e_4)_(1c_d_5)_(1f_e_4)_(20_c_6)_(23_e_4)_(24_d_5)_(27_e_4)_(28_c_6)_(2b_e_4)_(2c_d_5)_(2f_e_4)_(30_c_6)_(33_e_4)_(34_d_5)_(37_e_4)_(38_c_6)_(3b_e_4)_(3c_d_5)_(3f_e_4))_((0_-15b.4a2e3fd6e91_3e.1ab3f_46_b387ff_e)_(1_-9a.15e27cc3d11_df.24f473_23_4527a0_d)_(2_2.185b03339ccb0f_-117.4b1a13_96_ede7f6_c)_(3_-27.be11f76f7c32_9.2d13759_46_b387ff_e)_(4_e9.5d81e68a7cf_136.1836e21_23_4527a0_d)_(5_17b.6b265c366cf_0.53d1ac1_96_ede7f6_c))_((-c8_2bc_2)_(0_2bc_4)_(fa_2bc_8)))_(((4_1b_0)_(5_1a_14)_(8_1a_14)_(a_19_7)_(d_1c_f)_(e_1b_0)_(11_1a_14)_(13_19_7)_(15_1c_f)_(17_1b_0)_(19_1c_f)_(1a_1b_0)_(1b_19_7)_(1d_1a_14)_(1f_1c_f)_(21_1b_0)_(24_1b_0)_(25_19_7)_(29_1a_14)_(2a_1b_0)_(2b_1c_f)_(2d_1b_0)_(30_1b_0)_(31_19_7)_(35_1a_14)_(35_1b_0)_(37_1c_f)_(3a_1b_0)_(3a_1c_f)_(3c_1b_0)_(3e_19_7))_((0_4_b)_(7_0_a)_(",
+			"composition=((((0_c_6)_(3_e_4)_(4_d_5)_(7_e_4)_(8_c_6)_(b_e_4)_(c_d_5)_(f_e_4)_(10_c_6)_(13_e_4)_(14_d_5)_(17_e_4)_(18_c_6)_(1b_e_4)_(1c_d_5)_(1f_e_4)_(20_c_6)_(23_e_4)_(24_d_5)_(27_e_4)_(28_c_6)_(2b_e_4)_(2c_d_5)_(2f_e_4)_(30_c_6)_(33_e_4)_(34_d_5)_(37_e_4)_(38_c_6)_(3b_e_4)_(3c_d_5)_(3f_e_4))_((0_-15b.4a2e3fd6e91_3e.1ab3f_46_b387ff_e)_(1_-9a.15e27cc3d11_df.24f473_23_4527a0_d)_(2_2.185b03339ccb0f_-117.4b1a13_96_ede7f6_c)_(3_-27.be11f76f7c32_9.2d13759_46_b387ff_e)_(4_e9.5d81e68a7cf_136.1836e21_23_4527a0_",
+			"composition=((((0_c_6)_(3_e_4)_(4_d_5)_(7_e_4)_(8_c_6)_(b_e_4)_(c_d_5)_(f_e_4)_(10_c_6)_(13_e_4)_(14_d_5)_(17_e_4)_(18_c_6)_(1b_e_4)_(1c_d_5)_(1f_e_4)_(20_c_6)_(23_e_4)_(24_d_5)_(27_e_4)_(28_c_6)_(2b_e_4)_(2c_d_5)_(2f_e_4",
+			"composition=((((0_c_6",
+			"composition=((((0_c_6)_(3_e_4)_(4_d_5)_(7_e_4)_(8_c_6)_(b_e_4)_(c_d_5)_(f_e_4)_(10_c_6)_(13_e_4)_(14_d_5)_(17_e_4)_(18_c_6)_(1b_e_4)_(1c_d_5)_(1f_e_4)_(20_c_6)_(23_e_4)_(24_d_5)_(27_e_4)_(28_c_6)_(2b_e_4)_(2c_d_5)_(2f_e_4)_(30_c_6)_(33_e_4)_(34_d_5)_(37_e_4)_(38_c_6)_(3b_e_4)_(3c_d_5)_(3f_e_4))_((0_-15b.4a2e3fd6e91_3e.1ab3f_46_b387ff_e)_(1_-9a.15e27cc3d11_df.24f473_23_4527a0_d)_(2_2.185b03339ccb0f_-117.4b1a13_96_ede7f6_c)_(3_-27.be11f76f7c32_9.2d13759_46_b387ff_e)_(4_e9.5d81e68a7cf_136.1836e21_23_4527a0_d)_(5_17b.6b265c366cf_0.53d1ac1_96_ede7f6_c))_((-c8_2bc_2)_(0_2bc_4)_(fa_2bc_8)))_(((4_1b_0)_(5_1a_14)_(8_1a_14)_(a_19_7)_(d_1c_f)_(e_1b_0)_(11_1a_14)_(13_19_7)_(15_1c_f)_(17_1b_0)_(19_1c_f)_(1a_1b_0)_(1b_19_7)_(1d_1a_14)_(1f_1c_f)_(21_1b_0)_(24_1b_0)_(25_19_7)_(29_1a_14)_(2a_1b_0)_(2b_1c_f)_(2d_1b_0)_(30_1b_0)_(31_19_7)_(35_1a_14)_(35_1b_0)_(37_1c_f)_(3a_1b_0)_(3a_1c_f)_(3c_1b_0)_(3e_19_7))_((0_4_b)_(7_0_a)_(f_1_8)_(14_7_6))_3_5)_(((3e_16_5.1_0)_(1e_18_5.6_2))_((16_ffffff_f2fbfd)_(17_4dd0e0_3dccde)_(18_b1eaf2_9fe6ee)_(14_97a7_a9bd)_(15_6064_7b85)))) \n",
+			"&",
+			"experiment",
+			"data:image",
+			"creatorEnt",
+			"ent",
+			"bullet",
+			"getEntityRepresentation",
+			"genlocalid",
+			"z",
+			"Player",
+			"engine",
+			"serving",
+			"servering",
+			"toserver",
+			"serving",
+			"isserver",
+			"hostingServer",
+			"amServer"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "client/src/entities/player.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2235,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								898,
+								898
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "server.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2267,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1501,
+								1501
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 180.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "client/src/main.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3928,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2070,
+								2070
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 945.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "index.jade",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 477,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								23,
+								23
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "html.jade",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 269,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								268,
+								268
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "build.bat",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 164,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								19,
+								90
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Batch File/Batch File.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "client/src/main.css",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 716,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								477,
+								477
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CSS/CSS.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "client/src/engine.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 13537,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1065,
+								1065
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 23.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "quack.sublime-project",
+	"replace":
+	{
+		"height": 42.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 225.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

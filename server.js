@@ -19,13 +19,30 @@ app.get('/', function (req, res){
 
 // Redirects client to random game room.
 app.get('/rooms\/$', function (req, res){
-	if(req.query.name != undefined)
+	if(req.query.name !== undefined && req.query.name != "")
 	{
-		res.redirect("/rooms/" + req.query.name)
+		var address = "/rooms/" + req.query.name + "/"
+		if(req.query.maxPlayers !== undefined)
+		{
+			address += "?maxPlayers=" + req.query.maxPlayers
+		}
+		res.redirect(address)
 	}
 	else
 	{
-		res.redirect("/rooms/" + random())
+		var foundRoom = false
+		for (var room in rooms)
+		{
+			if(rooms[room].playerCount < rooms[room].maxPlayers)
+			{
+				res.redirect("/rooms/" + room)
+				foundRoom = true
+			}
+		}
+		if(foundRoom == false)
+		{
+			res.redirect("/rooms/" + random())
+		}
 	}
 })
 
@@ -33,38 +50,45 @@ app.get('/rooms\/$', function (req, res){
 app.post('/quit\/[^.\/]+\/?$', function (req, res) {
 	var name = req.url.substr(req.url.lastIndexOf("/") + 1)
 
-	console.log("Client left room " + name)
 	if(rooms[name] != undefined)
 	{
-		if(rooms[name] <= 1)
+		if(rooms[name].playerCount <= 1)
 		{
 			delete rooms[name]
 		}
 		else
 		{
-			rooms[name] -= 1
+			rooms[name].playerCount -= 1
 		}
+		console.log("Player left room " + name)
 	}
 	return res.send("quitter")
 });
 
 // Opens game room.
 app.get('/rooms\/[^.\/]+\/?$', function (req, res) {
-	var name = req.url.substr(req.url.lastIndexOf("/") + 1)
+	var name = req.url.substr(req.url.indexOf("/") + 1)
+	name = name.substr(name.indexOf("/") + 1)
+	name = name.substr(0, name.indexOf("/"))
 
 	jade.renderFile("./html.jade", {}, function(err, html) {
 		if (!err)
 		{
-			console.log("Client joined room " + name)
 			if(rooms[name] == undefined)
 			{
-				rooms[name] = 1
+				var maxPlayers = 8
+				if(req.query.maxPlayers !== undefined && req.query.maxPlayers > 1)
+				{
+					maxPlayers = req.query.maxPlayers
+				}
+				rooms[name] = { playerCount: 1, maxPlayers: maxPlayers, name: name }
+				console.log("Player created room " + name + ".  Max players is " + maxPlayers)
 			}
 			else
 			{
-				rooms[name] += 1
+				rooms[name].playerCount += 1
+				console.log("Player joined room " + name)
 			}
-			console.log(rooms[name])
 			return res.send(html)
 		}
 		else
