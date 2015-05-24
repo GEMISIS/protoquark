@@ -8,6 +8,7 @@ var Health     = require("./interface/health")
 var Radar      = require("./interface/radar")
 var Router     = require("./router")
 var Stage      = require("./stage")
+var Editor      = require("./editor/editor")
 var Weapon     = require('./interface/weapon')
 
 window.connection = new Connection()
