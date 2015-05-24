@@ -60,6 +60,8 @@ var Triangle = THREE.Triangle
 
 // points within pixelTolerance pixels of each other is considered colinear / near
 var pixelTolerance = 4
+var noFloorWallY = 0
+var noCeilingWallY = 10
 
 // MAX_VERTICES must be a multiple of 3
 var MAX_VERTICES = 3000
@@ -72,6 +74,7 @@ var keys = {
 
   76: function onLine() {
     this.mode = "line"
+    this.selectedSections = []
   },
 
   86: function onVertex() {
@@ -113,7 +116,7 @@ var keys = {
 var handlers = {
 mousedown: {
   section: function(e) {
-    var section = this.findSection(e.clientX, e.clientY)
+    var section = this.findSection(computeMouseCoords(e, this.canvas))
     if (e.button === 0) {
       if (section && this.selectedSections.indexOf(section.id) == -1) {
         this.selectedSections.push(section.id)
@@ -129,14 +132,15 @@ mousedown: {
     }
 
     section = this.selectedSections.length == 1 ? section : null
-    this.floorInput.value = section ? section.floor : 0
-    this.floorInput.disabled = !!!section
+    this.floorInput.value = section ? section.floorHeight : 0
+    this.ceilingInput.value = section ? section.ceilingHeight : 0
+    this.ceilingInput.disabled = this.floorInput.disabled = !!!section
   },
 
   line: function(e) {
     if (e.button === 0) {
       var points = this.points = this.points || []
-        , currentPt = new Vector3(e.clientX, e.clientY, 0)
+        , currentPt = computeMouseCoords(e, this.canvas)
         , firstPt = points[0]
         , completeLoop = points.length >= 3 && Math.abs(currentPt.x - firstPt.x) < 8 && Math.abs(currentPt.y - firstPt.y) < 8
 
@@ -150,8 +154,10 @@ mousedown: {
         addSection.call(this, {
           id: this.nextSectorId++,
           points: points,
-          floor: 1,
-          ceiling: 10
+          floorHeight: 1,
+          ceilingHeight: noCeilingWallY,
+          floor: true,
+          ceiling: true
         })
         buildPolygons.call(this, {x: this.canvas.width, y: this.canvas.height})
         this.render()
@@ -170,7 +176,7 @@ mousedown: {
 
   vertex: function(e) {
     if (e.button === 0) {
-      var pt = this.findClosestPoint(e.clientX, e.clientY, pixelTolerance)
+      var pt = this.findClosestPoint(computeMouseCoords(e, this.canvas), pixelTolerance)
       if (pt) {
         this.selectedPoint = pt
       }
@@ -183,12 +189,13 @@ mousemove: {
     var points = this.points
     if (!points || !points.length) return
 
-    this.redraw({x: e.clientX, y: e.clientY})
+    this.redraw(computeMouseCoords(e, this.canvas))
   },
   vertex: function(e) {
-   var selectedPoint = this.selectedPoint = this.selectedPoint || {}
-    selectedPoint.point.x = e.clientX
-    selectedPoint.point.y = e.clientY
+    var selectedPoint = this.selectedPoint = this.selectedPoint || {}
+      , coords = computeMouseCoords(e, this.canvas)
+    selectedPoint.point.x = coords.x
+    selectedPoint.point.y = coords.y
   }
 },
 
@@ -232,9 +239,8 @@ function Editor(canvas, ctx) {
   floorInput.addEventListener("input", function() {
     var section = this.getSelectedSection()
     if (section) {
-      section.floor = parseFloat(floorInput.value)
+      section.floorHeight = parseFloat(floorInput.value)
       buildPolygons.call(this, {x: this.canvas.width, y: this.canvas.height})
-      console.log("A")
     }
   }.bind(this))
   floorInput.disabled = true
@@ -243,7 +249,7 @@ function Editor(canvas, ctx) {
   ceilingInput.addEventListener("input", function() {
     var section = this.getSelectedSection()
     if (section) {
-      section.ceiling = parseFloat(ceilingInput.value)
+      section.ceilingHeight = parseFloat(ceilingInput.value)
       buildPolygons.call(this, {x: this.canvas.width, y: this.canvas.height})
     }
   }.bind(this))
@@ -251,7 +257,7 @@ function Editor(canvas, ctx) {
 
   /// ============ ///
   var scene = this.scene = new THREE.Scene()
-  var camera = this.camera = new THREE.PerspectiveCamera( 75, canvas.width / canvas.height, 0.1, 1000 )
+  var camera = this.camera = new THREE.PerspectiveCamera( 75, canvas.width / canvas.height, 0.01, 1000 )
 
   var renderer = this.renderer = new THREE.WebGLRenderer()
   renderer.setSize( canvas.width, canvas.height )
@@ -259,8 +265,6 @@ function Editor(canvas, ctx) {
 
   var geometry = new THREE.BoxGeometry( 1, 1, 1 )
   var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } )
-  var cube = new THREE.Mesh( geometry, material )
-  // scene.add( cube )
 
   camera.position.x = 0
   camera.position.y = 2.5
@@ -281,9 +285,6 @@ function Editor(canvas, ctx) {
 
   var render = this.render = function () {
     // requestAnimationFrame( render )
-
-    cube.rotation.x += 0.1
-    cube.rotation.y += 0.1
 
     renderer.render(scene, camera)
   }
@@ -368,11 +369,10 @@ Editor.prototype = {
   },
 
   // find smallest area section underneath x, y
-  findSection: function findSection(x, y) {
+  findSection: function findSection(point) {
     var sections = this.sections
       , smallestArea = Number.POSITIVE_INFINITY
       , touchedSection
-      , point = {x: x, y: y}
       , area
       , sectionIndex = 0
     for (var i = 0; i < sections.length; i++) {
@@ -440,7 +440,9 @@ function getEdgeIntersection(a, b, c, d) {
       (t0 > 0 && t0 < 1) ||
       (t1 > 0 && t1 < 1) ||
       (t0 > 1 && t1 < 1) ||
-      (t1 > 1 && t0 < 1)
+      (t1 > 1 && t0 < 1) ||
+      (t0 < 0 && t1 > 0) ||
+      (t1 < 0 && t0 > 0)
     )
   return {
     intersection: intersection,
@@ -542,6 +544,10 @@ function deleteSection(section) {
   }
 }
 
+function computeMouseCoords(evt, element) {
+  return new Vector3(evt.pageX - element.offsetLeft, evt.pageY - element.offsetTop, 0)
+}
+
 function addSection(section) {
   // section.edges should be array with length 1 less than points, each array entry should
   // itself be an array with section ids that contains this edge. In the case of a new sector,
@@ -583,8 +589,12 @@ function addSection(section) {
         var addedPointsSection = []
         var addedPointsOther = []
 
+        var t0 = Math.min(info.t0, info.t1)
+          , t1 = Math.max(info.t0, info.t1)
+
         // Need to do [0, 1] for both t's since t0 may be > t1
-        if (info.t0 > 0 && info.t0 < 1 && info.t1 < 1 && info.t1 > 0) {
+        // if (info.t0 >= 0 && info.t0 <= 1 && info.t1 <= 1 && info.t1 >= 0) {
+        if (t0 >= 0 && t1 <= 1) {
           // Case 1: a and b are fully embedded in other sections edge (cd), so only split other section
           // swap if order is inconsistent (this would occur depending on which edge intersects)
           if (info.t0 > info.t1) {
@@ -714,51 +724,57 @@ function buildPolygons(canvasDimensions) {
     var section = sections[i]
       , points = section.points
       , edges = section.edges
-      , floor = section.floor
-      , ceiling = section.ceiling
+      , floorHeight = section.floorHeight
+      , ceilingHeight = section.ceilingHeight
 
     // draw floor part of floor - start at index 1 and end 1 less then final index for triangulation
     for (var j = 1; j < points.length - 1; j++) {
-      vertices[v++] = convert2Dto3D(points[0], floor, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j], floor, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j + 1], floor, canvasDimensions)
+      vertices[v++] = convert2Dto3D(points[0], floorHeight, canvasDimensions)
+      vertices[v++] = convert2Dto3D(points[j], floorHeight, canvasDimensions)
+      vertices[v++] = convert2Dto3D(points[j + 1], floorHeight, canvasDimensions)
     }
 
     // draw outside walls of floor, if below 0, invert order. Use lines. Always faces out
-    if (floor != 0.0) {
+    if (floorHeight != noFloorWallY) {
       for (var j = 0; j < points.length - 1; j++) {
         var a = points[j]
           , b = points[j + 1]
-          , horizontal = new Vector3().subVectors(convert2Dto3D(a, 0, canvasDimensions), convert2Dto3D(b, 0, canvasDimensions)).normalize()
-          , vertical = new Vector3(0, 1, 0)
-          , normal = new Vector3().crossVectors(horizontal, vertical)
+          , top = floorHeight > noFloorWallY ? floorHeight : noFloorWallY
+          , bottom = floorHeight > noFloorWallY ? noFloorWallY : floorHeight
 
-        if (floor > 0) {
-          vertices[v++] = convert2Dto3D(a, floor, canvasDimensions)
-          vertices[v++] = convert2Dto3D(a, 0, canvasDimensions)
-          vertices[v++] = convert2Dto3D(b, 0, canvasDimensions)
+        vertices[v++] = convert2Dto3D(a, top, canvasDimensions)
+        vertices[v++] = convert2Dto3D(a, bottom, canvasDimensions)
+        vertices[v++] = convert2Dto3D(b, bottom, canvasDimensions)
 
-          vertices[v++] = convert2Dto3D(a, floor, canvasDimensions)
-          vertices[v++] = convert2Dto3D(b, 0, canvasDimensions)
-          vertices[v++] = convert2Dto3D(b, floor, canvasDimensions)
-        }
-        else {
-          vertices[v++] = convert2Dto3D(a, 0, canvasDimensions)
-          vertices[v++] = convert2Dto3D(a, floor, canvasDimensions)
-          vertices[v++] = convert2Dto3D(b, floor, canvasDimensions)
-
-          vertices[v++] = convert2Dto3D(a, 0, canvasDimensions)
-          vertices[v++] = convert2Dto3D(b, floor, canvasDimensions)
-          vertices[v++] = convert2Dto3D(b, 0, canvasDimensions)
-        }
+        vertices[v++] = convert2Dto3D(a, top, canvasDimensions)
+        vertices[v++] = convert2Dto3D(b, bottom, canvasDimensions)
+        vertices[v++] = convert2Dto3D(b, top, canvasDimensions)
       }
     }
 
     // draw ceiling part of ceiling, since looking from below to above, reverse order
     for (var j = 1; j < points.length - 1; j++) {
-      vertices[v++] = convert2Dto3D(points[0], ceiling, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j + 1], ceiling, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j], ceiling, canvasDimensions)
+      vertices[v++] = convert2Dto3D(points[0], ceilingHeight, canvasDimensions)
+      vertices[v++] = convert2Dto3D(points[j + 1], ceilingHeight, canvasDimensions)
+      vertices[v++] = convert2Dto3D(points[j], ceilingHeight, canvasDimensions)
+    }
+
+    // draw outside walls of ceiling
+    if (ceilingHeight != noCeilingWallY) {
+      for (var j = 0; j < points.length - 1; j++) {
+        var a = points[j]
+          , b = points[j + 1]
+          , top = ceilingHeight > noCeilingWallY ? ceilingHeight : noCeilingWallY
+          , bottom = ceilingHeight > noCeilingWallY ? noCeilingWallY : ceilingHeight
+
+        vertices[v++] = convert2Dto3D(b, top, canvasDimensions)
+        vertices[v++] = convert2Dto3D(a, top, canvasDimensions)
+        vertices[v++] = convert2Dto3D(a, bottom, canvasDimensions)
+
+        vertices[v++] = convert2Dto3D(b, top, canvasDimensions)
+        vertices[v++] = convert2Dto3D(a, bottom, canvasDimensions)
+        vertices[v++] = convert2Dto3D(b, bottom, canvasDimensions)
+      }
     }
 
     // Draw middle walls if any
@@ -766,14 +782,20 @@ function buildPolygons(canvasDimensions) {
       var edge = edges[j]
       if (edge.length > 1) continue
 
-      vertices[v++] = convert2Dto3D(points[j], ceiling, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j + 1], ceiling, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j + 1], floor, canvasDimensions)
+      vertices[v++] = convert2Dto3D(points[j], ceilingHeight, canvasDimensions)
+      vertices[v++] = convert2Dto3D(points[j + 1], ceilingHeight, canvasDimensions)
+      vertices[v++] = convert2Dto3D(points[j + 1], floorHeight, canvasDimensions)
 
-      vertices[v++] = convert2Dto3D(points[j], ceiling, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j + 1], floor, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j], floor, canvasDimensions)
+      vertices[v++] = convert2Dto3D(points[j], ceilingHeight, canvasDimensions)
+      vertices[v++] = convert2Dto3D(points[j + 1], floorHeight, canvasDimensions)
+      vertices[v++] = convert2Dto3D(points[j], floorHeight, canvasDimensions)
     }
+  }
+
+  // Zero out the rest.
+  var zero = new Vector3(0, 0, 0)
+  for (; v < MAX_VERTICES; v++) {
+    vertices[v] = zero
   }
 
   this.geometry.computeFaceNormals()
