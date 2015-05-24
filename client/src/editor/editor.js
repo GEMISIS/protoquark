@@ -451,6 +451,10 @@ function getEdgeIntersection(a, b, c, d) {
   }
 }
 
+function isNearPoint(a, b) {
+  return new Vector3().subVectors(b, a).length() <= pixelTolerance
+}
+
 function isNearColinear(a, b, point) {
   var ba = new Vector3().subVectors(b, a)
     , pa = new Vector3().subVectors(point, a)
@@ -458,6 +462,10 @@ function isNearColinear(a, b, point) {
 
   return pa.lengthSq() <= Number.EPSILON ||
    Math.abs(ba.dot(pa)/(ba.length() * pa.length())) >= cosdeg
+}
+
+function getTInPixels(t, a, b) {
+  return new Vector3().subVectors(b, a).length() * t
 }
 
 function getPointTIntersection(a, b, point) {
@@ -592,9 +600,18 @@ function addSection(section) {
         var t0 = Math.min(info.t0, info.t1)
           , t1 = Math.max(info.t0, info.t1)
 
-        // Need to do [0, 1] for both t's since t0 may be > t1
-        // if (info.t0 >= 0 && info.t0 <= 1 && info.t1 <= 1 && info.t1 >= 0) {
-        if (t0 >= 0 && t1 <= 1) {
+        // Case 0: Both edges about equal, no splitting
+        if ( (isNearPoint(c, a) && isNearPoint(d, b)) ||
+          (isNearPoint(d, a) && isNearPoint(c, b))) {
+          console.log("case 0")
+          addSectionToEdges(section.edges[sectionEdgeIndex], otherSection.id)
+          addSectionToEdges(otherSection.edges[otherSectionEdgeIndex], section.id)
+          looping = false
+          break
+        }
+        else if ((t0 >= 0 && t1 <= 1) ||
+          (Math.abs(getTInPixels(c, d, t0)) <= pixelTolerance && Math.abs(getTInPixels(c, d, t1) - getTInPixels(c, d, 1)) <= pixelTolerance)) {
+          console.log("case 1")
           // Case 1: a and b are fully embedded in other sections edge (cd), so only split other section
           // swap if order is inconsistent (this would occur depending on which edge intersects)
           if (info.t0 > info.t1) {
