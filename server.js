@@ -35,11 +35,12 @@ app.get('/rooms\/$', function (req, res){
 		{
 			if(rooms[room].playerCount < rooms[room].maxPlayers)
 			{
-				res.redirect("/rooms/" + room)
+				res.redirect("/rooms/" + rooms[room].name)
 				foundRoom = true
+				break;
 			}
 		}
-		if(foundRoom == false)
+		if(foundRoom === false)
 		{
 			res.redirect("/rooms/" + random())
 		}
@@ -69,7 +70,6 @@ app.post('/quit\/[^.\/]+\/?$', function (req, res) {
 app.get('/rooms\/[^.\/]+\/?$', function (req, res) {
 	var name = req.url.substr(req.url.indexOf("/") + 1)
 	name = name.substr(name.indexOf("/") + 1)
-	name = name.substr(0, name.indexOf("/"))
 
 	jade.renderFile("./html.jade", {}, function(err, html) {
 		if (!err)
