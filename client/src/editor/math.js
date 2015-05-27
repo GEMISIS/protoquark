@@ -1,3 +1,5 @@
+var Vector3 = THREE.Vector3
+
 module.exports = {
   deg2rad: function deg2rad(deg) {
     return deg * Math.PI / 180
@@ -27,5 +29,24 @@ module.exports = {
         if (intersect) inside = !inside;
     }
     return inside;
+  },
+
+  closestToLine: function closestToLine(a, b, p) {
+    var ba = new Vector3().subVectors(b, a)
+      , unitBA = ba.clone().normalize()
+      , proj = new Vector3().subVectors(p, a).dot(unitBA)
+      , t = proj / ba.length()
+      , clampedT = Math.max(Math.min(1.0, t), 0.0)
+    return {
+      t: t,
+      point: new Vector3().addVectors(a, ba.multiplyScalar(clampedT)),
+    }
+  },
+
+  distanceToLine: function distanceToLine(a, b, p) {
+    var n = new Vector3().subVectors(b, a).normalize()
+      , ap = new Vector3().subVectors(a, p)
+      , proj = ap.dot(n)
+    return new Vector3().addVectors(ap, n.multiplyScalar(-proj)).length()
   }
 }

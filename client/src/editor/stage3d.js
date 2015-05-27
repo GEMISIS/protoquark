@@ -1,12 +1,9 @@
-
 var Vector3 = THREE.Vector3
+var Color = THREE.Color
 
 // maxVertices must be a multiple of 3
 var maxVertices = 3000
 var numFaces = maxVertices / 3
-
-var noFloorWallY = 0
-var noCeilingWallY = 10
 
 function Stage3D(width, height) {
   var geometry = this.geometry = new THREE.Geometry()
@@ -17,7 +14,7 @@ function Stage3D(width, height) {
   this.width = width
   this.height = height
 
-  this.lastLook = {x: width / 2, y: height / 2}
+  this.resetLastLook()
   this.angle = {x: 0, y: 0}
 
   for (var i = 0; i < maxVertices; i++) {
@@ -35,7 +32,7 @@ function Stage3D(width, height) {
   camera.position.y = 2.5
   camera.position.z = 6
 
-  this.mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial( { color: 0x999999, shading: THREE.FlatShading } ))
+  this.mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial( { shading: THREE.FlatShading, vertexColors: THREE.FaceColors } ))
   this.mesh.frustumCulled = false
   scene.add(this.mesh)
 
@@ -46,8 +43,6 @@ function Stage3D(width, height) {
   directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
   directionalLight.position.set( -1, 1, .1 );
   scene.add( directionalLight );
-
-  this.render()
 
   last = timestamp()
   var update = function() {
@@ -123,101 +118,9 @@ strafe: function(amount) {
   this.camera.position.add(this.computeRight().multiplyScalar(amount))
 },
 
-buildPolygons: function buildPolygons(sections) {
-  var geometry = this.geometry
-  , v = 0
-  , n = 0
-  , vertices = geometry.vertices
-  , canvasDimensions = {x: this.width, y: this.height}
-
-  for (var i = 0; i < sections.length; i++) {
-    var section = sections[i]
-      , points = section.points
-      , edges = section.edges
-      , floorHeight = section.floorHeight
-      , ceilingHeight = section.ceilingHeight
-
-    // draw floor part of floor - start at index 1 and end 1 less then final index for triangulation
-    for (var j = 1; j < points.length - 1; j++) {
-      vertices[v++] = convert2Dto3D(points[0], floorHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j], floorHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j + 1], floorHeight, canvasDimensions)
-    }
-
-    // draw outside walls of floor, if below 0, invert order. Use lines. Always faces out
-    if (floorHeight != noFloorWallY) {
-      for (var j = 0; j < points.length - 1; j++) {
-        var a = points[j]
-          , b = points[j + 1]
-          , top = floorHeight > noFloorWallY ? floorHeight : noFloorWallY
-          , bottom = floorHeight > noFloorWallY ? noFloorWallY : floorHeight
-
-        vertices[v++] = convert2Dto3D(a, top, canvasDimensions)
-        vertices[v++] = convert2Dto3D(a, bottom, canvasDimensions)
-        vertices[v++] = convert2Dto3D(b, bottom, canvasDimensions)
-
-        vertices[v++] = convert2Dto3D(a, top, canvasDimensions)
-        vertices[v++] = convert2Dto3D(b, bottom, canvasDimensions)
-        vertices[v++] = convert2Dto3D(b, top, canvasDimensions)
-      }
-    }
-
-    // draw ceiling part of ceiling, since looking from below to above, reverse order
-    for (var j = 1; j < points.length - 1; j++) {
-      vertices[v++] = convert2Dto3D(points[0], ceilingHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j + 1], ceilingHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j], ceilingHeight, canvasDimensions)
-    }
-
-    // draw outside walls of ceiling
-    if (ceilingHeight != noCeilingWallY) {
-      for (var j = 0; j < points.length - 1; j++) {
-        var a = points[j]
-          , b = points[j + 1]
-          , top = ceilingHeight > noCeilingWallY ? ceilingHeight : noCeilingWallY
-          , bottom = ceilingHeight > noCeilingWallY ? noCeilingWallY : ceilingHeight
-
-        vertices[v++] = convert2Dto3D(b, top, canvasDimensions)
-        vertices[v++] = convert2Dto3D(a, top, canvasDimensions)
-        vertices[v++] = convert2Dto3D(a, bottom, canvasDimensions)
-
-        vertices[v++] = convert2Dto3D(b, top, canvasDimensions)
-        vertices[v++] = convert2Dto3D(a, bottom, canvasDimensions)
-        vertices[v++] = convert2Dto3D(b, bottom, canvasDimensions)
-      }
-    }
-
-    // Draw middle walls if any
-    for (var j = 0; j < edges.length; j++) {
-      var edge = edges[j]
-      if (edge.length > 1) continue
-
-      vertices[v++] = convert2Dto3D(points[j], ceilingHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j + 1], ceilingHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j + 1], floorHeight, canvasDimensions)
-
-      vertices[v++] = convert2Dto3D(points[j], ceilingHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j + 1], floorHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j], floorHeight, canvasDimensions)
-    }
-  }
-
-  // Zero out the rest.
-  var zero = new Vector3(0, 0, 0)
-  for (; v < maxVertices; v++) {
-    vertices[v] = zero
-  }
-
-  this.geometry.computeFaceNormals()
-  this.geometry.verticesNeedUpdate = true
-  this.render()
+resetLastLook: function resetLastLook() {
+  this.lastLook = {x: this.width / 2, y: this.height / 2}
 }
-}
-
-// Convert map point (2d) to world 3d point
-function convert2Dto3D(point, y, canvasDimensions, gradient) {
-  gradient = gradient || .05
-  return new Vector3((point.x - canvasDimensions.x / 2) * gradient, y, (point.y - canvasDimensions.y / 2) * gradient)
 }
 
 module.exports = Stage3D

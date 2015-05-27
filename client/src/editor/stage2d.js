@@ -1,4 +1,3 @@
-
 var Vector3 = THREE.Vector3
 
 function Stage2D(canvas, map) {
@@ -10,11 +9,12 @@ function Stage2D(canvas, map) {
 
 Stage2D.prototype = {
 clearScreen: function clearScreen() {
-  this.ctx.fillStyle = "rgb(255, 0, 0)"
+  this.ctx.fillStyle = "rgb(215, 215, 215)"
   this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
 },
 
-redraw: function redraw(selectedSections, mouseMoveCoords) {
+redraw: function redraw(selectedSections, mouseMoveCoords, offset) {
+  this.offset = offset || {x: 0, y: 0}
   this.clearScreen()
   this.drawGrid()
   this.drawSections(selectedSections)
@@ -25,15 +25,16 @@ drawGrid: function drawGrid() {
   var ctx = this.ctx
     , canvas = this.canvas
     , dim = {x: canvas.width, y: canvas.height}
+    , offset = this.offset
 
   ctx.beginPath()
-  ctx.moveTo(dim.x / 2, 0)
-  ctx.lineTo(dim.x / 2, dim.y)
+  ctx.moveTo(dim.x / 2 - offset.x, 0 - offset.y)
+  ctx.lineTo(dim.x / 2 - offset.x, dim.y - offset.y)
   ctx.stroke()
 
   ctx.beginPath()
-  ctx.moveTo(0, dim.y / 2)
-  ctx.lineTo(dim.x, dim.y / 2)
+  ctx.moveTo(0 - offset.x, dim.y / 2 - offset.y)
+  ctx.lineTo(dim.x - offset.x, dim.y / 2 - offset.y)
   ctx.stroke()
 },
 
@@ -55,35 +56,40 @@ drawSections: function drawSections(selectedSections) {
 
 drawPath: function drawPath(points) {
   var ctx = this.ctx
+    , offset = this.offset
   ctx.beginPath()
-  ctx.moveTo(points[0].x, points[0].y)
+  ctx.moveTo(points[0].x - offset.x, points[0].y - offset.y)
   for (var j = 1; j < points.length; j++) {
-    ctx.lineTo(points[j].x, points[j].y)
+    ctx.lineTo(points[j].x - offset.x, points[j].y - offset.y)
   }
 },
 
 drawVertices: function drawVertices(points, thickness, color) {
   var ctx = this.ctx
+    , offset = this.offset
   thickness = thickness || 6
   ctx.fillStyle = color || "rgb(50, 50, 50)"
   for (var i = 0; i < points.length; i++) {
-    ctx.fillRect(points[i].x - thickness/2, points[i].y - thickness / 2, thickness, thickness)
+    ctx.fillRect(points[i].x - thickness/2 - offset.x, points[i].y - thickness / 2 - offset.y, thickness, thickness)
   }
 },
 
 drawCurrentPath: function drawCurrentPath(cursor) {
   var points = this.map.points
     , ctx = this.ctx
+    , offset = this.offset
   if (!points || !points.length) return
 
   ctx.beginPath()
   ctx.fillStyle = "rgb(0, 0, 0)"
-  ctx.moveTo(points[0].x, points[0].y)
+
+  ctx.moveTo(points[0].x - offset.x, points[0].y - offset.y)
   for (var i = 1; i < points.length; i++) {
-    ctx.lineTo(points[i].x, points[i].y)
+    ctx.lineTo(points[i].x - offset.x, points[i].y - offset.y)
   }
-  if (cursor) ctx.lineTo(cursor.x, cursor.y)
+  if (cursor) ctx.lineTo(cursor.x - offset.x, cursor.y - offset.y)
   ctx.stroke()
+
   this.drawVertices(points, null, "rgb(0, 0, 0)")
 },
 }

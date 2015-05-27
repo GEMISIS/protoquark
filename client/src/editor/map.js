@@ -2,6 +2,8 @@ var Vector3 = THREE.Vector3
 var isPointInside = require("./math").isPointInside
 var computePointsArea = require("./math").computePointsArea
 var deg2rad = require("./math").deg2rad
+var closestToLine = require("./math").closestToLine
+var distanceToLine = require("./math").distanceToLine
 var emitter = require("component/emitter")
 
 //
@@ -11,8 +13,6 @@ var emitter = require("component/emitter")
 // points within pixelTolerance pixels of each other is considered colinear / near
 // pixelTolerance MUST be less than grid spacing
 var pixelTolerance = 4
-var noFloorWallY = 0
-var noCeilingWallY = 10
 
 function Map() {
   this.lines = []
@@ -20,14 +20,24 @@ function Map() {
   this.selectedSections = []
   this.nextSectorId = 1
 
+  // Current colors, change to set to next / default color
+  this.wallColor = 0xAAAAAA
+  this.floorColor = 0x888888
+  this.floorWallColor = 0x555555
+  this.ceilingColor = 0xAAAAAA
+  this.ceilingWallColor = 0xAAAAAA
+
+  this.noFloorWallY = 0
+  this.noCeilingWallY = 10
+
   // Incomplete points for next sector
   // Set of active, incomplete points that are cleared when they make a complete section
   this.points = []
 
   var a = new Vector3(632, 248, 0)
-  , b = new Vector3(432, 248, 0)
-  ,c = new Vector3(480, 216, 0)
-  , d = new Vector3(480, 248, 0)
+    , b = new Vector3(432, 248, 0)
+    , c = new Vector3(480, 216, 0)
+    , d = new Vector3(480, 248, 0)
   console.log(getEdgeIntersection(a, b, c, d))
 }
 
@@ -36,6 +46,51 @@ Map.prototype = {
   setSections: function setSections(sections) {
     this.sections = sections
     onSectionsLoaded.call(this)
+  },
+
+  getClosestOnVertex: function(point) {
+    var sections = this.sections
+      , closestDistance = Number.POSITIVE_INFINITY
+      , closest
+    for (var i = 0; i < sections.length; i++) {
+      var section = sections[i]
+      for (var j = 0; j < section.points.length; j++) {
+        var testPoint = section.points[j]
+          , distance = point.distanceTo(testPoint)
+        if (distance < closestDistance) {
+          closestDistance = distance
+          closest = testPoint
+        }
+      }
+    }
+    return closest
+  },
+
+  getClosestOnEdge: function(point) {
+    var sections = this.sections
+      , closestA
+      , closestB
+      , closestDistance = Number.POSITIVE_INFINITY
+      , pointOnLine
+
+    for (var i = 0; i < sections.length; i++) {
+      var section = sections[i]
+      for (var j = 0; j < section.edges.length; j++) {
+        var a = section.points[j]
+          , b = section.points[j + 1]
+          , info = closestToLine(a, b, point)
+          , distance = distanceToLine(a, b, point)
+
+        if (distance < closestDistance && info.t >= 0 && info.t <= 1) {
+          closestA = a
+          closestB = b
+          closestDistance = distance
+          pointOnLine = info.point
+        }
+      }
+    }
+
+    return pointOnLine
   },
 
   addPoint: function addPoint(point) {
@@ -58,16 +113,21 @@ Map.prototype = {
       this.addSection({
         id: this.nextSectorId++,
         points: points,
-        floorHeight: 1,
-        ceilingHeight: noCeilingWallY,
+        floorHeight: this.noFloorWallY,
+        ceilingHeight: this.noCeilingWallY,
         floor: true,
         ceiling: true,
-        doubleSidedWalls: false
+        wall: true,
+        doubleSidedWalls: false,
+        wallColor: this.wallColor,
+        floorColor: this.floorColor,
+        floorWallColor: this.floorWallColor,
+        ceilingWallColor: this.ceilingWallColor,
+        ceilingColor : this.ceilingColor
       })
 
       this.points = null
       this.emit("sectionschanged")
-      // todo: emit map change which would force a 2d and 3d rerendering / build
     }
   },
 
@@ -187,14 +247,14 @@ function isNearPoint(a, b) {
 }
 
 function isEdgeNearColinearOther(a, b, c, d) {
-    var midpoint = new Vector3().addVectors(c, d).multiplyScalar(.5)
-    var ba = new Vector3().subVectors(b, a)
-      , pa = new Vector3().subVectors(d, c)
-      , angleLimit = deg2rad(10)
-      , angle = ba.angleTo(pa)
-    // since angle can only be [0, 180], check opposite
-    return isNearColinear(a, b, midpoint) && (angle < angleLimit || angle > deg2rad(180) - angleLimit)
-  }
+  var midpoint = new Vector3().addVectors(c, d).multiplyScalar(.5)
+  var ba = new Vector3().subVectors(b, a)
+    , pa = new Vector3().subVectors(d, c)
+    , angleLimit = deg2rad(10)
+    , angle = ba.angleTo(pa)
+  // since angle can only be [0, 180], check opposite
+  return isNearColinear(a, b, midpoint) && (angle < angleLimit || angle > deg2rad(180) - angleLimit)
+}
 
 function isNearColinear(a, b, point) {
   var ba = new Vector3().subVectors(b, a)
