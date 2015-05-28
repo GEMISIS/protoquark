@@ -31,6 +31,19 @@ module.exports = {
     return inside;
   },
 
+  isPointInsideXZ: function isPointInsideXZ(point, points) {
+    var x = point.x, y = point.z
+    var inside = false
+    for (var i = 0, j = points.length - 1; i < points.length; j = i++) {
+        var xi = points[i].x, yi = points[i].z
+        var xj = points[j].x, yj = points[j].z
+        var intersect = ((yi > y) != (yj > y))
+            && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)
+        if (intersect) inside = !inside;
+    }
+    return inside;
+  },
+
   closestToLine: function closestToLine(a, b, p) {
     var ba = new Vector3().subVectors(b, a)
       , unitBA = ba.clone().normalize()

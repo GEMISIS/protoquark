@@ -1,4 +1,6 @@
 var Vector3 = THREE.Vector3
+var Triangle = THREE.triangle
+var SurfaceList = require("./surfacelist")
 
 // Convert map point (2d) to world 3d point
 function convert2Dto3D(point, y, canvasDimensions, gradient) {
@@ -6,7 +8,33 @@ function convert2Dto3D(point, y, canvasDimensions, gradient) {
   return new Vector3((point.x - canvasDimensions.x / 2) * gradient, y, (point.y - canvasDimensions.y / 2) * gradient)
 }
 
-function buildGeometry(map, geometry, width, height) {
+function buildSelectionGeometry(section, geometry, isCeiling, width, height) {
+  var vertices = geometry.vertices
+    , v = 0
+    , points = section.points
+    , canvasDimensions = {x: width, y: height}
+
+  for (var i = 1; i < points.length - 1; i++) {
+    var a = points[0]
+      , b = isCeiling ? points[i + 1] : points[i]
+      , c = isCeiling ? points[i] : points[i + 1]
+      , y = isCeiling ? section.ceilingHeight : section.floorHeight
+
+    vertices[v++] = convert2Dto3D(a, y, canvasDimensions)
+    vertices[v++] = convert2Dto3D(b, y, canvasDimensions)
+    vertices[v++] = convert2Dto3D(c, y, canvasDimensions)
+  }
+
+  var zero = new Vector3(0, 0, 0)
+  for (; v < vertices.length; v++) {
+    vertices[v] = zero
+  }
+
+  geometry.computeFaceNormals()
+  geometry.verticesNeedUpdate = true
+}
+
+function buildWorldGeometry(map, geometry, width, height) {
   var sections = map.sections
     , v = 0
     , f = 0
@@ -15,6 +43,7 @@ function buildGeometry(map, geometry, width, height) {
     , canvasDimensions = {x: width, y: height}
     , noFloorWallY = map.noFloorWallY
     , noCeilingWallY = map.noCeilingWallY
+    , surfaceList = new SurfaceList()
 
   for (var i = 0; i < sections.length; i++) {
     var section = sections[i]
@@ -33,6 +62,7 @@ function buildGeometry(map, geometry, width, height) {
       vertices[v++] = convert2Dto3D(points[0], floorHeight, canvasDimensions)
       vertices[v++] = convert2Dto3D(points[j], floorHeight, canvasDimensions)
       vertices[v++] = convert2Dto3D(points[j + 1], floorHeight, canvasDimensions)
+      surfaceList.addTri(vertices, v - 3, section.id)
 
       faces[f++].color.setHex(floorColor)
     }
@@ -63,6 +93,7 @@ function buildGeometry(map, geometry, width, height) {
       vertices[v++] = convert2Dto3D(points[0], ceilingHeight, canvasDimensions)
       vertices[v++] = convert2Dto3D(points[j + 1], ceilingHeight, canvasDimensions)
       vertices[v++] = convert2Dto3D(points[j], ceilingHeight, canvasDimensions)
+      surfaceList.addTri(vertices, v - 3, section.id)
 
       faces[f++].color.setHex(ceilingColor)
     }
@@ -115,6 +146,12 @@ function buildGeometry(map, geometry, width, height) {
   geometry.computeFaceNormals()
   geometry.verticesNeedUpdate = true
   geometry.colorsNeedUpdate = true
+
+  return surfaceList
 }
 
-module.exports = buildGeometry
+module.exports = {
+  buildWorldGeometry: buildWorldGeometry,
+  buildSelectionGeometry: buildSelectionGeometry
+}
+

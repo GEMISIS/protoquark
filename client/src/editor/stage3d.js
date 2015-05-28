@@ -1,48 +1,24 @@
 var Vector3 = THREE.Vector3
 var Color = THREE.Color
+var SurfaceList = require("./surfacelist")
 
 // maxVertices must be a multiple of 3
 var maxVertices = 3000
 var numFaces = maxVertices / 3
 
 function Stage3D(width, height) {
-  var geometry = this.geometry = new THREE.Geometry()
-  var scene = this.scene = new THREE.Scene()
-  var camera = this.camera = new THREE.PerspectiveCamera(50, width / height, 0.01, 1000)
-  var renderer = this.renderer = new THREE.WebGLRenderer()
-
   this.width = width
   this.height = height
 
   this.resetLastLook()
   this.angle = {x: 0, y: 0}
 
-  for (var i = 0; i < maxVertices; i++) {
-    geometry.vertices.push(new Vector3(0, 0, 0))
-  }
-  for (var i = 0; i < numFaces; i++) {
-    var vertIndex = i * 3
-    geometry.faces.push(new THREE.Face3(vertIndex, vertIndex + 1, vertIndex + 2))
-  }
-
+  var renderer = this.renderer = new THREE.WebGLRenderer()
   renderer.setSize(width, height)
   document.body.appendChild(renderer.domElement)
 
-  camera.position.x = 0
-  camera.position.y = 2.5
-  camera.position.z = 6
-
-  this.mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial( { shading: THREE.FlatShading, vertexColors: THREE.FaceColors } ))
-  this.mesh.frustumCulled = false
-  scene.add(this.mesh)
-
-  var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
-  directionalLight.position.set( .5, .707, .707 );
-  scene.add( directionalLight );
-
-  directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
-  directionalLight.position.set( -1, 1, .1 );
-  scene.add( directionalLight );
+  this.initGeometry()
+  this.createScene()
 
   last = timestamp()
   var update = function() {
@@ -120,6 +96,59 @@ strafe: function(amount) {
 
 resetLastLook: function resetLastLook() {
   this.lastLook = {x: this.width / 2, y: this.height / 2}
+},
+
+initGeometry: function() {
+  var geometry = this.geometry = new THREE.Geometry()
+  for (var i = 0; i < maxVertices; i++) {
+    geometry.vertices.push(new Vector3(0, 0, 0))
+  }
+  for (var i = 0; i < numFaces; i++) {
+    var vertIndex = i * 3
+    geometry.faces.push(new THREE.Face3(vertIndex, vertIndex + 1, vertIndex + 2))
+  }
+
+  var selectionGeometry = this.selectionGeometry = new THREE.Geometry()
+  for (var i = 0; i < 60; i++) {
+    selectionGeometry.vertices.push(new Vector3(0, 0, 0))
+  }
+  for (var i = 0; i < 60 / 3; i++) {
+    var vertIndex = i * 3
+    selectionGeometry.faces.push(new THREE.Face3(vertIndex, vertIndex + 1, vertIndex + 2))
+  }
+},
+
+createScene: function() {
+  var scene = this.scene = new THREE.Scene()
+  var camera = this.camera = new THREE.PerspectiveCamera(50, this.width / this.height, 0.01, 1000)
+
+  camera.position.x = 0
+  camera.position.y = 2.5
+  camera.position.z = 6
+
+  this.mesh = new THREE.Mesh(this.geometry, new THREE.MeshPhongMaterial( { shading: THREE.FlatShading, vertexColors: THREE.FaceColors } ))
+  this.mesh.frustumCulled = false
+  scene.add(this.mesh)
+
+  this.selectionMesh = new THREE.Mesh(this.selectionGeometry, new THREE.MeshBasicMaterial( { color: 0xFFAAAA } ))
+  this.selectionMesh.frustumCulled = false
+  scene.add(this.selectionMesh)
+
+  var light = new THREE.DirectionalLight(0xffffff, 0.5)
+  light.position.set(.5, .707, .707)
+  scene.add(light)
+
+  light = new THREE.DirectionalLight(0xcccccc, 0.5)
+  light.position.set(-1, 1, .1)
+  scene.add(light)
+
+  light = new THREE.DirectionalLight(0xaaaaaa, 0.5)
+  light.position.set(0, 1, -1)
+  scene.add(light)
+
+  light = new THREE.DirectionalLight(0x888888, 0.5)
+  light.position.set(0, -1, .25)
+  scene.add(light)
 }
 }
 
