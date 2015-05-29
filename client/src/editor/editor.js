@@ -282,7 +282,7 @@ function onMouseDown(evt) {
   else if (evt.button === 2)
     onRightMouseDown.call(this, evt)
   else {
-    this.scrollMap(this.getMouseCanvas(evt, {x: 0, y:0}))
+    onMiddleMouseDown.call(this, evt)
   }
 }
 
@@ -425,9 +425,35 @@ var rightMouseHandler = {
   },
 }
 }
+
 function onRightMouseDown(evt) {
   if (rightMouseHandler[this.view] && rightMouseHandler[this.view][this.mode])
     rightMouseHandler[this.view][this.mode].call(this, evt)
+}
+
+function onMiddleMouseDown(evt) {
+  if (this.view === "2d")
+    this.scrollMap(this.getMouseCanvas(evt, {x: 0, y:0}))
+  else {
+    var mouse = this.getMouseRenderer(evt)
+      , dimensions = {x: this.canvas.width, y: this.canvas.height}
+      , pickResult = this.surfaceList.pick(mouse, dimensions, this.stage3D.camera)
+      , section = this.map.findSection(pickResult.id)
+    if (!section) return
+
+    // Place camera at section base so that camera is standing on it
+    var camera = this.stage3D.camera
+      , pos = new Vector3(0, 0, 0)
+    for (var i = 0; i < section.points.length; i++) {
+      var point = geometrybuilder.convert2Dto3D(section.points[i], section.floorHeight + 1.5, dimensions)
+      pos.add(point)
+    }
+    pos.multiplyScalar(section.points.length ? 1/section.points.length : 1)
+
+    camera.position.x = pos.x
+    camera.position.y = pos.y
+    camera.position.z = pos.z
+  }
 }
 
 function onMouseWheel(evt) {

@@ -156,6 +156,7 @@ function buildWorldGeometry(map, geometry, width, height) {
 
 module.exports = {
   buildWorldGeometry: buildWorldGeometry,
-  buildSelectionGeometry: buildSelectionGeometry
+  buildSelectionGeometry: buildSelectionGeometry,
+  convert2Dto3D: convert2Dto3D
 }
 

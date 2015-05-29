@@ -28,6 +28,8 @@ drawGrid: function drawGrid() {
     , dim = {x: canvas.width, y: canvas.height}
     , offset = this.offset
 
+  ctx.fillStyle = "rgb(120, 120, 120)"
+  ctx.lineWidth = 1
   ctx.beginPath()
   ctx.moveTo(dim.x / 2 - offset.x, 0 - offset.y)
   ctx.lineTo(dim.x / 2 - offset.x, dim.y - offset.y)
@@ -54,6 +56,7 @@ drawThings: function drawThings(selectedThing) {
 drawSections: function drawSections(selectedSections) {
   var ctx = this.ctx
     , sections = this.map.sections
+  ctx.lineWidth = 1
   for (var i = 0; i < sections.length; i++) {
     var section = sections[i]
     ctx.fillStyle = "rgb(100, 100, 100)"
@@ -78,25 +81,30 @@ drawPath: function drawPath(points) {
 },
 
 drawVertices: function drawVertices(points, thickness, color) {
-  var ctx = this.ctx
-    , offset = this.offset
-  thickness = thickness || 6
-  ctx.fillStyle = color || "rgb(50, 50, 50)"
   for (var i = 0; i < points.length; i++) {
-    ctx.fillRect(points[i].x - thickness/2 - offset.x, points[i].y - thickness / 2 - offset.y, thickness, thickness)
+    this.drawVertex(points[i], thickness, color)
   }
 },
 
+drawVertex: function drawVertex(point, thickness, color) {
+  var offset = this.offset
+  thickness = thickness || 6
+  this.ctx.fillStyle = color || "rgb(120, 120, 120)"
+  this.ctx.fillRect(point.x - thickness/2 - offset.x, point.y - thickness / 2 - offset.y, thickness, thickness)
+},
+
 drawCurrentPath: function drawCurrentPath(cursor) {
-  var points = this.map.points
+  var points = this.map.points ? this.map.points : []
     , ctx = this.ctx
     , offset = this.offset
-  if (!points || !points.length) return
+    , firstPt = points.length > 0 ? points[0] : cursor
+  if ((!points || !points.length) && !cursor) return
 
+  ctx.lineWidth = 3
   ctx.beginPath()
   ctx.fillStyle = "rgb(0, 0, 0)"
 
-  ctx.moveTo(points[0].x - offset.x, points[0].y - offset.y)
+  ctx.moveTo(firstPt.x - offset.x, firstPt.y - offset.y)
   for (var i = 1; i < points.length; i++) {
     ctx.lineTo(points[i].x - offset.x, points[i].y - offset.y)
   }
@@ -104,6 +112,7 @@ drawCurrentPath: function drawCurrentPath(cursor) {
   ctx.stroke()
 
   this.drawVertices(points, null, "rgb(0, 0, 0)")
+  if (cursor) this.drawVertex(cursor, null, "rgb(0, 0, 0)")
 },
 }
 

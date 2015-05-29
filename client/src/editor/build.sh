@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-duo main.js
+duo --stdout main.js > ./bin/main.js
