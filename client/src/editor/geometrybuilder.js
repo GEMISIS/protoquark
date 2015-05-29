@@ -137,6 +137,10 @@ function buildWorldGeometry(map, geometry, width, height) {
     }
   }
 
+  // Added properties
+  geometry.visibleFaces = f;
+  geometry.visibleVertices = v;
+
   // Zero out the rest.
   var zero = new Vector3(0, 0, 0)
   for (; v < vertices.length; v++) {

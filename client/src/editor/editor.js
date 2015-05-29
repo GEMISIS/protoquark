@@ -154,7 +154,7 @@ function Editor(canvas) {
 
   document.getElementById("export").addEventListener("click", function(e) {
     var exporter = new THREE.OBJExporter()
-    downloadString("map.obj", exporter.parse(this.stage3D.mesh))
+    downloadString("map.obj", exporter.parse(this.stage3D.mesh, this.stage3D.geometry.visibleVertices, this.stage3D.geometry.visibleFaces))
   }.bind(this))
 
   var fileInput = document.getElementById("file")

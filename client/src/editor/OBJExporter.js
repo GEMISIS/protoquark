@@ -8,7 +8,7 @@ THREE.OBJExporter.prototype = {
 
 	constructor: THREE.OBJExporter,
 
-	parse: function ( object ) {
+	parse: function ( object, numVertices, numFaces ) {
 
 		var output = '';
 
@@ -24,11 +24,14 @@ THREE.OBJExporter.prototype = {
 
 			var geometry = child.geometry;
 
+			numVertices = numVertices || geometry.vertices.length;
+			numFaces = numFaces || geometry.faces.length;
+
 			if ( geometry instanceof THREE.Geometry ) {
 
 				output += 'o ' + child.name + '\n';
 
-				for ( var i = 0, l = geometry.vertices.length; i < l; i ++ ) {
+				for ( var i = 0, l = numVertices; i < l; i ++ ) {
 
 					var vertex = geometry.vertices[ i ].clone();
 					vertex.applyMatrix4( child.matrixWorld );
@@ -60,7 +63,7 @@ THREE.OBJExporter.prototype = {
 
 				// normals
 
-				for ( var i = 0, l = geometry.faces.length; i < l; i ++ ) {
+				for ( var i = 0, l = numFaces; i < l; i ++ ) {
 
 					var normals = geometry.faces[ i ].vertexNormals;
 
@@ -77,7 +80,7 @@ THREE.OBJExporter.prototype = {
 
 				// faces
 
-				for ( var i = 0, j = 1, l = geometry.faces.length; i < l; i ++, j += 3 ) {
+				for ( var i = 0, j = 1, l = numFaces; i < l; i ++, j += 3 ) {
 
 					var face = geometry.faces[ i ];
 
