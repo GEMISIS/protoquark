@@ -1,12 +1,12 @@
 var ce = require('../eltree')
 
-function onScoreBoard (e) {
-  this.scores = e.scores
+function onScoreBoard (scores) {
+  this.scores = scores
   this.render()
 }
 
-function Score (connection) {
-  this.conn = connection
+function Score (engine) {
+  this.engine = engine
   this.tree = ce({
     tagName: 'div',
     className: 'scoreboard',
@@ -33,7 +33,7 @@ function Score (connection) {
   this.el = this.tree.el
   this.scores = []
 
-  connection.on('scoreboard', onScoreBoard.bind(this))
+  engine.on('scoreboard', onScoreBoard.bind(this))
 }
 
 Score.prototype = {
@@ -48,13 +48,14 @@ Score.prototype = {
     this.el.classList.toggle('active')
   },
   render: function render () {
-    var body = this.tree.children.table.body.el
+    var body = this.tree.children.table.children.body.el
     while (body.firstChild) {
       body.removeChild(body.firstChild)
     }
 
+    var scores = this.scores
     Object.keys(this.scores).map(function(key) {
-      return this.scores[key]
+      return scores[key]
     }).sort(function (a, b) {
       if (a.score > b.score) return -1
       if (a.score < b.score) return 1

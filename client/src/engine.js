@@ -16,6 +16,7 @@ var representations = {
 
 var localIdCounter = 0
 var startingHealth = 1
+var startingScore = 0
 var SEND_INTERVAL = .04
 
 function handleDirection(control, down) {
@@ -110,6 +111,7 @@ conn: {
     var ent = new Entity(e.context, contextId)
     ent.type = owned ? "player" : "remoteplayer"
     ent.health = {max: startingHealth, current: startingHealth}
+    ent.score = startingScore
     ent.jump = 0
 
     try {
@@ -160,6 +162,7 @@ conn: {
 
       var ent = new Entity(e.context[id], id)
       ent.health = {max: startingHealth, current: startingHealth}
+      ent.score = startingScore
       ent.control = {}
       ent.lastControl = {}
       addStartingWeapon.call(this, ent)
@@ -197,15 +200,23 @@ conn: {
     var pos = e.context.position
     entity.position.set(pos.x, pos.y, pos.z)
     entity.health.current = entity.health.max
+    entity.weapon.primary.ammunition = weapons[entity.weapon.primary.id].ammunition
   },
   gamestate: function onGameState(e) {
     var entityMap = this.entityMap
     var states = e.context.states
+    var scores = {}
     for (var i = 0; i < states.length; i++) {
       var state = states[i]
       var player = entityMap[state.id]
-      if (player) player.health.current = state.currentHealth
+      if (player)
+      {
+        player.health.current = state.currentHealth
+        player.score = state.currentScore
+        scores[state.id] = {name: state.id, score: player.score}
+      }
     }
+    this.emit('scoreboard', scores)
   },
   statecommand: function onStateCommand(e) {
     var entityMap = this.entityMap
@@ -428,7 +439,8 @@ function onStateSend() {
   Object.keys(conn.players).forEach(function(id) {
     states.push({
       id: id,
-      currentHealth: self.entityMap[id].health.current
+      currentHealth: self.entityMap[id].health.current,
+      currentScore: self.entityMap[id].score,
     })
   })
 
@@ -486,6 +498,7 @@ function processCommandHit(target, command) {
   if (target.health.current <= Number.EPSILON) {
     target.health.current = target.health.max
     target.position.set(0, 3, 0)
+    this.entityMap[command.shooter].score += 1
     this.conn.send("death", {killer: command.shooter, id:target.id, position: {x: 0, y: 3, z: 0}}, {relay:target.id})
   }
 }

@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
   var weapon = new Weapon(engine)
   el.appendChild(weapon.el)
 
-  var score = window.score = new Score(conn)
+  var score = window.score = new Score(engine)
   el.appendChild(score.el)
 
   var stage = window.stage = new Stage(engine)
