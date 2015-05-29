@@ -1,11 +1,21 @@
+var emitter    = require('component/emitter')
 var Entity     = require("./entity")
 var Matrix4    = require("./math").mat4
-var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
+var Settings   = require('./settings')
+var Vector3    = require("./math").vec3
+var Triangle   = require("./math").triangle
 var weapons    = require("./config/weapon")
 require('./entities/player')
 
+var representations = {
+  box:          require('./obj3d/box'),
+  bullet:       require('./obj3d/bullet'),
+  remoteplayer: require("./obj3d/player")
+}
+
 var localIdCounter = 0
+var startingHealth = 1
 var SEND_INTERVAL = .04
 
 function handleDirection(control, down) {
@@ -13,6 +23,55 @@ function handleDirection(control, down) {
   if (!me) return
   me.lastControl[control] = me.control[control]
   me.control[control] = down
+}
+
+function loadLevel(url, done) {
+  var req = new XMLHttpRequest()
+  var resp = {
+    progress: function (ev) {
+      this.emit('levelloadprogress', 0 /* 0 ~ 1 calc progress here */)
+    },
+    load: function (ev) {
+      var err, data
+
+      if (req.status == 200) {
+        try {
+          data = JSON.parse(req.responseText)
+        }
+        catch(e) {
+          err = e
+        }
+      }
+      else {
+        err = Error('An error occured while loading the level data.')
+      }
+
+      done(err, data)
+    },
+    error: function (ev) {
+      done(err)
+    }
+  }
+
+  req.overrideMimeType("application/json")
+  req.open('GET', url, true)
+  Object.keys(resp).forEach((function (key) {
+    req.addEventListener(key, resp[key].bind(this))
+  }).bind(this))
+  req.send()
+}
+
+function parseLevel(level) {
+  level.blocks.forEach((function(block) {
+    var ent = new Entity(block, this.genLocalId())
+    ent.type = 'block'
+    var pos = block.position
+    ent.position = new Vector3(pos.x, pos.y, pos.z)
+    //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
+    var color = Math.floor(Math.random()*50) + 25
+    ent.context.color = (color | (color << 8) | (color << 16)).toString(16)
+    this.add(ent)
+  }).bind(this))
 }
 
 var ons = {
@@ -29,6 +88,10 @@ control: {
   }
 },
 conn: {
+  setting: function (e) {
+    if (this.conn.isServer()) return
+    this.setting.update(e.context.key, e.context.value)
+  },
   playerenter: function onPlayerEnter (e) {
     console.log("onPlayerEnter", e.context)
 
@@ -46,7 +109,8 @@ conn: {
     // var ent = exists ? this.entityMap[contextId] : new Entity(e.context, owned ? contextId : this.genLocalId())
     var ent = new Entity(e.context, contextId)
     ent.type = owned ? "player" : "remoteplayer"
-    ent.health = {max: 1, current: 1}
+    ent.health = {max: startingHealth, current: startingHealth}
+    ent.jump = 0
 
     try {
       if (!ent.update)
@@ -95,6 +159,7 @@ conn: {
       }
 
       var ent = new Entity(e.context[id], id)
+      ent.health = {max: startingHealth, current: startingHealth}
       ent.control = {}
       ent.lastControl = {}
       addStartingWeapon.call(this, ent)
@@ -104,7 +169,6 @@ conn: {
     })
     console.log("onPlayers")
   },
-
   playerstate: function onPlayerState(e) {
     if (!this.conn.isServer()) return
 
@@ -124,7 +188,36 @@ conn: {
     this.snapshots = this.snapshots || {}
     this.snapshots[e.sender] = (this.snapshots[e.sender] || []).concat(e.context.snapshots)
   },
+  death: function onPlayerDeath(e) {
+    // our death usually
+    var id = e.context.id
+    var entity = this.entityMap[id]
+    if (!entity || id != this.you().id) return
 
+    var pos = e.context.position
+    entity.position.set(pos.x, pos.y, pos.z)
+    entity.health.current = entity.health.max
+  },
+  gamestate: function onGameState(e) {
+    var entityMap = this.entityMap
+    var states = e.context.states
+    for (var i = 0; i < states.length; i++) {
+      var state = states[i]
+      var player = entityMap[state.id]
+      if (player) player.health.current = state.currentHealth
+    }
+  },
+  statecommand: function onStateCommand(e) {
+    var entityMap = this.entityMap
+    var states = e.context.states
+    for (var i = 0; i < states.length; i++) {
+      var state = states[i]
+      var target = entityMap[state.target]
+      if (state.command == 'hit' && target) {
+        processCommandHit.call(this, target, state)
+      }
+    }
+  },
   entitiesupdate: function onEntitiesUpdate(e) {
     var entitySnapshots = e.context.snapshots
     var self = this
@@ -162,23 +255,46 @@ conn: {
   peeridassigned: function onPeerIdAssigned (e) {
     console.log("peerid", e)
     this.localPrefixId = e
+    this.settings.update('mapUrl', '/defaultmap.json')
   },
 
   connectionkill: function onConnectionKill() {
     clearInterval(this.sendIntervalId)
+    clearInterval(this.stateIntervalId)
+  }
+},
+settings: {
+  update: function onSettingsUpdate (settings, key, value) {
+    if (key == 'mapUrl') {
+      loadLevel.call(this, this.settings.mapUrl, (function (err, level) {
+        parseLevel.call(this, level)
+      }).bind(this))
+    }
+
+    if (!this.conn.isServer()) return
+
+    this.conn.send('setting', {
+      key: key,
+      value: value
+    }, {
+      broadcast: true
+    })
   }
 }
 }
 
 function Engine (connection, controller) {
   this.localPrefixId = ''
+  this.settings = new Settings
   this.conn = connection
   this.control = controller
   this.entities = []
   this.entityMap = {}
   this.sendIntervalId = setInterval(onIntervalSend.bind(this),
     SEND_INTERVAL * 1000)
+  this.stateIntervalId = setInterval(onStateSend.bind(this), 500)
   this.sendInterval = SEND_INTERVAL
+  this.colliders = []
 
   var self = this
 
@@ -190,7 +306,8 @@ function Engine (connection, controller) {
     "reload",
     "backward",
     "forward",
-    "shoot"
+    "shoot",
+    "jump"
   ]
 
   controls.forEach(function(c) {
@@ -205,13 +322,13 @@ function Engine (connection, controller) {
 }
 
 Engine.prototype = {
-  you: function () {
+  you: function you () {
     if (!this.conn.peer) return
     return this.entityMap[this.conn.peer.id]
   },
 
   genLocalId: function genLocalId() {
-    return this.localPrefixId + '-' + localIdCounter++;
+    return this.localPrefixId + '-' + localIdCounter++
   },
 
   update: function update(dt) {
@@ -238,6 +355,10 @@ Engine.prototype = {
     if (this.entityMap[ent.id]) throw Error('Entity with id already exists.')
     this.entities.push(ent)
     this.entityMap[ent.id] = ent
+
+    // Batch blocks into one polygon soup if it's a collision block
+    if (ent.type === 'block')
+      this.addBoxCollider(ent)
   },
 
   remove: function remove (ent) {
@@ -249,18 +370,86 @@ Engine.prototype = {
     console.log("Removing", ent)
     this.entities.splice(this.entities.indexOf(ent), 1)
     delete this.entityMap[ent.id]
+  },
+
+  addBoxCollider: function addBoxCollider(ent) {
+    if (!ent.context || !ent.context.scale || !ent.context.position) return
+    var colliders = this.colliders
+    var scale = ent.context.scale
+      , pos = ent.context.position
+      , width = scale.x / 2
+      , height = scale.y / 2
+      , depth = scale.z / 2
+      , a = new Vector3().addVectors(pos, new Vector3(-width, height, depth))
+      , b = new Vector3().addVectors(pos, new Vector3(-width, -height, depth))
+      , c = new Vector3().addVectors(pos, new Vector3(width, -height, depth))
+      , d = new Vector3().addVectors(pos, new Vector3(width, height, depth))
+      , e = new Vector3().addVectors(pos, new Vector3(-width, height, -depth))
+      , f = new Vector3().addVectors(pos, new Vector3(-width, -height, -depth))
+      , g = new Vector3().addVectors(pos, new Vector3(width, -height, -depth))
+      , h = new Vector3().addVectors(pos, new Vector3(width, height, -depth))
+    // poly faces
+    // back front
+    // e-h   a-d
+    // f-g   b-c
+
+    // front
+    colliders.push(new Triangle(a, b, c))
+    colliders.push(new Triangle(a, c, d))
+    // back
+    colliders.push(new Triangle(h, g, f))
+    colliders.push(new Triangle(h, f, e))
+    // left
+    colliders.push(new Triangle(e, f, b))
+    colliders.push(new Triangle(e, b, a))
+    // right
+    colliders.push(new Triangle(d, c, g))
+    colliders.push(new Triangle(d, g, h))
+    // top
+    colliders.push(new Triangle(e, a, d))
+    colliders.push(new Triangle(e, d, h))
+    // bottom
+    colliders.push(new Triangle(b, f, g))
+    colliders.push(new Triangle(b, g, c))
+  },
+
+  addStateCommand: function addStateCommand(obj) {
+    var states = this.stateCommands = this.stateCommands || []
+    states.push(obj)
+  }
+}
+
+function onStateSend() {
+  var conn = this.conn
+  if (!conn.isServer()) return
+
+  var states = []
+  var self = this
+  Object.keys(conn.players).forEach(function(id) {
+    states.push({
+      id: id,
+      currentHealth: self.entityMap[id].health.current
+    })
+  })
+
+  if (states.length) {
+    conn.send("gamestate", {
+      states: states
+    },
+    {reliable: true})
   }
 }
 
 function onIntervalSend() {
   var conn = this.conn
   var me = this.you()
+  var states = this.stateCommands
   if (me && me.snapshots.length && conn.connected) {
     // Send queued up packets
     conn.send("playerstate", {
       snapshots: me.snapshots,
       time: conn.getServerTime()
-    });
+    })
     // Clear for next send.
     me.snapshots = []
   }
@@ -269,8 +458,15 @@ function onIntervalSend() {
     conn.send("entitiesupdate", {
       snapshots: this.snapshots,
       time: conn.getServerTime()
-    });
+    })
     this.snapshots = {}
+  }
+
+  if (states && states.length) {
+    conn.send("statecommand", {
+      states: states
+    })
+    this.stateCommands = []
   }
 }
 
@@ -284,5 +480,16 @@ function addStartingWeapon(ent) {
     ammunition: weapons[weaponId].ammunition
   }
 }
+
+function processCommandHit(target, command) {
+  target.health.current -= .34
+  if (target.health.current <= Number.EPSILON) {
+    target.health.current = target.health.max
+    target.position.set(0, 3, 0)
+    this.conn.send("death", {killer: command.shooter, id:target.id, position: {x: 0, y: 3, z: 0}}, {relay:target.id})
+  }
+}
+
+emitter(Engine.prototype)
 
 module.exports = Engine

@@ -4,46 +4,79 @@ var Vector3 = math.vec3
 var Plane = math.plane
 var Triangle = math.triangle
 
+// prevent too many allocations each frame
+var defaultSphereShape = new Vector3(1, 1, 1)
+var triangle = new Triangle(new Vector3(), new Vector3(), new Vector3())
+var plane = new Plane()
+
 // vel is unnormalized
-function getCollidedPos(spherePos, vel, tris) {
-  if (vel.lengthSq() < Number.EPSILON) return spherePos
+function getSweptCollision(spherePos, vel, tris, sphereShape, stick) {
+  if (vel.lengthSq() < Number.EPSILON) return { position: spherePos, collision: false }
+  sphereShape = sphereShape instanceof Vector3 ? sphereShape : defaultSphereShape
 
-  var newPos = new Vector3().copy(spherePos)
-    , newVel = new Vector3().copy(vel)
-    , touchPoint = new Vector3()
-    , touchSpherePoint = new Vector3()
+  var newPos = new Vector3().copy(spherePos).divide(sphereShape)
+    , newVel = new Vector3().copy(vel).divide(sphereShape)
+    , touchPoint = new Vector3(0, 0, 0)
+    , touchSpherePoint = new Vector3(0, 0, 0)
     , temp = new Vector3()
-    , slidePlane = new Plane()
+    , slidePlane = plane
     , endPos = new Vector3()
+    , maxIterations = 10
+    , epsilon = Number.EPSILON * 2
+    , collision = false
+    , hit
 
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < maxIterations; i++) {
     endPos.addVectors(newPos, newVel)
 
-    var info = getCollision(newPos, newVel, tris)
-    if (!isFinite(info.t)) return endPos
+    var info = getCollision(newPos, newVel, tris, sphereShape)
 
+    if (!isFinite(info.t)) {
+      hit = { position: endPos, collision: collision }
+      break
+    }
+
+    collision = true
     touchPoint.copy(info.collisionPoint)
-    touchSpherePoint.addVectors(newPos, temp.copy(newVel).multiplyScalar(info.t))
+    // adding this check seems to fix some of the glitches
+    if (info.t > epsilon)
+      touchSpherePoint.addVectors(newPos, temp.copy(newVel).multiplyScalar(info.t))
+    else
+      touchSpherePoint.copy(newPos)
 
-    var slideNormal = new Vector3().subVectors(touchSpherePoint, touchPoint)
+    var slideNormal = new Vector3().subVectors(touchSpherePoint, touchPoint).normalize()
     slidePlane.setFromNormalAndCoplanarPoint(slideNormal, touchPoint)
+    if (stick) {
+      hit = {
+        position: newPos.copy(touchSpherePoint).add(slideNormal.multiplyScalar(epsilon)),
+        collision: true
+      }
+      break
+    }
+    // Projected end point
     var endTouchPoint = new Vector3().addVectors(endPos, new Vector3().copy(slidePlane.normal).multiplyScalar(-slidePlane.distanceToPoint(endPos)))
 
     // Can modify
-    newPos.copy(touchSpherePoint).add(slideNormal.multiplyScalar(Number.EPSILON))
+    newPos.copy(touchSpherePoint).add(slideNormal.multiplyScalar(epsilon))
     newVel.subVectors(endTouchPoint, touchPoint)
   }
 
-  touchSpherePoint.addVectors(newPos, newVel)
-  return touchSpherePoint
+  if (!hit) {
+    hit = {
+      position: touchSpherePoint.addVectors(newPos, newVel),
+      collision: collision
+    }
+  }
+
+  hit.position.multiply(sphereShape)
+  return hit
 }
 
 // Returns time of impact from a swept sphere against a polygon soup
 // Note that collisionPoint is point on triangle that sphere collides with and t is point it takes for sphere
 // to touch so p + v*getCollision().t != getCollision().collisionPoint
-function getCollision(spherePos, vel, tris) {
-  var plane = new Plane()
-    , cb = new Vector3()
+function getCollision(spherePos, vel, tris, sphereShape) {
+  var cb = new Vector3()
     , ab = new Vector3()
     , temp = new Vector3()
     , velNorm = new Vector3(vel.x, vel.y, vel.z).normalize()
@@ -53,7 +86,13 @@ function getCollision(spherePos, vel, tris) {
     , invVelNorm = new Vector3().copy(velNorm).negate()
 
   for (var i = 0; i < tris.length; i++) {
-    var tri = tris[i]
+    var original = tris[i]
+      , tri = triangle
+
+    triangle.a.copy(original.a).divide(sphereShape)
+    triangle.b.copy(original.b).divide(sphereShape)
+    triangle.c.copy(original.c).divide(sphereShape)
+
     var triCollision = false
     ab.subVectors(tri.a, tri.b).normalize()
     cb.subVectors(tri.c, tri.b).normalize()
@@ -61,10 +100,10 @@ function getCollision(spherePos, vel, tris) {
     var normal = temp.crossVectors(cb, ab).normalize()
     plane.set(normal, -normal.dot(tri.a))
 
-    var velDotNormal = invVelNorm.dot(normal)
-    if (velDotNormal < 0) continue
+    var velDotNormal = velNorm.dot(normal)
+    if (velDotNormal > Number.EPSILON) continue
 
-    var parallel = velDotNormal <= Number.EPSILON
+    var parallel = velDotNormal <= Number.EPSILON && velDotNormal >= -Number.EPSILON
     if (parallel && plane.distanceToPoint(spherePos) >= 1 + Number.EPSILON) continue
 
     if (!parallel) {
@@ -73,11 +112,11 @@ function getCollision(spherePos, vel, tris) {
       var t1 = Math.max(collisions.t0, collisions.t1)
 
       if (t0 > 1 || t1 < 0) continue
-
-      collisionPoint.addVectors(spherePos, new Vector3().copy(vel).multiplyScalar(t0).sub(plane.normal))
-      if (math.isInside(collisionPoint, tri) && t0 < timeOfImpact) {
+      var tempPoint = new Vector3().addVectors(spherePos, new Vector3().copy(vel).multiplyScalar(t0).sub(plane.normal))
+      if (math.isInside(tempPoint, tri) && t0 < timeOfImpact) {
         collision = triCollision = true
         timeOfImpact = t0
+        collisionPoint = tempPoint
       }
     }
 
@@ -98,7 +137,8 @@ function getCollision(spherePos, vel, tris) {
 
   return {
     collisionPoint: collisionPoint,
-    t: collision ? timeOfImpact : Number.POSITIVE_INFINITY
+    t: collision ? timeOfImpact : Number.POSITIVE_INFINITY,
+    collision: collision
   }
 }
 
@@ -174,7 +214,7 @@ function getTCollisionOnEdges(tri, spherePos, vel) {
     collisionPoint.copy(point).add(edge.multiplyScalar(f))
   }
 
-  resultingCollisionPoint = collisionPoint;
+  resultingCollisionPoint = collisionPoint
 
   return {
     collisionPoint: collisionPoint,
@@ -182,8 +222,62 @@ function getTCollisionOnEdges(tri, spherePos, vel) {
   }
 }
 
+function getSweptBoxCollision() {
+  var triangles = []
+    , a = new Vector3()
+    , b = new Vector3()
+    , c = new Vector3()
+    , d = new Vector3()
+    , e = new Vector3()
+    , f = new Vector3()
+    , g = new Vector3()
+    , h = new Vector3()
+
+  for (var i = 0; i < 12; i++) triangles.push(new Triangle(new Vector3(), new Vector3(), new Vector3()))
+
+  return function(from, vel, shape, boxPos, boxSize, quat) {
+    var width = boxSize.x
+      , height = boxSize.y
+      , depth = boxSize.z
+
+    a.addVectors(boxPos, new Vector3(-width, height, depth).applyQuaternion(quat))
+    b.addVectors(boxPos, new Vector3(-width, -height, depth).applyQuaternion(quat))
+    c.addVectors(boxPos, new Vector3(width, -height, depth).applyQuaternion(quat))
+    d.addVectors(boxPos, new Vector3(width, height, depth).applyQuaternion(quat))
+    e.addVectors(boxPos, new Vector3(-width, height, -depth).applyQuaternion(quat))
+    f.addVectors(boxPos, new Vector3(-width, -height, -depth).applyQuaternion(quat))
+    g.addVectors(boxPos, new Vector3(width, -height, -depth).applyQuaternion(quat))
+    h.addVectors(boxPos, new Vector3(width, height, -depth).applyQuaternion(quat))
+
+    var index = 0
+    triangles[index++].set(a, b, c)
+    triangles[index++].set(a, c, d)
+    // back
+    triangles[index++].set(h, g, f)
+    triangles[index++].set(h, f, e)
+    // left
+    triangles[index++].set(e, f, b)
+    triangles[index++].set(e, b, a)
+    // right
+    triangles[index++].set(d, c, g)
+    triangles[index++].set(d, g, h)
+    // top
+    triangles[index++].set(e, a, d)
+    triangles[index++].set(e, d, h)
+    // bottom
+    triangles[index++].set(b, f, g)
+    triangles[index++].set(b, g, c)
+
+    return getSweptCollision(from, vel, triangles, shape, true)
+  }
+}
+
 module.exports = {
-  getCollidedPos: getCollidedPos,
+  getSweptCollision: getSweptCollision,
+
+  getSweptBoxCollision: getSweptBoxCollision(),
+
+  getCollision: getCollision,
 
   collides: function collides(a, b) {
     var boxA = a.box ? a.box.clone() : new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))

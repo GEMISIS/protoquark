@@ -29,7 +29,7 @@ var math = {
     if (temp1.crossVectors(ca, pa).dot(temp2.crossVectors(ca, ba)) < -Number.EPSILON)
       return false
 
-    return temp1.crossVectors(ba, pa).dot(temp2.crossVectors(ba, ca)) >= 0
+    return temp1.crossVectors(ba, pa).dot(temp2.crossVectors(ba, ca)) > -Number.EPSILON
   },
 
   // return lowest positive root by solving quadratic formula, returns infinity if no solution

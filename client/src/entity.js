@@ -3,13 +3,10 @@ var Matrix4    = require("./math").mat4
 var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
 
-// View interpolation delay as done in Source engine to allow for dropped packets
-// var INTERPOLATION_DELAY = .2 // Static latency value
-
 function Entity(context, id) {
   this.context = context
 
-  this.position = new Vector3()
+  this.position = new Vector3(0, 2, 0)
   this.rotation = new Quaternion()
   this.euler = new Vector3()
 

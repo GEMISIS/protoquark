@@ -5,8 +5,10 @@ var Euler      = require("./math").euler
 
 var representations = {
   box:          require('./obj3d/box'),
+  block:        require('./obj3d/block'),
   bullet:       require('./obj3d/bullet'),
-  remoteplayer: require("./obj3d/player")
+  remoteplayer: require("./obj3d/player"),
+  gib:          require('./obj3d/block')
 }
 
 function Stage (engine) {
@@ -26,7 +28,7 @@ function Stage (engine) {
 Stage.prototype = {
   init: function init() {
     this.scene = new THREE.Scene()
-    this.camera = new THREE.PerspectiveCamera(50, 0, 1, 1000)
+    this.camera = new THREE.PerspectiveCamera(50, 0, .05, 1000)
     this.renderer = new THREE.WebGLRenderer()
     this.emap = {}
 
