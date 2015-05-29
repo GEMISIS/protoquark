@@ -1,7 +1,190 @@
 var Box = require("./math").box
-var Vector3 = require("./math").vec3
+var math = require("./math")
+var Vector3 = math.vec3
+var Plane = math.plane
+var Triangle = math.triangle
+
+// vel is unnormalized
+function getCollidedPos(spherePos, vel, tris) {
+  if (vel.lengthSq() < Number.EPSILON) return spherePos
+
+  var newPos = new Vector3().copy(spherePos)
+    , newVel = new Vector3().copy(vel)
+    , touchPoint = new Vector3()
+    , touchSpherePoint = new Vector3()
+    , temp = new Vector3()
+    , slidePlane = new Plane()
+    , endPos = new Vector3()
+
+  for (var i = 0; i < 10; i++) {
+    endPos.addVectors(newPos, newVel)
+
+    var info = getCollision(newPos, newVel, tris)
+    if (!isFinite(info.t)) return endPos
+
+    touchPoint.copy(info.collisionPoint)
+    touchSpherePoint.addVectors(newPos, temp.copy(newVel).multiplyScalar(info.t))
+
+    var slideNormal = new Vector3().subVectors(touchSpherePoint, touchPoint)
+    slidePlane.setFromNormalAndCoplanarPoint(slideNormal, touchPoint)
+    var endTouchPoint = new Vector3().addVectors(endPos, new Vector3().copy(slidePlane.normal).multiplyScalar(-slidePlane.distanceToPoint(endPos)))
+
+    // Can modify
+    newPos.copy(touchSpherePoint).add(slideNormal.multiplyScalar(Number.EPSILON))
+    newVel.subVectors(endTouchPoint, touchPoint)
+  }
+
+  touchSpherePoint.addVectors(newPos, newVel)
+  return touchSpherePoint
+}
+
+// Returns time of impact from a swept sphere against a polygon soup
+// Note that collisionPoint is point on triangle that sphere collides with and t is point it takes for sphere
+// to touch so p + v*getCollision().t != getCollision().collisionPoint
+function getCollision(spherePos, vel, tris) {
+  var plane = new Plane()
+    , cb = new Vector3()
+    , ab = new Vector3()
+    , temp = new Vector3()
+    , velNorm = new Vector3(vel.x, vel.y, vel.z).normalize()
+    , collisionPoint = new Vector3()
+    , collision = false
+    , timeOfImpact = Number.POSITIVE_INFINITY
+    , invVelNorm = new Vector3().copy(velNorm).negate()
+
+  for (var i = 0; i < tris.length; i++) {
+    var tri = tris[i]
+    var triCollision = false
+    ab.subVectors(tri.a, tri.b).normalize()
+    cb.subVectors(tri.c, tri.b).normalize()
+
+    var normal = temp.crossVectors(cb, ab).normalize()
+    plane.set(normal, -normal.dot(tri.a))
+
+    var velDotNormal = invVelNorm.dot(normal)
+    if (velDotNormal < 0) continue
+
+    var parallel = velDotNormal <= Number.EPSILON
+    if (parallel && plane.distanceToPoint(spherePos) >= 1 + Number.EPSILON) continue
+
+    if (!parallel) {
+      var collisions = getTCollisions(plane, spherePos, vel)
+      var t0 = Math.min(collisions.t0, collisions.t1)
+      var t1 = Math.max(collisions.t0, collisions.t1)
+
+      if (t0 > 1 || t1 < 0) continue
+
+      collisionPoint.addVectors(spherePos, new Vector3().copy(vel).multiplyScalar(t0).sub(plane.normal))
+      if (math.isInside(collisionPoint, tri) && t0 < timeOfImpact) {
+        collision = triCollision = true
+        timeOfImpact = t0
+      }
+    }
+
+    if (!triCollision) {
+      // Try edges and vertices if not on face
+      var collisionInfos = [getTCollisionOnVertices(tri, spherePos, vel), getTCollisionOnEdges(tri, spherePos, vel)]
+
+      for (var j = 0; j < 2; j++) {
+        var info = collisionInfos[j]
+        if (!isFinite(info.t) || info.t > timeOfImpact) continue
+
+        collision = triCollision = true
+        timeOfImpact = info.t
+        collisionPoint = info.collisionPoint
+      }
+    }
+  }
+
+  return {
+    collisionPoint: collisionPoint,
+    t: collision ? timeOfImpact : Number.POSITIVE_INFINITY
+  }
+}
+
+function getTCollisions(plane, spherePos, vel) {
+  var dotVel = plane.normal.dot(vel)
+  return {
+    t0: (1 - plane.distanceToPoint(spherePos)) / dotVel,
+    t1: (-1 - plane.distanceToPoint(spherePos)) / dotVel
+  }
+}
+
+function getTCollisionOnVertices(tri, spherePos, vel) {
+  var collision = false
+    , collisionPoint
+
+  var a = vel.lengthSq()
+  var t = 1
+  var temp = new Vector3()
+  var pointToSphere = new Vector3()
+  var points = [tri.a, tri.b, tri.c]
+
+  for (var i = 0; i < 3; i++) {
+    var point = points[i]
+    pointToSphere.subVectors(spherePos, point)
+
+    var b = 2 * vel.dot(pointToSphere)
+    var c = pointToSphere.lengthSq() - 1
+
+    var timeOfImpact = math.getLowestPositiveRoot(a, b, c, t)
+    if (!isFinite(timeOfImpact)) continue
+
+    t = timeOfImpact
+    collision = true
+    collisionPoint = point
+  }
+
+  return {
+    collisionPoint: collisionPoint,
+    t: collision ? t : Number.POSITIVE_INFINITY
+  }
+}
+
+function getTCollisionOnEdges(tri, spherePos, vel) {
+  var collision = false
+    , collisionPoint = new Vector3()
+
+  var t = 1
+  var points = [tri.a, tri.b, tri.c]
+
+  for (var i = 0; i < 3; i++) {
+    var point = points[i]
+    var edge = new Vector3().subVectors(points[(i + 1) % 3], points[i % 3])
+
+    var edgeLenSq = edge.lengthSq()
+
+    var sphereToPoint = new Vector3().subVectors(point, spherePos)
+
+    var edgeDotVel = edge.dot(vel)
+    var edgeDotSphereToTri = edge.dot(sphereToPoint)
+
+    var a = edgeLenSq * -vel.lengthSq() + edgeDotVel * edgeDotVel
+    var b = edgeLenSq * 2 * vel.dot(sphereToPoint) - 2 * edgeDotVel * edgeDotSphereToTri
+    var c = edgeLenSq * (1 - sphereToPoint.lengthSq()) + edgeDotSphereToTri * edgeDotSphereToTri
+
+    var timeOfImpact = math.getLowestPositiveRoot(a, b, c, t)
+    if (!isFinite(timeOfImpact)) continue
+
+    var f = (edgeDotVel * timeOfImpact - edgeDotSphereToTri) / edgeLenSq
+    if (f < 0 || f > 1) continue
+
+    t = timeOfImpact
+    collision = true
+    collisionPoint.copy(point).add(edge.multiplyScalar(f))
+  }
+
+  resultingCollisionPoint = collisionPoint;
+
+  return {
+    collisionPoint: collisionPoint,
+    t: collision ? t : Number.POSITIVE_INFINITY
+  }
+}
 
 module.exports = {
+  getCollidedPos: getCollidedPos,
+
   collides: function collides(a, b) {
     var boxA = a.box ? a.box.clone() : new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
     var boxB = b.box ? b.box.clone() : new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
@@ -56,12 +239,12 @@ module.exports = {
     }
 
     if (velocity.z > 0) {
-      invEnterZ = boxB.z - (boxA.z + boxA.d);
-      invExitZ = (boxB.z + boxB.d) - boxA.z;
+      invEnterZ = boxB.z - (boxA.z + boxA.d)
+      invExitZ = (boxB.z + boxB.d) - boxA.z
     }
     else {
-      invEnterZ = (boxB.z + boxB.d) - boxA.z;
-      invExitZ = boxB.z - (boxA.z + boxA.d);
+      invEnterZ = (boxB.z + boxB.d) - boxA.z
+      invExitZ = boxB.z - (boxA.z + boxA.d)
     }
 
     var entryX, entryY, entryZ
@@ -72,8 +255,8 @@ module.exports = {
         exitX = Number.POSITIVE_INFINITY
     }
     else {
-        entryX = invEnterX / velocity.x;
-        exitX = invExitX / velocity.x;
+        entryX = invEnterX / velocity.x
+        exitX = invExitX / velocity.x
     }
 
     if (Math.abs(velocity.y) < Number.EPSILON) {
@@ -81,8 +264,8 @@ module.exports = {
         exitY = Number.POSITIVE_INFINITY
     }
     else {
-        entryY = invEnterY / velocity.y;
-        exitY = invExitY / velocity.y;
+        entryY = invEnterY / velocity.y
+        exitY = invExitY / velocity.y
     }
 
     if (Math.abs(velocity.z) < Number.EPSILON) {
@@ -90,8 +273,8 @@ module.exports = {
         exitZ = Number.POSITIVE_INFINITY
     }
     else {
-        entryZ = invEnterZ / velocity.z;
-        exitZ = invExitZ / velocity.z;
+        entryZ = invEnterZ / velocity.z
+        exitZ = invExitZ / velocity.z
     }
 
     var entry = Math.max(entryX, entryY)
@@ -107,5 +290,5 @@ module.exports = {
     if (entryZ < 0 && (boxA.z + boxA.d < boxB.z || boxA.z > boxB.z + boxB.d)) return Number.POSITIVE_INFINITY
 
     return entry
-  }
+  },
 }
