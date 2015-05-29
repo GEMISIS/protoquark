@@ -51,8 +51,8 @@ var keysDown = {
     if (this.snapToVertex) this.snapToEdge = false
   },
   9: function onTab(e) {
-    var mode = this.mode = this.mode === "2d" ? "3d" : "2d"
-    if (this.mode === "2d") {
+    var mode = this.view = this.view === "2d" ? "3d" : "2d"
+    if (this.view === "2d") {
       this.canvas.style.display = "block"
       this.stage3D.renderer.domElement.style.display = "none"
     }
@@ -69,6 +69,12 @@ var keysDown = {
   },
   16: function onShift(e) {
     this.multiSelect = true
+  },
+  49: function onSectionMode(e) {
+    this.mode = "section"
+  },
+  50: function onThingMode(e) {
+    this.mode = "thing"
   }
 }
 
@@ -91,7 +97,8 @@ function Editor(canvas) {
   this.stage2D = new Stage2D(canvas, this.map)
   this.stage3D = new Stage3D(canvas.width, canvas.height)
   this.canvas = canvas
-  this.mode = "2d"
+  this.view = "2d"
+  this.mode = "section"
   this.snapCoords = true
   this.selectedSections = []
   this.mapOffsets = {x: 0, y: 0}
@@ -132,6 +139,10 @@ function Editor(canvas) {
     }
   }.bind(this))
   ceilingInput.disabled = true
+
+  var thingEl = this.thingEl = document.getElementById("thing")
+  var sectionEl = this.sectionEl = document.getElementById("section")
+  thingEl.style.display = "none"
 
   var self = this
   colorInputs.forEach(function(input) {
@@ -203,7 +214,7 @@ Editor.prototype = {
   },
   undoLastPoint: function undoLastPoint() {
     var points = this.map.points
-    if (this.mode === "2d" && points.length > 0) {
+    if (this.view === "2d" && points.length > 0) {
       points.splice(points.length - 1, 1)
       this.redraw2D()
     }
@@ -300,22 +311,67 @@ function syncColorValues(obj) {
   })
 }
 
-// Clear opposite action if active otherwise do right action
-function onLeftMouseDown(evt) {
-  if (this.mode !== "2d") return
+// mouseHandler[this.view][this.mode]
+var leftMouseHandler = {
+"2d": {
+  section: function(evt) {
+    // Clear opposite action (selecting) if other action is active, otherwise do primary action
+    if (this.selectedSections.length > 0) {
+      this.selectedSections = []
+      onSectionsSelected.call(this)
+    }
+    else {
+      this.map.addPoint(this.getPoint(evt))
+    }
+    this.redraw2D()
+  },
+  thing: function(evt) {
 
-  if (this.selectedSections.length > 0) {
-    this.selectedSections = []
-    onSectionsSelected.call(this)
   }
-  else {
-    this.map.addPoint(this.getPoint(evt))
-  }
-  this.redraw2D()
+}
 }
 
-function onRightMouseDown(evt) {
-  if (this.mode === "3d" && this.surfaceList) {
+function onLeftMouseDown(evt) {
+  if (leftMouseHandler[this.view] && leftMouseHandler[this.view][this.mode])
+    leftMouseHandler[this.view][this.mode].call(this, evt)
+}
+
+var rightMouseHandler = {
+"2d": {
+  section: function(evt) {
+    if (this.map.points && this.map.points.length > 0) {
+      this.map.points = []
+    }
+    else {
+      var section = this.map.findSectionUnder(this.getMouseCanvas(evt))
+      if (!section) return
+
+      var index = this.selectedSections.indexOf(section.id)
+      if (section && index === -1) {
+        if (this.multiSelect) {
+          // in 2d mode, we are always picking the floor and not the ceiling
+          this.ceilingSelection = false
+          this.selectedSections.push(section.id)
+        }
+        else
+          this.selectedSections[0] = section.id
+      }
+      else if (section)
+        this.selectedSections.splice(index, 1)
+
+      if (section) {
+        onSectionsSelected.call(this)
+      }
+    }
+    this.redraw2D()
+  },
+  thing: function(evt) {
+
+  }
+},
+"3d": {
+  section: function(evt) {
+    if (!this.surfaceList) return
     var pickResult = this.surfaceList.pick(this.getMouseRenderer(evt), {x: this.canvas.width, y: this.canvas.height}, this.stage3D.camera)
       , section = this.map.findSection(pickResult.id)
 
@@ -330,34 +386,12 @@ function onRightMouseDown(evt) {
 
     onSectionsSelected.call(this)
     this.rebuild3DSelection()
-  }
-
-  if (this.mode !== "2d") return
-  if (this.map.points && this.map.points.length > 0) {
-    this.map.points = []
-  }
-  else {
-    var section = this.map.findSectionUnder(this.getMouseCanvas(evt))
-    if (!section) return
-
-    var index = this.selectedSections.indexOf(section.id)
-    if (section && index === -1) {
-      if (this.multiSelect) {
-        // in 2d mode, we are always picking the floor and not the ceiling
-        this.ceilingSelection = false
-        this.selectedSections.push(section.id)
-      }
-      else
-        this.selectedSections[0] = section.id
-    }
-    else if (section)
-      this.selectedSections.splice(index, 1)
-
-    if (section) {
-      onSectionsSelected.call(this)
-    }
-  }
-  this.redraw2D()
+  },
+}
+}
+function onRightMouseDown(evt) {
+  if (rightMouseHandler[this.view] && rightMouseHandler[this.view][this.mode])
+    rightMouseHandler[this.view][this.mode].call(this, evt)
 }
 
 function onMouseWheel(evt) {
@@ -382,7 +416,7 @@ function onMouseMove(evt) {
     this.scrollMap(this.getMouseCanvas(evt, {x: 0, y:0}))
     this.redraw2D()
   }
-  else if (this.mode === "2d") {
+  else if (this.view === "2d") {
     this.lastCoords = this.getPoint(evt)
     this.redraw2D(this.lastCoords)
   }
