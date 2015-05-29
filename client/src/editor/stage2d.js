@@ -13,11 +13,12 @@ clearScreen: function clearScreen() {
   this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
 },
 
-redraw: function redraw(selectedSections, mouseMoveCoords, offset) {
+redraw: function redraw(selectedSections, selectedThing, mouseMoveCoords, offset) {
   this.offset = offset || {x: 0, y: 0}
   this.clearScreen()
   this.drawGrid()
   this.drawSections(selectedSections)
+  this.drawThings(selectedThing)
   this.drawCurrentPath(mouseMoveCoords)
 },
 
@@ -36,6 +37,18 @@ drawGrid: function drawGrid() {
   ctx.moveTo(0 - offset.x, dim.y / 2 - offset.y)
   ctx.lineTo(dim.x - offset.x, dim.y / 2 - offset.y)
   ctx.stroke()
+},
+
+drawThings: function drawThings(selectedThing) {
+  var ctx = this.ctx
+    , things = this.map.things
+    , thickness = 16
+    , offset = this.offset
+  for (var i = 0; i < things.length; i++) {
+    var thing = things[i]
+    ctx.fillStyle = thing == selectedThing ? "rgb(100, 100, 255)" : "rgb(255, 100, 100)"
+    ctx.fillRect(thing.position.x - thickness/2 - offset.x, thing.position.y - thickness / 2 - offset.y, thickness, thickness)
+  }
 },
 
 drawSections: function drawSections(selectedSections) {

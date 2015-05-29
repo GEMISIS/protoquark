@@ -15,9 +15,9 @@ var emitter = require("component/emitter")
 var pixelTolerance = 4
 
 function Map() {
-  this.lines = []
   this.sections = []
   this.selectedSections = []
+  this.things = []
   this.nextSectorId = 1
 
   // Current colors, change to set to next / default color
@@ -93,6 +93,15 @@ Map.prototype = {
     return pointOnLine
   },
 
+  addThing: function addThing(thing) {
+    this.things.push(thing)
+  },
+
+  deleteThing: function deleteThing(thing) {
+    var index = this.things.indexOf(thing)
+    if (index > -1) this.things.splice(index, 1)
+  },
+
   addPoint: function addPoint(point) {
     var points = this.points = this.points || []
       , currentPt = point
@@ -129,6 +138,21 @@ Map.prototype = {
       this.points = null
       this.emit("sectionschanged")
     }
+  },
+
+  findThingUnder: function findThingUnder(point) {
+    var things = this.things
+      , precision = 16
+      , halfPrecision = precision / 2
+    for (var i = 0; i < things.length; i++) {
+      var thing = things[i]
+        , pos = thing.position
+      if (point.x >= pos.x - halfPrecision && point.x <= pos.x + halfPrecision &&
+        point.y >= pos.y - halfPrecision && point.y <= pos.y + halfPrecision) {
+        return thing
+      }
+    }
+    return null
   },
 
   // find smallest area section underneath x, y

@@ -27,11 +27,19 @@ var keysDown = {
   90: function onUndoLastPoint() {
     this.undoLastPoint()
   },
-  88: function onDeleteSection(e) {
-    var section = this.map.findSection(this.selectedSections[0])
-    if (section && this.map.deleteSection(section)) {
+  88: function onDelete(e) {
+    // Pressing x
+    if (this.mode === "section") {
+      var section = this.map.findSection(this.selectedSections[0])
+      if (section && this.map.deleteSection(section)) {
+        this.redraw2D()
+        this.rebuild3DWorld()
+      }
+    }
+    else if (this.selectedThing) {
+      this.map.deleteThing(this.selectedThing)
+      this.selectedThing = null
       this.redraw2D()
-      this.rebuild3DWorld()
     }
   },
   87: function onUp(e) {
@@ -72,9 +80,13 @@ var keysDown = {
   },
   49: function onSectionMode(e) {
     this.mode = "section"
+    this.thingContainerEl.style.display = "none"
+    this.sectionContainerEl.style.display = "block"
   },
   50: function onThingMode(e) {
     this.mode = "thing"
+    this.thingContainerEl.style.display = "block"
+    this.sectionContainerEl.style.display = "none"
   }
 }
 
@@ -101,7 +113,10 @@ function Editor(canvas) {
   this.mode = "section"
   this.snapCoords = true
   this.selectedSections = []
+  this.selectedThing = null
   this.mapOffsets = {x: 0, y: 0}
+
+  this.stage3D.renderer.domElement.style.display = "none"
 
   this.map.on("sectionschanged", function() {this.rebuild3DWorld()}.bind(this))
 
@@ -140,9 +155,20 @@ function Editor(canvas) {
   }.bind(this))
   ceilingInput.disabled = true
 
-  var thingEl = this.thingEl = document.getElementById("thing")
-  var sectionEl = this.sectionEl = document.getElementById("section")
-  thingEl.style.display = "none"
+  var thingTypeEl = this.thingTypeEl = document.getElementById("type")
+  var thingChanceEl = this.thingChanceEl = document.getElementById("chance")
+
+  var thingContainerEl = this.thingContainerEl = document.getElementById("thing")
+  var sectionContainerEl = this.sectionContainerEl = document.getElementById("section")
+  thingContainerEl.style.display = "none"
+
+  thingTypeEl.addEventListener("change", function(evt) {
+    if (this.selectedThing) this.selectedThing.type = thingTypeEl.value
+  }.bind(this))
+
+  thingChanceEl.addEventListener("change", function(evt) {
+    if (this.selectedThing) this.selectedThing.chance = parseInt(thingChanceEl.value)
+  }.bind(this))
 
   var self = this
   colorInputs.forEach(function(input) {
@@ -160,7 +186,7 @@ function Editor(canvas) {
   })
 
   document.getElementById("save").addEventListener("click", function(e) {
-    downloadString("map.json", JSON.stringify(this.map.sections))
+    downloadString("map.json", JSON.stringify({sections: this.map.sections, things: this.map.things}))
   }.bind(this))
 
   document.getElementById("export").addEventListener("click", function(e) {
@@ -174,7 +200,11 @@ function Editor(canvas) {
       , reader = new FileReader();
 
     reader.onload = function(e) {
-      this.map.setSections(JSON.parse(e.target.result))
+      var obj = JSON.parse(e.target.result)
+      this.map.setSections(obj.sections)
+      this.map.things = obj.things
+      this.map.selectedThing = null
+
       this.redraw2D()
       this.rebuild3DWorld()
     }.bind(this)
@@ -185,7 +215,7 @@ function Editor(canvas) {
 
 Editor.prototype = {
   redraw2D: function redraw2D(mouseCoords) {
-    this.stage2D.redraw(this.selectedSections, mouseCoords, this.mapOffsets)
+    this.stage2D.redraw(this.selectedSections, this.selectedThing, mouseCoords, this.mapOffsets)
   },
   rebuild3DWorld: function rebuild3DWorld() {
     this.surfaceList = geometrybuilder.buildWorldGeometry(this.map, this.stage3D.geometry, this.canvas.width, this.canvas.height)
@@ -326,7 +356,8 @@ var leftMouseHandler = {
     this.redraw2D()
   },
   thing: function(evt) {
-
+    this.map.addThing({position: this.getMouseCanvas(evt), type: this.thingTypeEl.value, chance: parseInt(this.thingChanceEl.value)})
+    this.redraw2D()
   }
 }
 }
@@ -366,7 +397,12 @@ var rightMouseHandler = {
     this.redraw2D()
   },
   thing: function(evt) {
-
+    this.selectedThing = this.map.findThingUnder(this.getMouseCanvas(evt))
+    if (this.selectedThing) {
+      this.thingTypeEl.value = this.selectedThing.type
+      this.thingChanceEl = this.selectedThing.chance
+    }
+    this.redraw2D()
   }
 },
 "3d": {
