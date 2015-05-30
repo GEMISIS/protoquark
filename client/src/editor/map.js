@@ -16,29 +16,27 @@ var pixelTolerance = 4
 
 function Map() {
   this.sections = []
-  this.selectedSections = []
   this.things = []
-  this.nextSectorId = 1
+  this.blocks = []
+
+  this.nextSectionId = 1
+  this.nextBlockId = 1
+  this.selectedSections = []
 
   // Current colors, change to set to next / default color
-  this.wallColor = 0xAAAAAA
-  this.floorColor = 0x888888
+  this.wallColor = 0xFF0000
+  this.floorColor = 0x00FF00
   this.floorWallColor = 0x555555
-  this.ceilingColor = 0xAAAAAA
+  this.ceilingColor = 0x0000FF
   this.ceilingWallColor = 0xAAAAAA
 
   this.noFloorWallY = 0
   this.noCeilingWallY = 10
 
-  // Incomplete points for next sector
+  // Incomplete points for next sector and block, respectively
   // Set of active, incomplete points that are cleared when they make a complete section
   this.points = []
-
-  var a = new Vector3(632, 248, 0)
-    , b = new Vector3(432, 248, 0)
-    , c = new Vector3(480, 216, 0)
-    , d = new Vector3(480, 248, 0)
-  console.log(getEdgeIntersection(a, b, c, d))
+  this.blockPoints = []
 }
 
 Map.prototype = {
@@ -102,42 +100,55 @@ Map.prototype = {
     if (index > -1) this.things.splice(index, 1)
   },
 
+  deleteBlock: function deleteBlock(block) {
+    var index = this.blocks.indexOf(block)
+    if (index > -1) this.blocks.splice(index, 1)
+  },
+
   addPoint: function addPoint(point) {
     var points = this.points = this.points || []
-      , currentPt = point
-      , firstPt = points[0]
-      , lastPt = points.length > 0 ? points[points.length - 1] : null
-      , completeLoop = points.length >= 3 && isNearPoint(currentPt, firstPt)
+    if (!addPointTo(point, points)) return
 
-    if (lastPt && lastPt.x == currentPt.x && lastPt.y == currentPt.y)
-      return
-
-    points.push(completeLoop ? firstPt.clone() : currentPt)
-
+    // Ended loop of section
     var added = points[points.length - 1]
-    console.log(added.x, added.y)
+    addSection.call(this, {
+      id: this.nextSectionId++,
+      points: points,
+      floorHeight: this.noFloorWallY,
+      ceilingHeight: this.noCeilingWallY,
+      floor: true,
+      ceiling: true,
+      wall: true,
+      doubleSidedWalls: false,
+      wallColor: this.wallColor,
+      floorColor: this.floorColor,
+      floorWallColor: this.floorWallColor,
+      ceilingWallColor: this.ceilingWallColor,
+      ceilingColor : this.ceilingColor
+    })
 
-    if (completeLoop) {
-      // Ended loop of section
-      this.addSection({
-        id: this.nextSectorId++,
-        points: points,
-        floorHeight: this.noFloorWallY,
-        ceilingHeight: this.noCeilingWallY,
-        floor: true,
-        ceiling: true,
-        wall: true,
-        doubleSidedWalls: false,
-        wallColor: this.wallColor,
-        floorColor: this.floorColor,
-        floorWallColor: this.floorWallColor,
-        ceilingWallColor: this.ceilingWallColor,
-        ceilingColor : this.ceilingColor
-      })
+    this.points = null
+    this.emit("sectionschanged")
+  },
 
-      this.points = null
-      this.emit("sectionschanged")
-    }
+  addBlockPoint: function addBlockPoint(point) {
+    var points = this.blockPoints = this.blockPoints || []
+    if (!addPointTo(point, points)) return
+
+    // Ended loop of section
+    var added = points[points.length - 1]
+    addBlock.call(this, {
+      id: this.nextBlockId++,
+      points: points,
+      y: 5,
+      height: 1,
+      wallColor: this.wallColor,
+      floorColor: this.floorColor,
+      floorWallColor: this.floorWallColor,
+    })
+
+    this.blockPoints = null
+    this.emit("sectionschanged")
   },
 
   findThingUnder: function findThingUnder(point) {
@@ -155,13 +166,30 @@ Map.prototype = {
     return null
   },
 
+  findBlockUnder: function findBlockUnder(point) {
+     var blocks = this.blocks
+      , y = Number.NEGATIVE_INFINITY
+      , touchedBlock
+    for (var i = 0; i < blocks.length; i++) {
+      var block = blocks[i]
+      if (!isPointInside(point, block.points)) continue
+
+      // higher up should be touched first
+      if (block.y > y) {
+        touchedBlock = block
+        y = block.y
+      }
+    }
+
+    return touchedBlock
+  },
+
   // find smallest area section underneath x, y
   findSectionUnder: function findSectionUnder(point) {
     var sections = this.sections
       , smallestArea = Number.POSITIVE_INFINITY
       , touchedSection
       , area
-      , sectionIndex = 0
     for (var i = 0; i < sections.length; i++) {
       var section = sections[i]
       if (!isPointInside(point, section.points)) continue
@@ -170,17 +198,18 @@ Map.prototype = {
       if (area < smallestArea) {
         touchedSection = section
         smallestArea = area
-        sectionIndex = i
       }
     }
 
     return touchedSection
   },
 
+  findBlock: function findBlock(id) {
+    return find(this.blocks, "id", id)
+  },
+
   findSection: function findSection(id) {
-    for (var i = 0; i < this.sections.length; i++)
-      if (this.sections[i].id == id) return this.sections[i]
-    return null
+    return find(this.sections, "id", id)
   },
 
   // Not going to support undo redo since dont want to have to readd id to shared edges after undoing deletion
@@ -229,9 +258,7 @@ Map.prototype = {
       }
     }
     return closest
-  },
-
-  addSection: addSection
+  }
 }
 
 function getEdgeIntersection(a, b, c, d) {
@@ -262,7 +289,7 @@ function getEdgeIntersection(a, b, c, d) {
 
 function onSectionsLoaded() {
   for (var i = 0; i < this.sections.length; i++) {
-    this.nextSectorId = Math.max(this.nextSectorId, this.sections[i].id + 1)
+    this.nextSectionId = Math.max(this.nextSectionId, this.sections[i].id + 1)
   }
 }
 
@@ -380,6 +407,11 @@ function splitEdge(edges, edgeIndex, points, forwards, sectionId, split) {
     edges.splice(edgeIndex + 1, 0, [sectionId, split.sectionId])
     edges.splice(edgeIndex + 2, 0, [sectionId])
   }
+}
+
+function addBlock(block) {
+  // Not much special logic for block as opposed to sections
+  this.blocks.push(block)
 }
 
 function addSection(section) {
@@ -565,6 +597,28 @@ function isSectionInside(section, containerSection) {
   return true
 }
 
+// returns if adding point results in a complete loop
+function addPointTo(point, points) {
+  var currentPt = point
+    , firstPt = points[0]
+    , lastPt = points.length > 0 ? points[points.length - 1] : null
+    , completeLoop = points.length >= 3 && isNearPoint(currentPt, firstPt)
+
+  // If point added is similar to last, dont add
+  if (lastPt && lastPt.x == currentPt.x && lastPt.y == currentPt.y)
+    return false
+
+  points.push(completeLoop ? firstPt.clone() : currentPt)
+  console.log(points[points.length - 1].x, points[points.length - 1].y)
+  return completeLoop
+}
+
 emitter(Map.prototype)
+
+function find(array, propName, value) {
+  for (var i = 0; i < array.length; i++)
+    if (array[i][propName] == value) return array[i]
+  return null
+}
 
 module.exports = Map

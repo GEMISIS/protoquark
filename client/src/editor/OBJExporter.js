@@ -4,10 +4,19 @@
 
 THREE.OBJExporter = function () {};
 
+function findFaceForVertIndex(index, faces) {
+	for (var i = 0; i < faces.length; i++) {
+		var face = faces[i]
+		if (face.a == index || face.b == index || face.c == index )
+			return face;
+	}
+}
+
 THREE.OBJExporter.prototype = {
 
 	constructor: THREE.OBJExporter,
 
+	// colors: https://github.com/mrdoob/three.js/issues/6025
 	parse: function ( object, numVertices, numFaces ) {
 
 		var output = '';
@@ -28,7 +37,6 @@ THREE.OBJExporter.prototype = {
 			numFaces = numFaces || geometry.faces.length;
 
 			if ( geometry instanceof THREE.Geometry ) {
-
 				output += 'o ' + child.name + '\n';
 
 				for ( var i = 0, l = numVertices; i < l; i ++ ) {
@@ -36,7 +44,15 @@ THREE.OBJExporter.prototype = {
 					var vertex = geometry.vertices[ i ].clone();
 					vertex.applyMatrix4( child.matrixWorld );
 
-					output += 'v ' + vertex.x + ' ' + vertex.y + ' ' + vertex.z + '\n';
+					// Added vertex coloring (non standard .obj)
+					var face = findFaceForVertIndex(i, geometry.faces)
+					if (face) {
+						var c = face.color
+						output += 'v ' + vertex.x + ' ' + vertex.y + ' ' + vertex.z + ' ' + c.r + ' ' + c.g + ' ' + c.b + '\n';
+					}
+					else {
+						output += 'v ' + vertex.x + ' ' + vertex.y + ' ' + vertex.z + '\n';
+					}
 
 					nbVertex ++;
 

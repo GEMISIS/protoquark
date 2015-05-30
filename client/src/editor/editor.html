@@ -2,76 +2,76 @@
 <head>
 <title>Title</title>
 <style type="text/css">
-	* {
-		margin: 0;
-		padding: 0;
-	}
+  * {
+    margin: 0;
+    padding: 0;
+  }
 
-	form {
-		float: right;
-	}
+  form {
+    float: right;
+  }
 
-	input {
-		display: block;
-		/*float: right;*/
-	}
+  input {
+    display: block;
+    /*float: right;*/
+  }
 
-	input:after {
-		content: "";
-		display: none;
-		clear: both;
-	}
+  input:after {
+    content: "";
+    display: none;
+    clear: both;
+  }
 
 </style>
 </head>
 <body>
 
 <form id="thing">
-	<input id="chance" type="number" min="0" max="100" step="1" value="50"/>
-	<select id="type">
-		<option value="ammo">Ammo</option>
-		<option value="health">Health</option>
-	</select>
+  <input id="chance" type="number" min="0" max="100" step="1" value="50"/>
+  <select id="type">
+    <option value="ammo">Ammo</option>
+    <option value="health">Health</option>
+  </select>
 </form>
 
 <form id="section">
-	<input id="floor" type="number" min="-20" max="20" step=".1" value="0"/>
-	<input id="ceiling" type="number" min="-20" max="20" step=".1" value="10"/>
+  <input id="floor" type="number" min="-20" max="20" step=".1" value="0"/>
+  <input id="ceiling" type="number" min="-20" max="20" step=".1" value="10"/>
 
-	<label for="wall">Walls</label>
-	<input id="wall" name="wall" type="checkbox" checked/>
+  <label for="wall">Walls</label>
+  <input id="wall" name="wall" type="checkbox" checked/>
 
-	<label for="floor">Floors</label>
-	<input id="floor" name="floor" type="checkbox" checked/>
+  <label for="floor">Floors</label>
+  <input id="floor" name="floor" type="checkbox" checked/>
 
-	<label for="ceiling">Ceiling</label>
-	<input id="ceiling" name="ceiling" type="checkbox" checked/>
+  <label for="ceiling">Ceiling</label>
+  <input id="ceiling" name="ceiling" type="checkbox" checked/>
 
-	<label for="wallColor">Wall Color</label>
-	<input id="wallColor" name="wallColor" type="color" value="#FF0000"/>
+  <label for="wallColor">Wall Color</label>
+  <input id="wallColor" name="wallColor" type="color" value="#FF0000"/>
 
-	<label for="floorColor">Floor Color</label>
-	<input id="floorColor" name="floorColor" type="color"/>
+  <label for="floorColor">Floor Color</label>
+  <input id="floorColor" name="floorColor" type="color"/>
 
-	<label for="ceilingColor">Ceiling Color</label>
-	<input id="ceilingColor" name="ceilingColor" type="color"/>
+  <label for="ceilingColor">Ceiling Color</label>
+  <input id="ceilingColor" name="ceilingColor" type="color"/>
 
-	<label for="ceilingWallColor">Ceiling Wall Color</label>
-	<input id="ceilingWallColor" name="ceilingWallColor" type="color"/>
+  <label for="ceilingWallColor">Ceiling Wall Color</label>
+  <input id="ceilingWallColor" name="ceilingWallColor" type="color"/>
 
-	<label for="floorWallColor">Floor Wall Color</label>
-	<input id="floorWallColor" name="floorWallColor" type="color"/>
+  <label for="floorWallColor">Floor Wall Color</label>
+  <input id="floorWallColor" name="floorWallColor" type="color"/>
 
-	<label for="file">Load Map</label>
-	<input type="file" id="file" name="file" />
+  <label for="file">Load Map</label>
+  <input type="file" id="file" name="file" />
 
-	<input type="button" id="save" value="save"/>
+  <input type="button" id="save" value="save"/>
 
-	<input type="button" id="export" value="export"/>
+  <input type="button" id="export" value="export"/>
 </form>
 
 <canvas id="canvas" width="1024" height="576">
-	No canvas support
+  No canvas support
 </canvas>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.min.js"></script>
 <script src="./OBJExporter.js"></script>

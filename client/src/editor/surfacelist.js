@@ -5,6 +5,7 @@ var Vector3 = THREE.Vector3
 var Vector4 = THREE.Vector4
 var Ray = THREE.Ray
 var isPointInsideXZ = require("./math").isPointInsideXZ
+
 //
 // Surface is any 'flat' non vertical surface - used for quick picking in 3d mode
 //
@@ -65,7 +66,7 @@ SurfaceList.prototype = {
     return {
       pick: !!nearestPlane,
       id: nearestPlane ? nearestPlane.id : null,
-      ceiling: nearestPlane ? nearestPlane.normal.y< 0 : false
+      ceiling: nearestPlane ? nearestPlane.normal.y < 0 : false
     }
   }
 }

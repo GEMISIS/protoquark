@@ -13,13 +13,17 @@ clearScreen: function clearScreen() {
   this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
 },
 
-redraw: function redraw(selectedSections, selectedThing, mouseMoveCoords, offset) {
+redraw: function redraw(selectedSections, selectedThing, selectedBlock, mouseMoveCoords, offset) {
   this.offset = offset || {x: 0, y: 0}
   this.clearScreen()
   this.drawGrid()
+
   this.drawSections(selectedSections)
   this.drawThings(selectedThing)
-  this.drawCurrentPath(mouseMoveCoords)
+  this.drawBlocks(selectedBlock)
+
+  this.drawCurrentPath(mouseMoveCoords, this.map.points)
+  this.drawCurrentPath(mouseMoveCoords, this.map.blockPoints)
 },
 
 drawGrid: function drawGrid() {
@@ -70,6 +74,27 @@ drawSections: function drawSections(selectedSections) {
   }
 },
 
+drawBlocks: function drawBlocks(selectedBlock) {
+  var ctx = this.ctx
+    , blocks = this.map.blocks
+    , selectedId = selectedBlock ? selectedBlock.id : null
+  ctx.lineWidth = 1
+  for (var i = 0; i < blocks.length; i++) {
+    var block = blocks[i]
+
+    ctx.fillStyle = selectedId == block.id ? "rgb(128, 128, 255)" : "rgb(128, 255, 128)"
+    this.drawPath(block.points)
+    ctx.fill()
+
+    ctx.fillStyle = "rgb(100, 100, 100)"
+    this.drawPath(block.points)
+    ctx.stroke()
+
+    ctx.fillStyle = "rgb(128, 255, 128)"
+    this.drawVertices(block.points)
+  }
+},
+
 drawPath: function drawPath(points) {
   var ctx = this.ctx
     , offset = this.offset
@@ -93,10 +118,10 @@ drawVertex: function drawVertex(point, thickness, color) {
   this.ctx.fillRect(point.x - thickness/2 - offset.x, point.y - thickness / 2 - offset.y, thickness, thickness)
 },
 
-drawCurrentPath: function drawCurrentPath(cursor) {
-  var points = this.map.points ? this.map.points : []
-    , ctx = this.ctx
+drawCurrentPath: function drawCurrentPath(cursor, points) {
+    var ctx = this.ctx
     , offset = this.offset
+    , points = points || []
     , firstPt = points.length > 0 ? points[0] : cursor
   if ((!points || !points.length) && !cursor) return
 

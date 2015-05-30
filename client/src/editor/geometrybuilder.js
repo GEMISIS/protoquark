@@ -43,7 +43,9 @@ function buildWorldGeometry(map, geometry, width, height) {
     , canvasDimensions = {x: width, y: height}
     , noFloorWallY = map.noFloorWallY
     , noCeilingWallY = map.noCeilingWallY
-    , surfaceList = new SurfaceList()
+    , blocks = map.blocks
+    , sectionSurfaces = new SurfaceList()
+    , blockSurfaces = new SurfaceList()
 
   for (var i = 0; i < sections.length; i++) {
     var section = sections[i]
@@ -62,7 +64,7 @@ function buildWorldGeometry(map, geometry, width, height) {
       vertices[v++] = convert2Dto3D(points[0], floorHeight, canvasDimensions)
       vertices[v++] = convert2Dto3D(points[j], floorHeight, canvasDimensions)
       vertices[v++] = convert2Dto3D(points[j + 1], floorHeight, canvasDimensions)
-      surfaceList.addTri(vertices, v - 3, section.id)
+      sectionSurfaces.addTri(vertices, v - 3, section.id)
 
       faces[f++].color.setHex(floorColor)
     }
@@ -93,7 +95,7 @@ function buildWorldGeometry(map, geometry, width, height) {
       vertices[v++] = convert2Dto3D(points[0], ceilingHeight, canvasDimensions)
       vertices[v++] = convert2Dto3D(points[j + 1], ceilingHeight, canvasDimensions)
       vertices[v++] = convert2Dto3D(points[j], ceilingHeight, canvasDimensions)
-      surfaceList.addTri(vertices, v - 3, section.id)
+      sectionSurfaces.addTri(vertices, v - 3, section.id)
 
       faces[f++].color.setHex(ceilingColor)
     }
@@ -137,6 +139,53 @@ function buildWorldGeometry(map, geometry, width, height) {
     }
   }
 
+  for (var i = 0; i < blocks.length; i++) {
+    var block = blocks[i]
+      , points = block.points
+      , floorColor = block.floorColor
+      , wallColor = block.wallColor
+      , ceilingColor = block.ceilingColor
+      , bottom = block.y
+      , top = bottom + block.height
+
+    // bottom and top
+    for (var j = 0; j < points.length - 1; j++) {
+      var a = points[0]
+        , b = points[j]
+        , c = points[j + 1]
+
+      vertices[v++] = convert2Dto3D(a, top, canvasDimensions)
+      vertices[v++] = convert2Dto3D(b, top, canvasDimensions)
+      vertices[v++] = convert2Dto3D(c, top, canvasDimensions)
+      faces[f++].color.setHex(ceilingColor)
+
+      vertices[v++] = convert2Dto3D(a, bottom, canvasDimensions)
+      vertices[v++] = convert2Dto3D(c, bottom, canvasDimensions)
+      vertices[v++] = convert2Dto3D(b, bottom, canvasDimensions)
+      faces[f++].color.setHex(floorColor)
+
+      blockSurfaces.addTri(vertices, v - 3, block.id)
+      blockSurfaces.addTri(vertices, v - 6, block.id)
+    }
+
+    // sides
+    for (var j = 0; j < points.length - 1; j++) {
+      var a = points[j]
+       , b = points[j + 1]
+
+      vertices[v++] = convert2Dto3D(a, top, canvasDimensions)
+      vertices[v++] = convert2Dto3D(a, bottom, canvasDimensions)
+      vertices[v++] = convert2Dto3D(b, bottom, canvasDimensions)
+
+      vertices[v++] = convert2Dto3D(a, top, canvasDimensions)
+      vertices[v++] = convert2Dto3D(b, bottom, canvasDimensions)
+      vertices[v++] = convert2Dto3D(b, top, canvasDimensions)
+
+      faces[f++].color.setHex(wallColor)
+      faces[f++].color.setHex(wallColor)
+     }
+  }
+
   // Added properties
   geometry.visibleFaces = f;
   geometry.visibleVertices = v;
@@ -151,7 +200,10 @@ function buildWorldGeometry(map, geometry, width, height) {
   geometry.verticesNeedUpdate = true
   geometry.colorsNeedUpdate = true
 
-  return surfaceList
+  return {
+    sectionSurfaces: sectionSurfaces,
+    blockSurfaces: blockSurfaces
+  }
 }
 
 module.exports = {

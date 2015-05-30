@@ -36,7 +36,12 @@ var keysDown = {
         this.rebuild3DWorld()
       }
     }
-    else if (this.selectedThing) {
+    else if (this.mode === "block" && this.selectedBlock) {
+      this.map.deleteBlock(this.selectedBlock)
+      this.selectedBlock = null
+      this.redraw2D()
+    }
+    else if (this.mode === "thing" && this.selectedThing) {
       this.map.deleteThing(this.selectedThing)
       this.selectedThing = null
       this.redraw2D()
@@ -87,6 +92,11 @@ var keysDown = {
     this.mode = "thing"
     this.thingContainerEl.style.display = "block"
     this.sectionContainerEl.style.display = "none"
+  },
+  51: function onBlocksMode(e) {
+    this.mode = "block"
+    this.thingContainerEl.style.display = "block"
+    this.sectionContainerEl.style.display = "none"
   }
 }
 
@@ -129,11 +139,12 @@ function Editor(canvas) {
   this.stage3D.renderer.domElement.addEventListener("mousemove", onMouseMove.bind(this))
   this.stage3D.renderer.domElement.addEventListener("mousewheel", onMouseWheel.bind(this))
   this.stage3D.renderer.domElement.addEventListener("mousedown", onMouseDown.bind(this))
+  this.stage3D.renderer.domElement.addEventListener("mouseup", onMouseUp.bind(this))
   this.stage3D.renderer.domElement.addEventListener("contextmenu", function(e){e.preventDefault()})
 
   window.addEventListener("keydown", onKeyDown.bind(this))
   window.addEventListener("keyup", onKeyUp.bind(this))
-  window.addEventListener("mousewheel", onMouseWheel.bind(this))
+  // window.addEventListener("mousewheel", onMouseWheel.bind(this))
 
   var floorInput = this.floorInput = document.getElementById("floor")
   floorInput.addEventListener("input", function() {
@@ -194,6 +205,8 @@ function Editor(canvas) {
     downloadString("map.obj", exporter.parse(this.stage3D.mesh, this.stage3D.geometry.visibleVertices, this.stage3D.geometry.visibleFaces))
   }.bind(this))
 
+  syncColorValues.call(this, this.map)
+
   var fileInput = document.getElementById("file")
   fileInput.addEventListener("change", function(e) {
     var file = e.target.files[0]
@@ -215,16 +228,23 @@ function Editor(canvas) {
 
 Editor.prototype = {
   redraw2D: function redraw2D(mouseCoords) {
-    this.stage2D.redraw(this.selectedSections, this.selectedThing, mouseCoords, this.mapOffsets)
+    this.stage2D.redraw(this.selectedSections, this.selectedThing, this.selectedBlock, mouseCoords, this.mapOffsets)
   },
   rebuild3DWorld: function rebuild3DWorld() {
-    this.surfaceList = geometrybuilder.buildWorldGeometry(this.map, this.stage3D.geometry, this.canvas.width, this.canvas.height)
+    var worldGeometry = geometrybuilder.buildWorldGeometry(this.map, this.stage3D.geometry, this.canvas.width, this.canvas.height)
+    this.sectionSurfaces = worldGeometry.sectionSurfaces
+    this.blockSurfaces = worldGeometry.blockSurfaces
     this.rebuild3DSelection()
   },
   rebuild3DSelection: function rebuild3DSelection() {
     var section = this.map.findSection(this.selectedSections[0])
     if (section) {
       geometrybuilder.buildSelectionGeometry(section, this.stage3D.selectionGeometry, this.ceilingSelection, this.canvas.width, this.canvas.height)
+      return
+    }
+
+    if (this.selectedBlock) {
+      geometrybuilder.buildSelectionGeometry(this.selectedBlock, this.stage3D.selectionGeometry, this.ceilingSelection, this.canvas.width, this.canvas.height)
     }
   },
   snapMouseCoords: function snapMouseCoords(mouseCoords) {
@@ -292,14 +312,20 @@ function onMouseUp(evt) {
     this.scrollCoords = null
     this.redraw2D()
   }
+  else if (evt.button === 0) {
+    this.leftMouseDown = false
+  }
 }
 
 function onMapPropertyChanged(propName, value) {
-  var items = !this.selectedSections.length ? [this.map] : this.map.sections.filter(function(section) {
+  var items = this.selectedBlock && this.selectedBlock.id ? [this.selectedBlock] : (!this.selectedSections.length ? [this.map] : this.map.sections.filter(function(section) {
     return this.selectedSections.indexOf(section.id) > -1
-  }, this)
+  }, this))
+
+  if (!items.length) return
 
   for (var i = 0; i < items.length; i++) {
+    if (typeof items[i][propName] === undefined) continue
     items[i][propName] = value
   }
   if (this.selectedSections.length)
@@ -334,10 +360,12 @@ function padString(str, min, pad) {
   return str
 }
 
+// Sync color element values to obj's color value
 function syncColorValues(obj) {
   var self = this
   colorInputs.forEach(function(input) {
-    self[input].value = rgbIntToString(obj[input])
+    if (typeof obj[input] !== undefined)
+      self[input].value = rgbIntToString(obj[input])
   })
 }
 
@@ -358,6 +386,15 @@ var leftMouseHandler = {
   thing: function(evt) {
     this.map.addThing({position: this.getMouseCanvas(evt), type: this.thingTypeEl.value, chance: parseInt(this.thingChanceEl.value)})
     this.redraw2D()
+  },
+  block: function(evt) {
+    this.map.addBlockPoint(this.getPoint(evt))
+    this.redraw2D()
+  }
+},
+"3d": {
+  block: function(evt) {
+    this.leftMouseDown = true
   }
 }
 }
@@ -370,6 +407,8 @@ function onLeftMouseDown(evt) {
 var rightMouseHandler = {
 "2d": {
   section: function(evt) {
+    this.selectedBlock = null
+
     if (this.map.points && this.map.points.length > 0) {
       this.map.points = []
     }
@@ -403,12 +442,17 @@ var rightMouseHandler = {
       this.thingChanceEl = this.selectedThing.chance
     }
     this.redraw2D()
+  },
+  block: function(evt) {
+    this.selectedBlock = this.map.findBlockUnder(this.getMouseCanvas(evt))
+    console.log(this.selectedBlock)
+    this.redraw2D()
   }
 },
 "3d": {
   section: function(evt) {
-    if (!this.surfaceList) return
-    var pickResult = this.surfaceList.pick(this.getMouseRenderer(evt), {x: this.canvas.width, y: this.canvas.height}, this.stage3D.camera)
+    if (!this.sectionSurfaces) return
+    var pickResult = this.sectionSurfaces.pick(this.getMouseRenderer(evt), {x: this.canvas.width, y: this.canvas.height}, this.stage3D.camera)
       , section = this.map.findSection(pickResult.id)
 
     if (pickResult.pick && section) {
@@ -421,8 +465,19 @@ var rightMouseHandler = {
     }
 
     onSectionsSelected.call(this)
+    this.redraw2D()
     this.rebuild3DSelection()
   },
+  block: function(evt) {
+    if (!this.blockSurfaces) return
+    var pickResult = this.blockSurfaces.pick(this.getMouseRenderer(evt), {x: this.canvas.width, y: this.canvas.height}, this.stage3D.camera)
+      , block = this.map.findBlock(pickResult.id)
+    this.selectedBlock = block
+    this.ceilingSelection = pickResult.ceiling
+    this.selectedSections = []
+    this.redraw2D()
+    this.rebuild3DSelection()
+  }
 }
 }
 
@@ -437,7 +492,7 @@ function onMiddleMouseDown(evt) {
   else {
     var mouse = this.getMouseRenderer(evt)
       , dimensions = {x: this.canvas.width, y: this.canvas.height}
-      , pickResult = this.surfaceList.pick(mouse, dimensions, this.stage3D.camera)
+      , pickResult = this.sectionSurfaces.pick(mouse, dimensions, this.stage3D.camera)
       , section = this.map.findSection(pickResult.id)
     if (!section) return
 
@@ -457,16 +512,29 @@ function onMiddleMouseDown(evt) {
 }
 
 function onMouseWheel(evt) {
+  var delta = evt.wheelDelta / 500
+
+  var block = this.map.findBlock(this.selectedBlock ? this.selectedBlock.id : null)
+  if (block) {
+    evt.preventDefault()
+    if (this.leftMouseDown)
+      block.height += delta
+    else
+      block.y += delta
+
+    this.rebuild3DWorld()
+    return
+  }
+
   var section = this.map.findSection(this.selectedSections[0])
   if (!section) return
   evt.preventDefault()
-  var delta = evt.wheelDelta
   if (this.ceilingSelection) {
-    section.ceilingHeight += delta / 500
+    section.ceilingHeight += delta
     this.ceilingInput.value = section.ceilingHeight
   }
   else {
-    section.floorHeight += delta / 500
+    section.floorHeight += delta
     this.floorInput.value = section.floorHeight
   }
   this.rebuild3DWorld()
