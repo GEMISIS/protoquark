@@ -209,8 +209,7 @@ conn: {
     for (var i = 0; i < states.length; i++) {
       var state = states[i]
       var player = entityMap[state.id]
-      if (player)
-      {
+      if (player) {
         player.health.current = state.currentHealth
         player.score = state.currentScore
         scores[state.id] = {name: state.id, score: player.score}
@@ -378,7 +377,6 @@ Engine.prototype = {
     if (!ent.id || !this.entityMap[ent.id])
       throw Error('Invalid entity requested to be removed')
 
-    console.log("Removing", ent)
     this.entities.splice(this.entities.indexOf(ent), 1)
     delete this.entityMap[ent.id]
   },
@@ -430,6 +428,7 @@ Engine.prototype = {
   }
 }
 
+// Called by server periodically to send to players
 function onStateSend() {
   var conn = this.conn
   if (!conn.isServer()) return
