@@ -1,14 +1,15 @@
 var Chat       = require("./interface/chat")
 var Connection = require("./connection")
-var Status     = require("./interface/connection-status")
 var Controller = require("./controller")
 var Crosshair  = require('./interface/crosshair')
 var Engine     = require("./engine")
 var Health     = require("./interface/health")
 var Radar      = require("./interface/radar")
 var Router     = require("./router")
+var Score      = require("./interface/score")
 var Stage      = require("./stage")
 var Editor      = require("./editor/editor")
+var Status     = require("./interface/connection-status")
 var Weapon     = require('./interface/weapon')
 
 window.connection = new Connection()
@@ -47,7 +48,10 @@ var ons = {
     var isenter = e.keyCode == 13
     var istab = e.keyCode == 9
 
-    if (istab) return e.preventDefault()
+    if (istab) {
+      this.score.toggle()
+      return e.preventDefault()
+    }
     if (this.chat.hasfocus && !isenter) return
     if (isenter) return this.chat.toggle()
 
@@ -69,16 +73,25 @@ var ons = {
 }
 
 function onRoom (name) {
+  function leavingRoom(e) {
+    var xmlHttp = new XMLHttpRequest()
+    xmlHttp.open("POST", "http://localhost:1337/quit/" + name, false)
+    xmlHttp.setRequestHeader("content-type","application/x-www-form-urlencoded");
+    xmlHttp.send(null)
+  }
+  window.onbeforeunload=leavingRoom
+
   window.connection.connect(name)
 }
 
 document.addEventListener("DOMContentLoaded", function (e) {
+
   var conn = window.connection
   var el = document.body
   var rect = el.getBoundingClientRect()
 
   var router = new Router()
-  router.add("room", /^\/([^\/]+)\/?$/)
+  router.add("room", new RegExp('rooms\/([^\/]+)\/?$'))
   router.on("route:room", onRoom)
 
   var chat = window.chat = new Chat(conn)
@@ -102,6 +115,9 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
   var weapon = new Weapon(engine)
   el.appendChild(weapon.el)
+
+  var score = window.score = new Score(engine)
+  el.appendChild(score.el)
 
   var stage = window.stage = new Stage(engine)
   el.appendChild(stage.el)
@@ -142,3 +158,4 @@ function update(things) {
   last = now
   requestAnimationFrame(update.bind(this, things))
 }
+

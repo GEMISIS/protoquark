@@ -12,6 +12,9 @@ function buildSelectionGeometry(selections, geometry, isCeiling, width, height) 
   var vertices = geometry.vertices
     , v = 0
     , canvasDimensions = {x: width, y: height}
+    , f = 0
+    , faces = geometry.faces
+
   for (var i = 0; i < selections.length; i++) {
     var selection = selections[i]
       , points = selection.points
@@ -19,11 +22,13 @@ function buildSelectionGeometry(selections, geometry, isCeiling, width, height) 
       var a = points[0]
         , b = isCeiling ? points[j + 1] : points[j]
         , c = isCeiling ? points[j] : points[j + 1]
-        , y = isCeiling ? section.ceilingHeight : section.floorHeight
+        , y = isCeiling ? selection.ceilingHeight - .01 : selection.floorHeight + .01
 
       vertices[v++] = convert2Dto3D(a, y, canvasDimensions)
       vertices[v++] = convert2Dto3D(b, y, canvasDimensions)
       vertices[v++] = convert2Dto3D(c, y, canvasDimensions)
+
+      faces[f++].color.setHex(0xFFFFFF)
     }
   }
 
@@ -34,6 +39,7 @@ function buildSelectionGeometry(selections, geometry, isCeiling, width, height) 
 
   geometry.computeFaceNormals()
   geometry.verticesNeedUpdate = true
+  geometry.colorsNeedUpdate = true
 }
 
 function buildWorldGeometry(map, geometry, width, height) {
@@ -62,17 +68,19 @@ function buildWorldGeometry(map, geometry, width, height) {
       , ceilingWallColor = section.ceilingWallColor
 
     // draw floor part of floor - start at index 1 and end 1 less then final index for triangulation
-    for (var j = 1; j < points.length - 1; j++) {
-      vertices[v++] = convert2Dto3D(points[0], floorHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j], floorHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j + 1], floorHeight, canvasDimensions)
-      sectionSurfaces.addTri(vertices, v - 3, section.id)
+    if (section.floor) {
+      for (var j = 1; j < points.length - 1; j++) {
+        vertices[v++] = convert2Dto3D(points[0], floorHeight, canvasDimensions)
+        vertices[v++] = convert2Dto3D(points[j], floorHeight, canvasDimensions)
+        vertices[v++] = convert2Dto3D(points[j + 1], floorHeight, canvasDimensions)
+        sectionSurfaces.addTri(vertices, v - 3, section.id)
 
-      faces[f++].color.setHex(floorColor)
+        faces[f++].color.setHex(floorColor)
+      }
     }
 
     // draw outside walls of floor, if below 0, invert order. Use lines. Always faces out
-    if (floorHeight != noFloorWallY) {
+    if (floorHeight != noFloorWallY && section.floor) {
       for (var j = 0; j < points.length - 1; j++) {
         var a = points[j]
           , b = points[j + 1]
@@ -93,17 +101,19 @@ function buildWorldGeometry(map, geometry, width, height) {
     }
 
     // draw ceiling part of ceiling, since looking from below to above, reverse order
-    for (var j = 1; j < points.length - 1; j++) {
-      vertices[v++] = convert2Dto3D(points[0], ceilingHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j + 1], ceilingHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j], ceilingHeight, canvasDimensions)
-      sectionSurfaces.addTri(vertices, v - 3, section.id)
+    if (section.ceiling) {
+      for (var j = 1; j < points.length - 1; j++) {
+        vertices[v++] = convert2Dto3D(points[0], ceilingHeight, canvasDimensions)
+        vertices[v++] = convert2Dto3D(points[j + 1], ceilingHeight, canvasDimensions)
+        vertices[v++] = convert2Dto3D(points[j], ceilingHeight, canvasDimensions)
+        sectionSurfaces.addTri(vertices, v - 3, section.id)
 
-      faces[f++].color.setHex(ceilingColor)
+        faces[f++].color.setHex(ceilingColor)
+      }
     }
 
     // draw outside walls of ceiling
-    if (ceilingHeight != noCeilingWallY) {
+    if (ceilingHeight != noCeilingWallY && section.ceiling) {
       for (var j = 0; j < points.length - 1; j++) {
         var a = points[j]
           , b = points[j + 1]
@@ -124,20 +134,22 @@ function buildWorldGeometry(map, geometry, width, height) {
     }
 
     // Draw middle walls if any
-    for (var j = 0; j < edges.length; j++) {
-      var edge = edges[j]
-      if (edge.length > 1) continue
+    if (section.wall) {
+      for (var j = 0; j < edges.length; j++) {
+        var edge = edges[j]
+        if (edge.length > 1) continue
 
-      vertices[v++] = convert2Dto3D(points[j], ceilingHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j + 1], ceilingHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j + 1], floorHeight, canvasDimensions)
+        vertices[v++] = convert2Dto3D(points[j], ceilingHeight, canvasDimensions)
+        vertices[v++] = convert2Dto3D(points[j + 1], ceilingHeight, canvasDimensions)
+        vertices[v++] = convert2Dto3D(points[j + 1], floorHeight, canvasDimensions)
 
-      vertices[v++] = convert2Dto3D(points[j], ceilingHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j + 1], floorHeight, canvasDimensions)
-      vertices[v++] = convert2Dto3D(points[j], floorHeight, canvasDimensions)
+        vertices[v++] = convert2Dto3D(points[j], ceilingHeight, canvasDimensions)
+        vertices[v++] = convert2Dto3D(points[j + 1], floorHeight, canvasDimensions)
+        vertices[v++] = convert2Dto3D(points[j], floorHeight, canvasDimensions)
 
-      faces[f++].color.setHex(wallColor)
-      faces[f++].color.setHex(wallColor)
+        faces[f++].color.setHex(wallColor)
+        faces[f++].color.setHex(wallColor)
+      }
     }
   }
 

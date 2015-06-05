@@ -205,6 +205,7 @@ function onClientDisconnected(conn) {
   console.log("User closed", conn)
 }
 
+// conn.peer should be the same for both reliable and unreliable connections
 function onClientConnected(conn) {
   console.log(conn.reliable ? "Reliable" : "Unreliable", " cient connected ", conn.peer)
 

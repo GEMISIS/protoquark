@@ -152,25 +152,25 @@ function Editor(canvas) {
     this.pointerLocked = !!!this.pointerLocked
   }.bind(this))
 
-  var floorInput = this.floorInput = document.getElementById("floor")
-  floorInput.addEventListener("input", function() {
+  var floorHeightInput = this.floorHeightInput = document.getElementById("floorHeight")
+  floorHeightInput.addEventListener("input", function() {
     var section = this.getSelectedSection()
     if (section) {
-      section.floorHeight = parseFloat(floorInput.value)
+      section.floorHeight = parseFloat(floorHeightInput.value)
       buildPolygons.call(this, {x: this.canvas.width, y: this.canvas.height})
     }
   }.bind(this))
-  floorInput.disabled = true
+  floorHeightInput.disabled = true
 
-  var ceilingInput = this.ceilingInput = document.getElementById("ceiling")
-  ceilingInput.addEventListener("input", function() {
+  var ceilingHeightInput = this.ceilingHeightInput = document.getElementById("ceilingHeight")
+  ceilingHeightInput.addEventListener("input", function() {
     var section = this.getSelectedSection()
     if (section) {
-      section.ceilingHeight = parseFloat(ceilingInput.value)
+      section.ceilingHeight = parseFloat(ceilingHeightInput.value)
       buildPolygons.call(this, {x: this.canvas.width, y: this.canvas.height})
     }
   }.bind(this))
-  ceilingInput.disabled = true
+  ceilingHeightInput.disabled = true
 
   var thingTypeEl = this.thingTypeEl = document.getElementById("type")
   var thingChanceEl = this.thingChanceEl = document.getElementById("chance")
@@ -198,7 +198,7 @@ function Editor(canvas) {
   toggleInputs.forEach(function(input) {
     self[input] = document.getElementById(input)
     self[input].addEventListener("change", function(e) {
-      onMapPropertyChanged.call(self, input, self[input].value)
+      onMapPropertyChanged.call(self, input, self[input].checked)
     }.bind(self))
   })
 
@@ -243,7 +243,7 @@ Editor.prototype = {
     this.rebuild3DSelection()
   },
   rebuild3DSelection: function rebuild3DSelection() {
-    geometrybuilder.buildSelectionGeometry(this.getSelections(), this.stage3D.selectionGeometry, this.canvas.width, this.canvas.height)
+    geometrybuilder.buildSelectionGeometry(this.getSelections(), this.stage3D.selectionGeometry, this.ceilingSelection, this.canvas.width, this.canvas.height)
   },
   snapMouseCoords: function snapMouseCoords(mouseCoords) {
     if (!this.snapCoords) return mouseCoords
@@ -294,10 +294,11 @@ Editor.prototype = {
       return this.selectedSections.map(function(id) {
         return this.map.findSection(id)
       }.bind(this))
-    else if (this.mode === "thing")
+    else if (this.mode === "thing" && this.selectedThing)
       return [this.selectedThing]
-    else
+    else if (this.mode === "block" && this.selectedBlock)
       return [this.selectedBlock]
+    return []
   }
 }
 
@@ -329,18 +330,19 @@ function onMouseUp(evt) {
 }
 
 function onMapPropertyChanged(propName, value) {
-  var items = this.selectedBlock && this.selectedBlock.id ? [this.selectedBlock] : (!this.selectedSections.length ? [this.map] : this.map.sections.filter(function(section) {
-    return this.selectedSections.indexOf(section.id) > -1
-  }, this))
-
-  if (!items.length) return
+  // items changed should be selection
+  // if no selection, then change the default map properties
+  var items = this.getSelections()
+  if (!items.length) items = [this.map]
 
   for (var i = 0; i < items.length; i++) {
     if (typeof items[i][propName] === undefined) continue
     items[i][propName] = value
   }
-  if (this.selectedSections.length)
+
+  if (this.selectedSections.length) {
     this.rebuild3DWorld()
+  }
 }
 
 // Sync input element values
@@ -466,9 +468,9 @@ var rightMouseHandler = {
 "3d": {
   section: function(evt) {
     if (!this.sectionSurfaces) return
-    // var pickResult = this.sectionSurfaces.pick(this.getMouseRenderer(evt), {x: this.canvas.width, y: this.canvas.height}, this.stage3D.camera)
     var canvasDim = {x: this.canvas.width, y: this.canvas.height}
-      , pickResult = this.sectionSurfaces.pick({x: canvasDim.x / 2, y: canvasDim.y / 2}, canvasDim, this.stage3D.camera)
+      // , pickResult = this.sectionSurfaces.pick({x: canvasDim.x / 2, y: canvasDim.y / 2}, canvasDim, this.stage3D.camera)
+      , pickResult = this.sectionSurfaces.pick(this.getMouseRenderer(evt), canvasDim, this.stage3D.camera)
       , section = this.map.findSection(pickResult.id)
 
     if (pickResult.pick && section) {
@@ -547,11 +549,11 @@ function onMouseWheel(evt) {
   evt.preventDefault()
   if (this.ceilingSelection) {
     section.ceilingHeight += delta
-    this.ceilingInput.value = section.ceilingHeight
+    this.ceilingHeightInput.value = section.ceilingHeight
   }
   else {
     section.floorHeight += delta
-    this.floorInput.value = section.floorHeight
+    this.floorHeightInput.value = section.floorHeight
   }
   this.rebuild3DWorld()
 }

@@ -43,7 +43,8 @@ Router.prototype.listen = function () {
   this.listening = true;
 
   var state = modifyState();
-  history.replaceState(state);
+  history.replaceState(this.oldState, state);
+  this.oldState = state;
   this.repeat(state);
 };
 

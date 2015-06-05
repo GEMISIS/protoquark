@@ -16,6 +16,7 @@ var representations = {
 
 var localIdCounter = 0
 var startingHealth = 1
+var startingScore = 0
 var SEND_INTERVAL = .04
 
 function handleDirection(control, down) {
@@ -23,6 +24,26 @@ function handleDirection(control, down) {
   if (!me) return
   me.lastControl[control] = me.control[control]
   me.control[control] = down
+}
+
+// Todo: place in visual layer obviously
+// levelEntity.context.objFile to feed into stage.
+function loadLevelModel(objFile, matFile) {
+  var loader = new THREE.OBJMTLLoader();
+    , self = this
+  var onError = function() {
+
+  }
+
+  var onProgress = function() {
+
+  }
+
+  var onSuccess = function(object) {
+    scene.add(object)
+  }
+
+  loader.load(objFile, matFile, onSuccess, onProgress, onError);
 }
 
 function loadLevel(url, done) {
@@ -174,15 +195,22 @@ conn: {
     var pos = e.context.position
     entity.position.set(pos.x, pos.y, pos.z)
     entity.health.current = entity.health.max
+    entity.weapon.primary.ammunition = weapons[entity.weapon.primary.id].ammunition
   },
   gamestate: function onGameState(e) {
     var entityMap = this.entityMap
     var states = e.context.states
+    var scores = {}
     for (var i = 0; i < states.length; i++) {
       var state = states[i]
       var player = entityMap[state.id]
-      if (player) player.health.current = state.currentHealth
+      if (player) {
+        player.health.current = state.currentHealth
+        player.score = state.currentScore
+        scores[state.id] = {name: state.id, score: player.score}
+      }
     }
+    this.emit('scoreboard', scores)
   },
   statecommand: function onStateCommand(e) {
     var entityMap = this.entityMap
@@ -344,7 +372,6 @@ Engine.prototype = {
     if (!ent.id || !this.entityMap[ent.id])
       throw Error('Invalid entity requested to be removed')
 
-    console.log("Removing", ent)
     this.entities.splice(this.entities.indexOf(ent), 1)
     delete this.entityMap[ent.id]
   },
@@ -396,16 +423,18 @@ Engine.prototype = {
   }
 }
 
+// Called by server periodically to send to players
 function onStateSend() {
   var conn = this.conn
   if (!conn.isServer()) return
 
   var states = []
-  var self = this
+  var entityMap = this.entityMap
   Object.keys(conn.players).forEach(function(id) {
     states.push({
       id: id,
-      currentHealth: self.entityMap[id].health.current
+      currentHealth: entityMap[id].health.current,
+      currentScore: entityMap[id].score,
     })
   })
 
@@ -470,7 +499,7 @@ function createPlayer(context, type) {
       ent.update = require('./entities/' + ent.type)
   }
   catch (e) {
-    console.log(e)
+    console.log("no update for", type, e)
   }
 
   return ent
@@ -481,6 +510,7 @@ function processCommandHit(target, command) {
   if (target.health.current <= Number.EPSILON) {
     target.health.current = target.health.max
     target.position.set(0, 3, 0)
+    this.entityMap[command.shooter].score += 1
     this.conn.send("death", {killer: command.shooter, id:target.id, position: {x: 0, y: 3, z: 0}}, {relay:target.id})
   }
 }

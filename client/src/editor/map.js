@@ -33,6 +33,9 @@ function Map() {
   this.noFloorWallY = 0
   this.noCeilingWallY = 10
 
+  // Enabled or not
+  this.floor = this.ceiling = this.wall = true
+
   // Incomplete points for next sector and block, respectively
   // Set of active, incomplete points that are cleared when they make a complete section
   this.points = []
@@ -116,9 +119,9 @@ Map.prototype = {
       points: points,
       floorHeight: this.noFloorWallY,
       ceilingHeight: this.noCeilingWallY,
-      floor: true,
-      ceiling: true,
-      wall: true,
+      floor: this.floor,
+      ceiling: this.ceiling,
+      wall: this.wall,
       doubleSidedWalls: false,
       wallColor: this.wallColor,
       floorColor: this.floorColor,
