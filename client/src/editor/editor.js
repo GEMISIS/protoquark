@@ -68,6 +68,7 @@ var keysDown = {
     if (this.view === "2d") {
       this.canvas.style.display = "block"
       this.stage3D.renderer.domElement.style.display = "none"
+      document.exitPointerLock()
     }
     else {
       this.stage3D.resetLastLook()
@@ -136,15 +137,20 @@ function Editor(canvas) {
   canvas.addEventListener("contextmenu", function(e){e.preventDefault()})
   canvas.addEventListener("mousewheel", onMouseWheel.bind(this))
 
-  this.stage3D.renderer.domElement.addEventListener("mousemove", onMouseMove.bind(this))
-  this.stage3D.renderer.domElement.addEventListener("mousewheel", onMouseWheel.bind(this))
-  this.stage3D.renderer.domElement.addEventListener("mousedown", onMouseDown.bind(this))
-  this.stage3D.renderer.domElement.addEventListener("mouseup", onMouseUp.bind(this))
-  this.stage3D.renderer.domElement.addEventListener("contextmenu", function(e){e.preventDefault()})
+  var stage3DEl = this.stage3D.renderer.domElement
+  stage3DEl.addEventListener("mousemove", onMouseMove.bind(this))
+  stage3DEl.addEventListener("mousewheel", onMouseWheel.bind(this))
+  stage3DEl.addEventListener("mousedown", onMouseDown.bind(this))
+  stage3DEl.addEventListener("mouseup", onMouseUp.bind(this))
+  stage3DEl.addEventListener("contextmenu", function(e){e.preventDefault()})
 
   window.addEventListener("keydown", onKeyDown.bind(this))
   window.addEventListener("keyup", onKeyUp.bind(this))
   // window.addEventListener("mousewheel", onMouseWheel.bind(this))
+
+  document.addEventListener("pointerlockchange", function(evt) {
+    this.pointerLocked = !!!this.pointerLocked
+  }.bind(this))
 
   var floorInput = this.floorInput = document.getElementById("floor")
   floorInput.addEventListener("input", function() {
@@ -237,15 +243,7 @@ Editor.prototype = {
     this.rebuild3DSelection()
   },
   rebuild3DSelection: function rebuild3DSelection() {
-    var section = this.map.findSection(this.selectedSections[0])
-    if (section) {
-      geometrybuilder.buildSelectionGeometry(section, this.stage3D.selectionGeometry, this.ceilingSelection, this.canvas.width, this.canvas.height)
-      return
-    }
-
-    if (this.selectedBlock) {
-      geometrybuilder.buildSelectionGeometry(this.selectedBlock, this.stage3D.selectionGeometry, this.ceilingSelection, this.canvas.width, this.canvas.height)
-    }
+    geometrybuilder.buildSelectionGeometry(this.getSelections(), this.stage3D.selectionGeometry, this.canvas.width, this.canvas.height)
   },
   snapMouseCoords: function snapMouseCoords(mouseCoords) {
     if (!this.snapCoords) return mouseCoords
@@ -287,6 +285,19 @@ Editor.prototype = {
   },
   getMouseRenderer: function getMouseRenderer(evt) {
     return computeMouseCoords(evt, this.stage3D.renderer.domElement, {x: 0, y:0})
+  },
+  getMouseRendererDelta: function(evt) {
+    return {x: evt.movementX, y: evt.movementY}
+  },
+  getSelections: function() {
+    if (this.mode === "section")
+      return this.selectedSections.map(function(id) {
+        return this.map.findSection(id)
+      }.bind(this))
+    else if (this.mode === "thing")
+      return [this.selectedThing]
+    else
+      return [this.selectedBlock]
   }
 }
 
@@ -395,6 +406,9 @@ var leftMouseHandler = {
 "3d": {
   block: function(evt) {
     this.leftMouseDown = true
+  },
+  section: function(evt) {
+    // this.stage3D.renderer.domElement.requestPointerLock()
   }
 }
 }
@@ -452,7 +466,9 @@ var rightMouseHandler = {
 "3d": {
   section: function(evt) {
     if (!this.sectionSurfaces) return
-    var pickResult = this.sectionSurfaces.pick(this.getMouseRenderer(evt), {x: this.canvas.width, y: this.canvas.height}, this.stage3D.camera)
+    // var pickResult = this.sectionSurfaces.pick(this.getMouseRenderer(evt), {x: this.canvas.width, y: this.canvas.height}, this.stage3D.camera)
+    var canvasDim = {x: this.canvas.width, y: this.canvas.height}
+      , pickResult = this.sectionSurfaces.pick({x: canvasDim.x / 2, y: canvasDim.y / 2}, canvasDim, this.stage3D.camera)
       , section = this.map.findSection(pickResult.id)
 
     if (pickResult.pick && section) {
@@ -552,7 +568,13 @@ function onMouseMove(evt) {
   }
   else {
     this.stage3D.look(this.getMouseRenderer(evt))
-    this.stage3D.render()
+    // if (!this.pointerLocked) return
+
+    // var delta = this.getMouseRendererDelta(evt)
+    // delta.x = -delta.x / 200
+    // delta.y = -delta.y / 200
+    // this.stage3D.lookDelta(delta)
+    // this.stage3D.render()
   }
 }
 

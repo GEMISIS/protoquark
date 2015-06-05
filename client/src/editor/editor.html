@@ -8,18 +8,27 @@
   }
 
   form {
-    float: right;
+    position: absolute;
+    right: 0;
+    z-index: 100;
   }
 
   input {
     display: block;
-    /*float: right;*/
+  }
+
+  canvas {
+    z-index: 0;
   }
 
   input:after {
     content: "";
     display: none;
     clear: both;
+  }
+
+  body {
+    position: relative;
   }
 
 </style>
@@ -75,7 +84,5 @@
 </canvas>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.min.js"></script>
 <script src="./OBJExporter.js"></script>
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.js"></script> -->
-
 <script src="bin/main.js"></script>
 </body>

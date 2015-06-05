@@ -106,26 +106,9 @@ conn: {
       return
 
     // Create the entity only if we're not migrating
-    // var ent = exists ? this.entityMap[contextId] : new Entity(e.context, owned ? contextId : this.genLocalId())
-    var ent = new Entity(e.context, contextId)
-    ent.type = owned ? "player" : "remoteplayer"
-    ent.health = {max: startingHealth, current: startingHealth}
-    ent.jump = 0
-
-    try {
-      if (!ent.update)
-        ent.update = require('./entities/' + ent.type)
-    }
-    catch (e) {
-      console.log(e)
-    }
-
+    var ent = createPlayer(e.context, owned ? "player" : "remoteplayer")
     if (exists) return
 
-    addStartingWeapon.call(this, ent)
-
-    ent.control = {}
-    ent.lastControl = {}
     this.add(ent)
   },
 
@@ -158,13 +141,7 @@ conn: {
         return
       }
 
-      var ent = new Entity(e.context[id], id)
-      ent.health = {max: startingHealth, current: startingHealth}
-      ent.control = {}
-      ent.lastControl = {}
-      addStartingWeapon.call(this, ent)
-      ent.type = "remoteplayer"
-      ent.update = require('./entities/remoteplayer')
+      var ent = createPlayer(e.context[id], "remoteplayer")
       self.add(ent)
     })
     console.log("onPlayers")
@@ -477,6 +454,26 @@ function addStartingWeapon(ent) {
     shotTimer: 0,
     ammunition: weapons[weaponId].ammunition
   }
+}
+
+function createPlayer(context, type) {
+  var ent = new Entity(context, context.id)
+  ent.type = type
+  ent.health = {max: startingHealth, current: startingHealth}
+  ent.jump = 0
+  ent.control = {}
+  ent.lastControl = {}
+  addStartingWeapon(ent)
+
+  try {
+    if (!ent.update)
+      ent.update = require('./entities/' + ent.type)
+  }
+  catch (e) {
+    console.log(e)
+  }
+
+  return ent
 }
 
 function processCommandHit(target, command) {

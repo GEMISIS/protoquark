@@ -4,6 +4,7 @@ var SurfaceList = require("./surfacelist")
 
 // maxVertices must be a multiple of 3
 var maxVertices = 3000
+var maxSelectionVertices = 300
 var numFaces = maxVertices / 3
 
 function Stage3D(width, height) {
@@ -47,15 +48,24 @@ render: function render() {
 
 look: function look(mouseCoords) {
   // Inverse movement since this is the camera
-  this.angle.x -= (mouseCoords.x - this.lastLook.x) / 200
-  this.angle.y -= (mouseCoords.y - this.lastLook.y) / 200
+  var delta = {
+    x: -(mouseCoords.x - this.lastLook.x) / 200,
+    y: -(mouseCoords.y - this.lastLook.y) / 200
+  }
+
+  this.lookDelta(delta)
+  this.lastLook = mouseCoords
+},
+
+lookDelta: function lookDelta(mouseDelta) {
+  this.angle.x += mouseDelta.x
+  this.angle.y += mouseDelta.y
 
   var x = this.angle.x
   var y = this.angle.y
   var lookAtPoint = this.computeForward().add(this.camera.position)
 
   this.camera.lookAt(lookAtPoint)
-  this.lastLook = mouseCoords
 },
 
 computeForward: function computeForward() {
@@ -109,10 +119,10 @@ initGeometry: function() {
   }
 
   var selectionGeometry = this.selectionGeometry = new THREE.Geometry()
-  for (var i = 0; i < 60; i++) {
+  for (var i = 0; i < maxSelectionVertices; i++) {
     selectionGeometry.vertices.push(new Vector3(0, 0, 0))
   }
-  for (var i = 0; i < 60 / 3; i++) {
+  for (var i = 0; i < maxSelectionVertices / 3; i++) {
     var vertIndex = i * 3
     selectionGeometry.faces.push(new THREE.Face3(vertIndex, vertIndex + 1, vertIndex + 2))
   }

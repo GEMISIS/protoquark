@@ -8,21 +8,23 @@ function convert2Dto3D(point, y, canvasDimensions, gradient) {
   return new Vector3((point.x - canvasDimensions.x / 2) * gradient, y, (point.y - canvasDimensions.y / 2) * gradient)
 }
 
-function buildSelectionGeometry(section, geometry, isCeiling, width, height) {
+function buildSelectionGeometry(selections, geometry, isCeiling, width, height) {
   var vertices = geometry.vertices
     , v = 0
-    , points = section.points
     , canvasDimensions = {x: width, y: height}
+  for (var i = 0; i < selections.length; i++) {
+    var selection = selections[i]
+      , points = selection.points
+    for (var j = 1; j < points.length - 1; j++) {
+      var a = points[0]
+        , b = isCeiling ? points[j + 1] : points[j]
+        , c = isCeiling ? points[j] : points[j + 1]
+        , y = isCeiling ? section.ceilingHeight : section.floorHeight
 
-  for (var i = 1; i < points.length - 1; i++) {
-    var a = points[0]
-      , b = isCeiling ? points[i + 1] : points[i]
-      , c = isCeiling ? points[i] : points[i + 1]
-      , y = isCeiling ? section.ceilingHeight : section.floorHeight
-
-    vertices[v++] = convert2Dto3D(a, y, canvasDimensions)
-    vertices[v++] = convert2Dto3D(b, y, canvasDimensions)
-    vertices[v++] = convert2Dto3D(c, y, canvasDimensions)
+      vertices[v++] = convert2Dto3D(a, y, canvasDimensions)
+      vertices[v++] = convert2Dto3D(b, y, canvasDimensions)
+      vertices[v++] = convert2Dto3D(c, y, canvasDimensions)
+    }
   }
 
   var zero = new Vector3(0, 0, 0)

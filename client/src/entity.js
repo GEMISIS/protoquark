@@ -1,16 +1,18 @@
-var Maths = require("./math").maths
 var Matrix4    = require("./math").mat4
 var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
 
 function Entity(context, id) {
+  var type = typeof context
+  id = id || (type === "string" ? context : (context && context.id ? context.id : "id"))
+  context = (type === "string" || !context) ? {id: id} : context
+
   this.context = context
+  this.id = id
 
   this.position = new Vector3(0, 2, 0)
   this.rotation = new Quaternion()
   this.euler = new Vector3()
-
-  this.id = id
 
   // ordered array of snapshots based on time with most recent snapshot at end of list.
   this.snapshots = []

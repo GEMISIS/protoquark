@@ -1,7 +1,7 @@
-var Entity   = require("../entity")
-var Vector3  = require("../math").vec3
+var Entity    = require("../entity")
+var Vector3   = require("../math").vec3
 var collision = require("../collision")
-var gib = require("./gib")
+var gib       = require("./gib")
 
 var bullet = {
   create: function create(id, creator, bulletType) {
