@@ -434,12 +434,12 @@ function onStateSend() {
   if (!conn.isServer()) return
 
   var states = []
-  var self = this
+  var entityMap = this.entityMap
   Object.keys(conn.players).forEach(function(id) {
     states.push({
       id: id,
-      currentHealth: self.entityMap[id].health.current,
-      currentScore: self.entityMap[id].score,
+      currentHealth: entityMap[id].health.current,
+      currentScore: entityMap[id].score,
     })
   })
 
