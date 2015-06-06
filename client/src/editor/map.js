@@ -617,8 +617,17 @@ function addSection(section) {
 
 function isSectionInside(section, containerSection) {
   for (var i = 0; i < section.points.length; i++) {
-    if (!isPointInside(section.points[i], containerSection.points))
-      return false
+    var point = section.points[i]
+    if (!isPointInside(point, containerSection.points)) {
+      // Try to see if colinear since some inaccuracies with isPointInside on edges
+      var colinear = false
+      for (var j = 0; j < containerSection.edges.length && !colinear; j++) {
+        colinear = isNearColinear(containerSection.points[j], containerSection.points[j + 1], point)
+      }
+
+      if (!colinear)
+        return false
+    }
   }
   return true
 }
