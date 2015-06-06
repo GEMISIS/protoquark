@@ -385,21 +385,32 @@ function mergeUnsharedEdges() {
   }
 }
 
+// todo refactor ...
+function splitEdgeSimpler(sectionToSplit, edgeIndex, forward, split) {
+  var sec = sectionToSplit
+  splitEdge(sec.edges, edgeIndex, sec.points, forward, sec.id, split)
+}
+
 // a = edge point of section
 // b = edge point of section
 // edges = edges of section
 // points = points of section
-// forwards only applies to split with 1 point. if true, new edge is from (split.points[0] to b) otherwise
-// it is from (a to split.points[0])
+// forwards only applies to split with 1 point.
+// It is true if the new edge created in edges is the "2nd half"
+// if true, new edge is from (split.points[0] to b in edges) otherwise
+// it is from (a in edges to split.points[0])
 function splitEdge(edges, edgeIndex, points, forwards, sectionId, split) {
-  // NOTE: this needs testing - the removal of split points that are near the points
+  // NOTE: this needs testing - the removal of split points that are near / equal the points
   // for (var i = 0; i < split.points.length; i++) {
   //   var a = points[edgeIndex]
   //     , b = points[edgeIndex + 1]
   //     , splitPt = split.points[i]
-  //   if (isNearPoint(splitPt, a) || isNearPoint(splitPt, b)) {
+  //   // if (isNearPoint(splitPt, a) || isNearPoint(splitPt, b)) {
+  //     if ((a.x == splitPt.x && a.y == splitPt.y) ||
+  //         (b.x == splitPt.x && b.y == splitPt.y)) {
   //     split.points.splice(i, 1)
   //     i--
+  //     console.log("splicing", i, splitPt)
   //   }
   // }
 
@@ -498,18 +509,48 @@ function addSection(section) {
           , t1 = Math.max(info.t0, info.t1)
 
         console.log("Edge", sectionEdgeIndex, "against", otherEdgeIndex)
-        // Case 0: Both edges about equal, no splitting
-        if ( (isNearPoint(c, a) && isNearPoint(d, b)) ||
+
+        if ((t0 == 0 && t1 > 1) ||
+          (t1 == 1 && t0 < 0)) {
+          // Case 5 added section has edge ab greater than edge cd and shares one point with cd
+          console.log("Case 5")
+          addSectionToEdges(otherSection.edges[otherEdgeIndex], section.id)
+
+          // split edge ab of section
+          addedPointsSection.push(t0 == 0 ? d : c)
+          splitEdgeSimpler(section, sectionEdgeIndex, t0 == 0, {
+            points: addedPointsSection,
+            sectionId: otherSection.id
+          })
+
+          nonCase1Split = true
+        }
+        else if ((t0 == 0 && t1 > 0 && t1 < 1) ||
+          (t1 == 1 && t0 > 0 && t0 < 1)) {
+          // Case 6 added section has edge ab shorter than edge cd and shares one point with cd
+          console.log("Case 6")
+          addSectionToEdges(section.edges[sectionEdgeIndex], otherSection.id)
+
+          // split cd
+          addedPointsOther.push(t0 == 0 ? a : b)
+          splitEdgeSimpler(otherSection, otherEdgeIndex, t1 == 1, {
+            points: addedPointsOther,
+            sectionId: section.id
+          })
+          // might not need this since ab is fully embedded in this case
+          nonCase1Split = true
+        }
+        else if ( (isNearPoint(c, a) && isNearPoint(d, b)) ||
           (isNearPoint(d, a) && isNearPoint(c, b))) {
-          console.log("case 0")
+          // Case 0: Both edges about equal, no splitting
+          console.log("Case 0:")
           addSectionToEdges(section.edges[sectionEdgeIndex], otherSection.id)
           addSectionToEdges(otherSection.edges[otherEdgeIndex], section.id)
           looping = false
           break
         }
-        else if ((t0 >= 0 && t1 <= 1)) {//} ||
-          // (Math.abs(getTInPixels(c, d, t0)) <= pixelTolerance && Math.abs(getTInPixels(c, d, t1) - getTInPixels(c, d, 1)) <= pixelTolerance)) {
-          console.log("case 1")
+        else if (t0 >= 0 && t1 <= 1) {
+          console.log("Case 1:")
           // Case 1: a and b are fully embedded in other sections edge (cd), so only split other section
           // swap if order is inconsistent (this would occur depending on which edge intersects)
           if (info.t0 > info.t1) {
@@ -574,7 +615,7 @@ function addSection(section) {
           })
         }
         else if (info.t1 >= 0 && info.t1 <= 1) {
-          console.log("b between c d case 4")
+          console.log("Case 4: b between c d")
           nonCase1Split = true
           // Case 4
           // Add b between c and d to otherSection
