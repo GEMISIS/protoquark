@@ -5,7 +5,7 @@ var deg2rad = require("./math").deg2rad
 var closestToLine = require("./math").closestToLine
 var distanceToLine = require("./math").distanceToLine
 var emitter = require("component/emitter")
-
+var lineIntersection = require("./math").lineIntersection
 //
 // 2D representation of the map.
 //
@@ -24,11 +24,11 @@ function Map() {
   this.selectedSections = []
 
   // Current colors, change to set to next / default color
-  this.wallColor = 0xFF0000
-  this.floorColor = 0x00FF00
-  this.floorWallColor = 0x555555
-  this.ceilingColor = 0x0000FF
-  this.ceilingWallColor = 0xAAAAAA
+  this.wallColor = 0x9EACFF
+  this.floorColor = 0x4A5CB0
+  this.floorWallColor = 0x4A5CB0
+  this.ceilingColor = 0x4A5CB0
+  this.ceilingWallColor = 0x4A5CB0
 
   this.noFloorWallY = 0
   this.noCeilingWallY = 10
@@ -304,10 +304,10 @@ function isEdgeNearColinearOther(a, b, c, d) {
   var midpoint = new Vector3().addVectors(c, d).multiplyScalar(.5)
   var ba = new Vector3().subVectors(b, a)
     , pa = new Vector3().subVectors(d, c)
-    , angleLimit = deg2rad(10)
+    , angleLimit = deg2rad(.5)
     , angle = ba.angleTo(pa)
   // since angle can only be [0, 180], check opposite
-  return isNearColinear(a, b, midpoint) && (angle < angleLimit || angle > deg2rad(180) - angleLimit)
+  return isNearColinear(a, b, midpoint) && (angle < angleLimit || angle > deg2rad(180) - angleLimit) && lineIntersection(a, b, c, d)
 }
 
 function isNearColinear(a, b, point) {

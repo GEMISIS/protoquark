@@ -439,7 +439,6 @@ function onStateSend() {
   })
 
   if (states.length) {
-    // conn.send("gamestate", { states: states }, {reliable: true})
     conn.send("gamestate", { states: states })
   }
 }
