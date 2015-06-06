@@ -102,6 +102,19 @@ var keysDown = {
   67: function onToggleCeiling(e) {
     this.ceilingSelection = !this.ceilingSelection
     this.rebuild3DSelection()
+  },
+  77: function onSetHeightsToLast(e) {
+    if (this.mode !== "section") return
+    var selections = this.getSelections()
+      , last = selections[selections.length - 1]
+      , prop = this.ceilingSelection ? "ceilingHeight" : "floorHeight"
+    for (var i = 0; i < selections.length - 1; i++) {
+      var section = selections[i]
+      if (!section) continue
+      section[prop] = last[prop]
+    }
+    if (selections.length)
+      this.rebuild3DWorld()
   }
 }
 
