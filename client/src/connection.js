@@ -245,6 +245,7 @@ function pingClient(id, times) {
   if (this.players[id].pinging) return
   times = times || 1
   this.players[id].pinging = true
+  this.players[id].latencies = []
 
   while (times-- > 0) {
     setTimeout((function(){
