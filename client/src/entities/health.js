@@ -23,8 +23,9 @@ var health = {
       var other = entities[i]
       if (other.type == "player" || other.type == "remoteplayer") {
         var hit = collision.collides(ent, other)
-        if (hit) {
-          console.log("Got health!")
+        if (hit && !ent.markedForDeletion) {
+          this.addStateCommand({command: "health", target: other.id})
+          ent.markedForDeletion = true
         }
       }
     }

@@ -214,6 +214,9 @@ conn: {
       if (state.command == 'hit' && target) {
         processCommandHit.call(this, target, state)
       }
+      else if(state.command == 'health' && target) {
+        processHealthGet.call(this, target, state);
+      }
     }
   },
   entitiesupdate: function onEntitiesUpdate(e) {
@@ -511,6 +514,13 @@ function processCommandHit(target, command) {
     target.position.set(0, 3, 0)
     this.entityMap[command.shooter].score += 1
     this.conn.send("death", {killer: command.shooter, id:target.id, position: {x: 0, y: 3, z: 0}}, {relay:target.id})
+  }
+}
+
+function processHealthGet(target, command) {
+  target.health.current += .34
+  if(target.health.current > target.health.max) {
+    target.health.current = target.health.max
   }
 }
 
