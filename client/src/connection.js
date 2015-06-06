@@ -353,7 +353,6 @@ function serve() {
 }
 
 function migrate() {
-  console.log("migrating server")
   var id = this.peer.id
     , players = this.players
     , pkeys = Object.keys(players)
@@ -366,8 +365,12 @@ function migrate() {
 
   console.log("next host", nextHostId)
 
+  // Reset
+  players[hostId].isHost = false
+  players[nextHostId].isHost = true
+
   // Make sure we emit the migration event before the playerexit event so listeners can 
-  // handle the about to exit player before he actually exits
+  // handle the player who is about to exit before he actually exits
   this.emit("migration", {
     event: "migration",
     context: {
@@ -377,16 +380,23 @@ function migrate() {
   })
 
   // Remove new host player from ourself since he will have old host's id when he becomes server
-  this.emit('playerexit', {
-    event: 'playerexit',
+  this.emit("playerexit", {
+    event: "playerexit",
     context: this.players[nextHostId]
   })
+
+  console.log("migrating server to %s", id === nextHostId ? "self" : id)
 
   // Serve if we are next in line.
   if (id === nextHostId)
     serve.call(this, id)
-  else if (nextHostId)
-    this.connect(nextHostId)
+  else if (nextHostId) {
+    // todo: need better way but for now just wait a bit before connecting to new host since
+    // if connect fail, serve is called instead but we already know our host
+    setTimeout(function() {
+      this.connect(nextHostId)
+    }.bind(this), 1000)
+  }
 }
 
 emitter(Connection.prototype)

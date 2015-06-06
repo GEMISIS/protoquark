@@ -7,7 +7,8 @@ var Vector3    = require("./math").vec3
 var Triangle   = require("./math").triangle
 var weapons    = require("./config/weapon")
 var health     = require("./entities/health")
-require('./entities/player')
+require("./entities/player")
+require("./entities/remoteplayer")
 
 var localIdCounter = 0
 var startingHealth = 1
@@ -102,38 +103,23 @@ conn: {
   playerenter: function onPlayerEnter (e) {
     console.log("onPlayerEnter", e.context)
 
-    var contextId = e.context.id
+    var id = e.context.id
     var conn = this.conn
-    var owned = conn.isOwnId(contextId)
-    var exists = !!this.entityMap[contextId]
+    var owned = conn.isOwnId(id)
+    var ent = this.entityMap[id]
+    var exists = !!ent
 
     // If we get an existing entity context id, means we've migrated.
     // The only case where this would need to be reset would be for the new
-    if (exists && (!conn.isServer() || !owned))
+    if (exists) {
+      ent.type = owned ? "player" : "remoteplayer"
+      addUpdate(ent)
       return
-
-    // Create the entity only if we're not migrating
-    // var ent = exists ? this.entityMap[contextId] : new Entity(e.context, owned ? contextId : this.genLocalId())
-    var ent = new Entity(e.context, contextId)
-    ent.type = owned ? "player" : "remoteplayer"
-    ent.health = {max: startingHealth, current: startingHealth}
-    ent.score = startingScore
-    ent.jump = 0
-
-    try {
-      if (!ent.update)
-        ent.update = require('./entities/' + ent.type)
-    }
-    catch (e) {
-      console.log(e)
     }
 
-    if (exists) return
-
-    addStartingWeapon.call(this, ent)
-
-    ent.control = {}
-    ent.lastControl = {}
+    console.log("Adding", id, owned)
+    // Create the entity only if we're not migrating / it doesnt exist
+    var ent = createPlayer(e.context, owned ? "player" : "remoteplayer")
     this.add(ent)
   },
 
@@ -147,6 +133,7 @@ conn: {
 
     if (!ent) return
 
+    console.log("Removing", ent)
     this.remove(ent)
   },
 
@@ -160,20 +147,15 @@ conn: {
         return
       }
 
+      // If already exists, just update its update function
       var previousEnt = self.entityMap[id]
       if (previousEnt) {
         previousEnt.type = "remoteplayer"
+        addUpdate(previousEnt)
         return
       }
 
-      var ent = new Entity(e.context[id], id)
-      ent.health = {max: startingHealth, current: startingHealth}
-      ent.score = startingScore
-      ent.control = {}
-      ent.lastControl = {}
-      addStartingWeapon.call(this, ent)
-      ent.type = "remoteplayer"
-      ent.update = require('./entities/remoteplayer')
+      var ent = createPlayer(e.context[id], "remoteplayer")
       self.add(ent)
     })
     console.log("onPlayers")
@@ -261,12 +243,14 @@ conn: {
     if (!newPlayer || !previousPlayer) return
 
     // Set new host's position into old
-    // Don't care what we do to newHostPlayer since he'll be removed during the migration.
+    // Don't care what we do to new host's old player since he'll be removed during the migration.
     newPlayer.snapshots = previousPlayer.snapshots
     newPlayer.position = previousPlayer.position
     newPlayer.rotation = previousPlayer.rotation
     newPlayer.euler = previousPlayer.euler
     newPlayer.lastSnapshotTime = previousPlayer.lastSnapshotTime
+    newPlayer.control = previousPlayer.control
+    newPlayer.lastControl = previousPlayer.lastControl
   },
 
   peeridassigned: function onPeerIdAssigned (e) {
@@ -494,6 +478,30 @@ function addStartingWeapon(ent) {
     id: weaponId,
     shotTimer: 0,
     ammunition: weapons[weaponId].ammunition
+  }
+}
+
+function createPlayer(context, type) {
+  var ent = new Entity(context, context.id)
+  ent.type = type
+  ent.health = {max: startingHealth, current: startingHealth}
+  ent.jump = 0
+  ent.control = {}
+  ent.lastControl = {}
+  addStartingWeapon(ent)
+  addUpdate(ent)
+  return ent
+}
+
+function addUpdate(ent) {
+  if (!ent.type) return
+
+  try {
+    // if (!ent.update)
+    ent.update = require('./entities/' + ent.type)
+  }
+  catch (e) {
+    // console.log("no update for", ent.type, ent.id, ent)
   }
 }
 
