@@ -1,6 +1,6 @@
 var Vector3 = THREE.Vector3
 
-module.exports = {
+var math = {
   deg2rad: function deg2rad(deg) {
     return deg * Math.PI / 180
   },
@@ -58,6 +58,7 @@ module.exports = {
     }
   },
 
+  // this gets parallel distance from the infinite line connecting ab
   distanceToLine: function distanceToLine(a, b, p) {
     var n = new Vector3().subVectors(b, a).normalize()
       , ap = new Vector3().subVectors(a, p)
@@ -65,32 +66,81 @@ module.exports = {
     return new Vector3().addVectors(ap, n.multiplyScalar(-proj)).length()
   },
 
+  projectedPointOnLine: function projectedPointOnLine(a, b, p) {
+    var n = new Vector3().subVectors(b, a).normalize()
+      , pa = new Vector3().subVectors(p, a)
+      , proj = pa.dot(n)
+    return a.add(n.multiplyScalar(proj))
+  },
+
+  projectedTOnLine: function projectedPointOnLine(a, b, p) {
+    var n = new Vector3().subVectors(b, a)
+      , normalized = new Vector3().copy(n).normalize()
+      , pa = new Vector3().subVectors(p, a)
+      , proj = pa.dot(normalized)
+    return proj / n.length()
+  },
+
   // returns time on intersection of line ab and cd
   // http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/565282#565282
+  // lineIntersection: function lineIntersection(a, b, c, d) {
+  //   var ba = new Vector3().subVectors(b, a)
+  //     , dc = new Vector3().subVectors(d, c)
+  //     , p = a
+  //     , r = ba
+  //     , q = c
+  //     , s = dc
+  //     , rxs = new Vector3().crossVectors(r, s)
+  //     , qpxr = new Vector3().subVectors(q, p).cross(r)
+  //     , qpxs = new Vector3().subVectors(q, p).cross(s)
+  //     , t = qpxr.length() / rxs.length()
+  //     , u = qpxr.length() / rxs.length()
+  //     , t0
+  //     , t1
+
+  //   if (rxs.length() <= Number.EPSILON && qpxr.length() <= Number.EPSILON) {
+  //     t0 = new Vector3().subVectors(q, p).dot(r) / r.lengthSq()
+  //     t1 = t0 + s.dot(r) / r.lengthSq()
+  //     return t0 >= 0 && t0 <= 1 && t1 >= 0 && t1 <= 1
+  //   }
+  //   else if (rxs.length() > Number.EPSILON) {
+  //     return u >= 0 && u <= 1 && t >= 0 && t <= 1
+  //   }
+  //   return false
+  // }
+
   lineIntersection: function lineIntersection(a, b, c, d) {
-    var ba = new Vector3().subVectors(b, a)
-      , dc = new Vector3().subVectors(d, c)
-      , p = a
-      , r = ba
-      , q = c
-      , s = dc
-      , rxs = new Vector3().crossVectors(r, s)
-      , qpxr = new Vector3().subVectors(q, p).cross(r)
-      , qpxs = new Vector3().subVectors(q, p).cross(s)
-      , t = qpxr.length() / rxs.length()
-      , u = qpxr.length() / rxs.length()
-      , t0
-      , t1
+    // http://stackoverflow.com/questions/2316490/the-algorithm-to-find-the-point-of-intersection-of-two-3d-line-segment
+    var da = new Vector3().subVectors(b, a)
+      , db = new Vector3().subVectors(d, c)
+      , dc = new Vector3().subVectors(c, a)
 
-    if (rxs.length() <= Number.EPSILON && qpxr.length() <= Number.EPSILON) {
-      t0 = new Vector3().subVectors(q, p).dot(r) / r.lengthSq()
-      t1 = t0 + s.dot(r) / r.lengthSq()
-      return t0 >= 0 && t0 <= 1 && t1 >= 0 && t1 <= 1
+    if (Math.abs(dc.dot(new Vector3().crossVectors(da, db))) > Number.EPSILON)
+      return false
+
+    // check for colinearity
+    var t0 = math.projectedTOnLine(a, b, c)
+      , t1 = math.projectedTOnLine(a, b, d)
+      , t2 = math.projectedTOnLine(c, d, a)
+      , t3 = math.projectedTOnLine(c, d, b)
+    if ((math.distanceToLine(a, b, c) <= Number.EPSILON && t0 >= 0 && t0 <= 1) ||
+        (math.distanceToLine(a, b, d) <= Number.EPSILON && t1 >= 0 && t1 <= 1) ||
+        (math.distanceToLine(c, d, a) <= Number.EPSILON && t2 >= 0 && t2 <= 1) || 
+        (math.distanceToLine(c, d, b) <= Number.EPSILON && t3 >= 0 && t3 <= 1))
+      return true
+
+    // check for non colinear intersection
+    var s = new Vector3().crossVectors(dc, db).dot(new Vector3().crossVectors(da, db)) / new Vector3().crossVectors(da, db).lengthSq()
+    if (s >= 0 && s <= 1) {
+      var collisionPoint = new Vector3().addVectors(a, da.multiplyScalar(s))
+      var t = math.projectedTOnLine(c, d, collisionPoint)
+      if (t >= 0 && t <= 1) {
+
+      }
     }
-    else if (rxs.length() > Number.EPSILON) {
-      return u >= 0 && u <= 1 && t >= 0 && t <= 1
-    }
+
     return false
-
   }
 }
+
+module.exports = math

@@ -303,8 +303,8 @@ function isNearPoint(a, b) {
 
 function isEdgeNearColinearOther(a, b, c, d) {
   var midpoint = new Vector3().addVectors(c, d).multiplyScalar(.5)
-  var ba = new Vector3().subVectors(b, a)
-    , pa = new Vector3().subVectors(d, c)
+  var ba = new Vector3().subVectors(b, a).normalize()
+    , pa = new Vector3().subVectors(d, c).normalize()
     , angleLimit = deg2rad(1.0)
     , angle = ba.angleTo(pa)
   // since angle can only be [0, 180], check opposite
