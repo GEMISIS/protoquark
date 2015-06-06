@@ -1,7 +1,7 @@
-var Entity   = require("../entity")
-var Vector3  = require("../math").vec3
-var collision = require("../collision")
-var gib = require("./gib")
+var Entity     = require("../entity")
+var Vector3    = require("../math").vec3
+var collision  = require("../collision")
+var gib        = require("./gib")
 
 var health = {
   create: function create(id, pos) {
@@ -11,14 +11,12 @@ var health = {
     ent.position.copy(pos)
     ent.shape = new Vector3(.1, .1, .1)
 
-    ent.type = "bullet"
+    ent.type = "health"
 
     return ent
   },
 
   updateHealth: function updateHealth (dt, ent) {
-    var hitPoint
-
     // TODO: Use some type of tree to limit number of entities checked
     var entities = this.entities
     var enemyHit = null
@@ -36,10 +34,6 @@ var health = {
           hitPoint = hit.position
           console.log("Got health!")
         }
-
-        //if (hit.collision && other.type != "player")
-          // TODO: Add health state command.
-          //this.addStateCommand({command: "hit", target: other.id, shooter: ent.creator})
       }
     }
   }

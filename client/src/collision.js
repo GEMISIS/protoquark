@@ -288,7 +288,7 @@ module.exports = {
     boxB.min.add(b.position)
     boxB.max.add(b.position)
 
-    return boxA.containsBox(boxB)
+    return boxA.intersect(boxB)
   },
 
   collidesSwept: function collidesSwept(a, b, from, to) {

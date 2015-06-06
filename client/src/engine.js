@@ -72,7 +72,6 @@ function parseLevel(level) {
 
   level.healths.forEach((function(healthObj) {
     var ent = health.create(this.genLocalId(), healthObj.position)
-    ent.type = 'block'
     var pos = healthObj.position
     ent.position = new Vector3(pos.x, pos.y, pos.z)
     //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
