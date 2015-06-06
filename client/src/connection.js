@@ -20,6 +20,14 @@ function Connection() {
   this.on("ping", onPing.bind(this))
   this.on("pong", onPong.bind(this))
   this.on("servertime", onServerTime.bind(this))
+
+  var self = this
+  this.pingIntervalId = setInterval(function() {
+    Object.keys(self.players).forEach(function (id) {
+      self.players[id]
+      pingClient.call(self, id, MAX_PINGS)
+    })
+  }, 7500)
 }
 
 Connection.prototype = {
@@ -122,12 +130,12 @@ function onClientIdAssigned(id) {
   }
 
   Object.keys(server).forEach((function (type) {
-    var conn = server[type];
+    var conn = server[type]
     conn.on("open", onConnectedToServer.bind(this))
     conn.on("data", onServerData.bind(this))
     conn.on("close", onServerDisconnected.bind(this))
     conn.on("error", onServerError.bind(this))
-  }).bind(this));
+  }).bind(this))
 
   this.emit('peeridassigned', this.peer.id)
 }
@@ -234,7 +242,9 @@ function onClientConnected(conn) {
 }
 
 function pingClient(id, times) {
+  if (this.players[id].pinging) return
   times = times || 1
+  this.players[id].pinging = true
 
   while (times-- > 0) {
     setTimeout((function(){
@@ -293,6 +303,7 @@ function onPong(e) {
   // Once we gathered enough packets, we can do a median check to get the latency
   player.latency = latencies.sort()[Math.floor(latencies.length / 2)]
   player.latencies = []
+  player.pinging = false
 
   this.send("servertime", {
     time: Date.now() / 1000,

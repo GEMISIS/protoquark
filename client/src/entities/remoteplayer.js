@@ -7,7 +7,7 @@ module.exports = function updateRemotePlayer (dt, ent) {
   var conn = this.conn
   var player = conn.players[ent.context.id]
   var playerLatency = player && player.latency ? player.latency : .2
-  var myLatency = conn.latency || .2
+  var myLatency = player.latency || .2
 
   var lerpTime = Math.max(playerLatency/2 + myLatency/2 + this.sendInterval*2, .10)
   ent.interpolate(conn.getServerTime(), lerpTime)

@@ -190,6 +190,7 @@ conn: {
 
     this.snapshots = this.snapshots || {}
     this.snapshots[e.sender] = (this.snapshots[e.sender] || []).concat(e.context.snapshots)
+    ent.latency = e.context.latency
   },
   death: function onPlayerDeath(e) {
     // our death usually
@@ -456,7 +457,8 @@ function onIntervalSend() {
     // Send queued up packets
     conn.send("playerstate", {
       snapshots: me.snapshots,
-      time: conn.getServerTime()
+      time: conn.getServerTime(),
+      latency: conn.latency
     })
     // Clear for next send.
     me.snapshots = []
