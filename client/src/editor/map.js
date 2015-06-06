@@ -404,12 +404,15 @@ function splitEdge(edges, edgeIndex, points, forwards, sectionId, split) {
   }
   else if (split.points.length === 2) {
     points.splice(edgeIndex + 1, 0, split.points[0], split.points[1])
-
     // remove edge and replace with 3 edges that would sum up to original edge
+    var oldEdgeIds = edges[edgeIndex]
     edges.splice(edgeIndex, 1)
-    edges.splice(edgeIndex, 0, [sectionId])
-    edges.splice(edgeIndex + 1, 0, [sectionId, split.sectionId])
-    edges.splice(edgeIndex + 2, 0, [sectionId])
+    edges.splice(edgeIndex, 0, oldEdgeIds)
+    edges.splice(edgeIndex + 1, 0, oldEdgeIds.concat([split.sectionId]))
+    edges.splice(edgeIndex + 2, 0, oldEdgeIds)
+  }
+  else {
+    console.log("invalid number of splits")
   }
 }
 
@@ -424,7 +427,6 @@ function reversePointsIfClockwise(points) {
     , b = new Vector3().subVectors(points[2], points[1]).normalize()
     , c = a.cross(b)
   if (c.z < 0) return points
-
   var newpoints = []
   for (var i = 0; i < points.length; i++) {
     newpoints[i] = points[points.length - 1 - i]
