@@ -6,6 +6,8 @@ var closestToLine = require("./math").closestToLine
 var distanceToLine = require("./math").distanceToLine
 var emitter = require("component/emitter")
 var lineIntersection = require("./math").lineIntersection
+var projectedTOnLine = require("./math").projectedTOnLine
+
 //
 // 2D representation of the map.
 //
@@ -331,7 +333,7 @@ function getPointTIntersection(a, b, point) {
     , pa = new Vector3().subVectors(point, a)
     , lenPA = pa.length()
     , lenBA = ba.length()
-  debugger
+
   if (point.distanceTo(a) <= pixelTolerance) return 0
   if (pa.angleTo(ba) <= deg2rad(90)) return lenPA / lenBA
   else return -lenPA / lenBA
@@ -636,7 +638,11 @@ function isSectionInside(section, containerSection) {
       // Try to see if colinear since some inaccuracies with isPointInside on edges
       var colinear = false
       for (var j = 0; j < containerSection.edges.length && !colinear; j++) {
-        colinear = isNearColinear(containerSection.points[j], containerSection.points[j + 1], point)
+        var a = containerSection.points[j]
+          , b = containerSection.points[j + 1]
+          , t = projectedTOnLine(a, b, point)
+        // colinear = isNearColinear(a, b, point)
+        colinear = distanceToLine(a, b, point) <= Number.EPSILON * 2 && t >= 0 && t <= 1
       }
 
       if (!colinear)
