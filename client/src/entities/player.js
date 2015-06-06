@@ -1,7 +1,7 @@
-var bullets    = require("./bullets")
-var weapons    = require("../config/weapon")
+var bullets      = require("./bullets")
+var weapons      = require("../config/weapon")
 var collision    = require("../collision")
-var Vector3    = require("../math").vec3
+var Vector3      = require("../math").vec3
 
 var playerShape = new Vector3(.25, .5, .25)
 
