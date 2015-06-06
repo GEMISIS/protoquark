@@ -32,6 +32,7 @@ function Map() {
 
   this.noFloorWallY = 0
   this.noCeilingWallY = 10
+  this.pixelTolerance = pixelTolerance
 
   // Enabled or not
   this.floor = this.ceiling = this.wall = true
@@ -304,7 +305,7 @@ function isEdgeNearColinearOther(a, b, c, d) {
   var midpoint = new Vector3().addVectors(c, d).multiplyScalar(.5)
   var ba = new Vector3().subVectors(b, a)
     , pa = new Vector3().subVectors(d, c)
-    , angleLimit = deg2rad(.5)
+    , angleLimit = deg2rad(1.0)
     , angle = ba.angleTo(pa)
   // since angle can only be [0, 180], check opposite
   return isNearColinear(a, b, midpoint) && (angle < angleLimit || angle > deg2rad(180) - angleLimit) && lineIntersection(a, b, c, d)
@@ -417,13 +418,29 @@ function addBlock(block) {
   this.blocks.push(block)
 }
 
+// assumes top left is 0, 0 / y growing down
+function reversePointsIfClockwise(points) {
+  var a = new Vector3().subVectors(points[1], points[0]).normalize()
+    , b = new Vector3().subVectors(points[2], points[1]).normalize()
+    , c = a.cross(b)
+  if (c.z < 0) return points
+
+  var newpoints = []
+  for (var i = 0; i < points.length; i++) {
+    newpoints[i] = points[points.length - 1 - i]
+  }
+  return newpoints
+}
+
 function addSection(section) {
   // section.edges should be array with length 1 less than points, each array entry should
   // itself be an array with section ids that contains this edge. In the case of a new sector,
   // edge would just be that sector
   var sections = this.sections
 
+  section.points = reversePointsIfClockwise(section.points)
   section.edges = []
+
   for (var i = 0; i < section.points.length - 1; i++) {
     section.edges.push([
       section.id
@@ -579,10 +596,12 @@ function addSection(section) {
     var other = sections[i]
     if (isSectionInside(section, other)) {
       addSectionToAllEdges(section.edges, other.id)
+      console.log("added section inside", other.id)
     }
     else if (isSectionInside(other, section)) {
       insertionIndex = i
       addSectionToAllEdges(other.edges, section.id)
+      console.log(other.id, " is inside added section")
     }
   }
   // Finally add section only after checking other section's edges for shared

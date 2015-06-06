@@ -31,9 +31,30 @@ drawGrid: function drawGrid() {
     , canvas = this.canvas
     , dim = {x: canvas.width, y: canvas.height}
     , offset = this.offset
+    , map = this.map
 
-  ctx.fillStyle = "rgb(120, 120, 120)"
+  ctx.fillStyle = "rgb(200, 200, 200)"
   ctx.lineWidth = 1
+
+  // smaller lines
+  var interval = map.pixelTolerance * 8
+  for (var y = 0; y < canvas.height; y += interval) {
+    ctx.beginPath()
+    ctx.moveTo(0 - offset.x, y - offset.y)
+    ctx.lineTo(canvas.width - offset.x, y - offset.y)
+    ctx.stroke()
+  }
+  for (var x = 0; x < canvas.width; x += interval) {
+    ctx.beginPath()
+    ctx.moveTo(x - offset.x, 0 - offset.y)
+    ctx.lineTo(x - offset.x, canvas.height - offset.y)
+    ctx.stroke()
+  }
+
+  // main axis
+  ctx.fillStyle = "rgb(120, 120, 120)"
+  ctx.lineWidth = 4
+
   ctx.beginPath()
   ctx.moveTo(dim.x / 2 - offset.x, 0 - offset.y)
   ctx.lineTo(dim.x / 2 - offset.x, dim.y - offset.y)

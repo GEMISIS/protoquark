@@ -24,8 +24,10 @@ module.exports = {
     for (var i = 0, j = points.length - 1; i < points.length; j = i++) {
         var xi = points[i].x, yi = points[i].y
         var xj = points[j].x, yj = points[j].y
-        var intersect = ((yi > y) != (yj > y))
-            && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)
+        // var intersect = ((yi > y) != (yj > y))
+        //     && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)
+        var intersect = ((yi >= y) != (yj >= y))
+            && (x <= (xj - xi) * (y - yi) / (yj -= yi) + xi)
         if (intersect) inside = !inside;
     }
     return inside;
