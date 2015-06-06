@@ -96,8 +96,12 @@ var keysDown = {
   },
   51: function onBlocksMode(e) {
     this.mode = "block"
-    this.thingContainerEl.style.display = "block"
-    this.sectionContainerEl.style.display = "none"
+    this.thingContainerEl.style.display = "none"
+    this.sectionContainerEl.style.display = "block"
+  },
+  67: function onToggleCeiling(e) {
+    this.ceilingSelection = !this.ceilingSelection
+    this.rebuild3DSelection()
   }
 }
 
@@ -244,6 +248,9 @@ Editor.prototype = {
   },
   rebuild3DSelection: function rebuild3DSelection() {
     geometrybuilder.buildSelectionGeometry(this.getSelections(), this.stage3D.selectionGeometry, this.ceilingSelection, this.canvas.width, this.canvas.height)
+  },
+  rebuildHoverSelection: function rebuildHoverSelection(obj, ceiling) {
+    geometrybuilder.buildSelectionGeometry([obj], this.stage3D.hoverGeometry, !!ceiling, this.canvas.width, this.canvas.height)
   },
   snapMouseCoords: function snapMouseCoords(mouseCoords) {
     if (!this.snapCoords) return mouseCoords
@@ -460,8 +467,13 @@ var rightMouseHandler = {
     this.redraw2D()
   },
   block: function(evt) {
-    this.selectedBlock = this.map.findBlockUnder(this.getMouseCanvas(evt))
-    console.log(this.selectedBlock)
+    if (this.map.blockPoints && this.map.blockPoints.length > 0) {
+      this.map.blockPoints = []
+    }
+    else {
+      this.selectedBlock = this.map.findBlockUnder(this.getMouseCanvas(evt))
+      console.log(this.selectedBlock)
+    }
     this.redraw2D()
   }
 },
@@ -474,7 +486,7 @@ var rightMouseHandler = {
       , section = this.map.findSection(pickResult.id)
 
     if (pickResult.pick && section) {
-      this.selectedSections = [pickResult.id]
+      this.selectedSections = this.multiSelect ? this.selectedSections.concat([pickResult.id]) : [pickResult.id]
       this.ceilingSelection = pickResult.ceiling
     }
     else {
@@ -535,7 +547,7 @@ function onMouseWheel(evt) {
   var block = this.map.findBlock(this.selectedBlock ? this.selectedBlock.id : null)
   if (block) {
     evt.preventDefault()
-    if (this.leftMouseDown)
+    if (this.leftMouseDown || this.multiSelect)
       block.height += delta
     else
       block.y += delta
@@ -544,16 +556,21 @@ function onMouseWheel(evt) {
     return
   }
 
-  var section = this.map.findSection(this.selectedSections[0])
-  if (!section) return
+  var selections = this.selectedSections
+  if (!selections.length) return
+
   evt.preventDefault()
-  if (this.ceilingSelection) {
-    section.ceilingHeight += delta
-    this.ceilingHeightInput.value = section.ceilingHeight
-  }
-  else {
-    section.floorHeight += delta
-    this.floorHeightInput.value = section.floorHeight
+  for (var i = 0; i < selections.length; i++) {
+    var section = this.map.findSection(selections[i])
+    if (!section) continue
+    if (this.ceilingSelection) {
+      section.ceilingHeight += delta
+      this.ceilingHeightInput.value = section.ceilingHeight
+    }
+    else {
+      section.floorHeight += delta
+      this.floorHeightInput.value = section.floorHeight
+    }
   }
   this.rebuild3DWorld()
 }
@@ -569,14 +586,21 @@ function onMouseMove(evt) {
     this.redraw2D(this.lastCoords)
   }
   else {
-    this.stage3D.look(this.getMouseRenderer(evt))
-    // if (!this.pointerLocked) return
+    var coords = this.getMouseRenderer(evt)
+    this.stage3D.look(coords)
+    hover3D.call(this, coords)
+  }
+}
 
-    // var delta = this.getMouseRendererDelta(evt)
-    // delta.x = -delta.x / 200
-    // delta.y = -delta.y / 200
-    // this.stage3D.lookDelta(delta)
-    // this.stage3D.render()
+function hover3D(mouseCoords) {
+  var canvasDim = {x: this.canvas.width, y: this.canvas.height}
+    , pickResult = this.sectionSurfaces.pick(mouseCoords, canvasDim, this.stage3D.camera)
+    , section = this.map.findSection(pickResult.id)
+  if (pickResult.pick && section) {
+    this.rebuildHoverSelection(section, pickResult.ceiling)
+  }
+  else {
+    this.rebuildHoverSelection(null)
   }
 }
 

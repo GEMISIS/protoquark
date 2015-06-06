@@ -2,9 +2,10 @@ var Vector3 = THREE.Vector3
 var Color = THREE.Color
 var SurfaceList = require("./surfacelist")
 
-// maxVertices must be a multiple of 3
+// all maxVertices must be a multiple of 3
 var maxVertices = 3000
 var maxSelectionVertices = 300
+var maxHoverVertices = 90
 var numFaces = maxVertices / 3
 
 function Stage3D(width, height) {
@@ -109,22 +110,36 @@ resetLastLook: function resetLastLook() {
 },
 
 initGeometry: function() {
+  var empty = new Vector3(0, 0, 0)
+
+  // geometry for main scene mesh
   var geometry = this.geometry = new THREE.Geometry()
   for (var i = 0; i < maxVertices; i++) {
-    geometry.vertices.push(new Vector3(0, 0, 0))
+    geometry.vertices.push(empty)
   }
   for (var i = 0; i < numFaces; i++) {
     var vertIndex = i * 3
     geometry.faces.push(new THREE.Face3(vertIndex, vertIndex + 1, vertIndex + 2))
   }
 
+  // geometry for selected sections / blocks / regions
   var selectionGeometry = this.selectionGeometry = new THREE.Geometry()
   for (var i = 0; i < maxSelectionVertices; i++) {
-    selectionGeometry.vertices.push(new Vector3(0, 0, 0))
+    selectionGeometry.vertices.push(empty)
   }
   for (var i = 0; i < maxSelectionVertices / 3; i++) {
     var vertIndex = i * 3
     selectionGeometry.faces.push(new THREE.Face3(vertIndex, vertIndex + 1, vertIndex + 2))
+  }
+
+  // geometry for section / block underneath the cursor during hovering
+  var hoverGeometry = this.hoverGeometry = new THREE.Geometry()
+  for (var i = 0; i < maxHoverVertices; i++) {
+    hoverGeometry.vertices.push(empty)
+  }
+  for (var i = 0; i < maxHoverVertices / 3; i++) {
+    var vertIndex = i * 3
+    hoverGeometry.faces.push(new THREE.Face3(vertIndex, vertIndex + 1, vertIndex + 2))
   }
 },
 
@@ -143,6 +158,10 @@ createScene: function() {
   this.selectionMesh = new THREE.Mesh(this.selectionGeometry, new THREE.MeshBasicMaterial( { color: 0xFFAAAA } ))
   this.selectionMesh.frustumCulled = false
   scene.add(this.selectionMesh)
+
+  this.hoverMesh = new THREE.Mesh(this.hoverGeometry, new THREE.MeshBasicMaterial( { color: 0xFFAA55 } ))
+  this.hoverMesh.frustumCulled = false
+  scene.add(this.hoverMesh)
 
   var light = new THREE.DirectionalLight(0xffffff, 0.5)
   light.position.set(.5, .707, .707)

@@ -2,6 +2,8 @@ var Vector3 = THREE.Vector3
 var Triangle = THREE.triangle
 var SurfaceList = require("./surfacelist")
 
+var zero = new Vector3(0, 0, 0)
+
 // Convert map point (2d) to world 3d point
 function convert2Dto3D(point, y, canvasDimensions, gradient) {
   gradient = gradient || .05
@@ -12,12 +14,11 @@ function buildSelectionGeometry(selections, geometry, isCeiling, width, height) 
   var vertices = geometry.vertices
     , v = 0
     , canvasDimensions = {x: width, y: height}
-    , f = 0
-    , faces = geometry.faces
 
   for (var i = 0; i < selections.length; i++) {
     var selection = selections[i]
-      , points = selection.points
+      , points = selection ? selection.points : null
+    if (!selection) continue
     for (var j = 1; j < points.length - 1; j++) {
       var a = points[0]
         , b = isCeiling ? points[j + 1] : points[j]
@@ -27,12 +28,9 @@ function buildSelectionGeometry(selections, geometry, isCeiling, width, height) 
       vertices[v++] = convert2Dto3D(a, y, canvasDimensions)
       vertices[v++] = convert2Dto3D(b, y, canvasDimensions)
       vertices[v++] = convert2Dto3D(c, y, canvasDimensions)
-
-      faces[f++].color.setHex(0xFFFFFF)
     }
   }
 
-  var zero = new Vector3(0, 0, 0)
   for (; v < vertices.length; v++) {
     vertices[v] = zero
   }
@@ -205,7 +203,6 @@ function buildWorldGeometry(map, geometry, width, height) {
   geometry.visibleVertices = v;
 
   // Zero out the rest.
-  var zero = new Vector3(0, 0, 0)
   for (; v < vertices.length; v++) {
     vertices[v] = zero
   }

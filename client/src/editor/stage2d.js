@@ -32,37 +32,37 @@ drawGrid: function drawGrid() {
     , dim = {x: canvas.width, y: canvas.height}
     , offset = this.offset
     , map = this.map
-
+    , height = canvas.height * 4 // extend pass the screen for scrolling
+    , width = canvas.width * 4
   ctx.fillStyle = "rgb(200, 200, 200)"
   ctx.lineWidth = 1
 
   // smaller lines
   var interval = map.pixelTolerance * 8
-  for (var y = 0; y < canvas.height; y += interval) {
+  for (var y = 0; y < height; y += interval) {
     ctx.beginPath()
     ctx.moveTo(0 - offset.x, y - offset.y)
-    ctx.lineTo(canvas.width - offset.x, y - offset.y)
+    ctx.lineTo(width - offset.x, y - offset.y)
     ctx.stroke()
   }
-  for (var x = 0; x < canvas.width; x += interval) {
+  for (var x = 0; x < width; x += interval) {
     ctx.beginPath()
     ctx.moveTo(x - offset.x, 0 - offset.y)
-    ctx.lineTo(x - offset.x, canvas.height - offset.y)
+    ctx.lineTo(x - offset.x, height - offset.y)
     ctx.stroke()
   }
 
   // main axis
-  ctx.fillStyle = "rgb(120, 120, 120)"
   ctx.lineWidth = 4
 
   ctx.beginPath()
   ctx.moveTo(dim.x / 2 - offset.x, 0 - offset.y)
-  ctx.lineTo(dim.x / 2 - offset.x, dim.y - offset.y)
+  ctx.lineTo(dim.x / 2 - offset.x, height - offset.y)
   ctx.stroke()
 
   ctx.beginPath()
   ctx.moveTo(0 - offset.x, dim.y / 2 - offset.y)
-  ctx.lineTo(dim.x - offset.x, dim.y / 2 - offset.y)
+  ctx.lineTo(width - offset.x, dim.y / 2 - offset.y)
   ctx.stroke()
 },
 

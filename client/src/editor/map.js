@@ -294,6 +294,7 @@ function getEdgeIntersection(a, b, c, d) {
 function onSectionsLoaded() {
   for (var i = 0; i < this.sections.length; i++) {
     this.nextSectionId = Math.max(this.nextSectionId, this.sections[i].id + 1)
+    mergeSimilarPoints(this.sections[i])
   }
 }
 
@@ -330,7 +331,7 @@ function getPointTIntersection(a, b, point) {
     , pa = new Vector3().subVectors(point, a)
     , lenPA = pa.length()
     , lenBA = ba.length()
-
+  debugger
   if (point.distanceTo(a) <= pixelTolerance) return 0
   if (pa.angleTo(ba) <= deg2rad(90)) return lenPA / lenBA
   else return -lenPA / lenBA
@@ -345,6 +346,19 @@ function addSectionToAllEdges(edgesOfSection, sectionId) {
 function addSectionToEdges(edges, sectionId) {
   if (edges.indexOf(sectionId) == -1)
     edges.push(sectionId)
+}
+
+function mergeSimilarPoints(section) {
+  var points = section.points
+
+  for (var j = 0; j < points.length; j++) {
+    for (var k = j + 1; k < points.length; k++) {
+      if (points[j].x == points[k].x && points[j].y == points[k].y) {
+        points.splice(k, 1)
+        k--
+      }
+    }
+  }
 }
 
 function mergeUnsharedEdges() {
