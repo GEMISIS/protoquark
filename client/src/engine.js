@@ -6,6 +6,7 @@ var Settings   = require('./settings')
 var Vector3    = require("./math").vec3
 var Triangle   = require("./math").triangle
 var weapons    = require("./config/weapon")
+var health     = require("./entities/health")
 require('./entities/player')
 
 var localIdCounter = 0
@@ -61,6 +62,17 @@ function parseLevel(level) {
     var ent = new Entity(block, this.genLocalId())
     ent.type = 'block'
     var pos = block.position
+    ent.position = new Vector3(pos.x, pos.y, pos.z)
+    //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
+    var color = Math.floor(Math.random()*50) + 25
+    ent.context.color = (color | (color << 8) | (color << 16)).toString(16)
+    this.add(ent)
+  }).bind(this))
+
+  level.healths.forEach((function(healthObj) {
+    var ent = health.create(this.genLocalId(), healthObj.position)
+    ent.type = 'block'
+    var pos = healthObj.position
     ent.position = new Vector3(pos.x, pos.y, pos.z)
     //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
     var color = Math.floor(Math.random()*50) + 25

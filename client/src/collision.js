@@ -280,8 +280,8 @@ module.exports = {
   getCollision: getCollision,
 
   collides: function collides(a, b) {
-    var boxA = a.box ? a.box.clone() : new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
-    var boxB = b.box ? b.box.clone() : new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
+    var boxA = a.box ? a.box.clone() : new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
+    var boxB = b.box ? b.box.clone() : new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
 
     boxA.min.add(a.position)
     boxA.max.add(a.position)

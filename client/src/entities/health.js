@@ -4,13 +4,11 @@ var collision = require("../collision")
 var gib = require("./gib")
 
 var health = {
-  create: function create(id, pos, rot, euler) {
+  create: function create(id, pos) {
     var ent = new Entity({id: id}, id)
-    ent.update = health
+    ent.update = health.updateHealth
 
     ent.position.copy(pos)
-    ent.rotation.copy(rot)
-    ent.euler.copy(euler)
     ent.shape = new Vector3(.1, .1, .1)
 
     ent.type = "bullet"
@@ -18,15 +16,8 @@ var health = {
     return ent
   },
 
-  normal: function updateNormal (dt, ent) {
+  updateHealth: function updateHealth (dt, ent) {
     var hitPoint
-
-    var hit = collision.getSweptCollision(ent.position.clone(), ent.velocity, this.colliders, ent.shape, true)
-    if (hit.collision) {
-      ent.position = hit.position
-      ent.markedForDeletion = true
-      return
-    }
 
     // TODO: Use some type of tree to limit number of entities checked
     var entities = this.entities
@@ -39,13 +30,14 @@ var health = {
         // if (collisionTime > 1.0 || collisionTime > closestTime) continue
         // closestTime = collisionTime
 
-        var hit = collision.getSweptBoxCollision(ent.position.clone(), ent.velocity, ent.shape, other.position, new Vector3(.5, .5, .5), other.rotation)
-        if (hit.collision) {
+        var hit = collision.collides(ent, other)
+        if (hit) {
           enemyHit = other
           hitPoint = hit.position
+          console.log("Got health!")
         }
 
-        if (hit.collision && other.type != "player")
+        //if (hit.collision && other.type != "player")
           // TODO: Add health state command.
           //this.addStateCommand({command: "hit", target: other.id, shooter: ent.creator})
       }
@@ -53,4 +45,4 @@ var health = {
   }
 }
 
-module.exports = bullet
+module.exports = health
