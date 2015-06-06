@@ -26,6 +26,7 @@ var health = {
         if (hit && !ent.markedForDeletion) {
           this.addStateCommand({command: "health", target: other.id})
           ent.markedForDeletion = true
+          break
         }
       }
     }
