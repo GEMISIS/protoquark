@@ -8,12 +8,6 @@ var Triangle   = require("./math").triangle
 var weapons    = require("./config/weapon")
 require('./entities/player')
 
-var representations = {
-  box:          require('./obj3d/box'),
-  bullet:       require('./obj3d/bullet'),
-  remoteplayer: require("./obj3d/player")
-}
-
 var localIdCounter = 0
 var startingHealth = 1
 var startingScore = 0
