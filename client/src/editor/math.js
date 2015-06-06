@@ -81,34 +81,6 @@ var math = {
     return proj / n.length()
   },
 
-  // returns time on intersection of line ab and cd
-  // http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/565282#565282
-  // lineIntersection: function lineIntersection(a, b, c, d) {
-  //   var ba = new Vector3().subVectors(b, a)
-  //     , dc = new Vector3().subVectors(d, c)
-  //     , p = a
-  //     , r = ba
-  //     , q = c
-  //     , s = dc
-  //     , rxs = new Vector3().crossVectors(r, s)
-  //     , qpxr = new Vector3().subVectors(q, p).cross(r)
-  //     , qpxs = new Vector3().subVectors(q, p).cross(s)
-  //     , t = qpxr.length() / rxs.length()
-  //     , u = qpxr.length() / rxs.length()
-  //     , t0
-  //     , t1
-
-  //   if (rxs.length() <= Number.EPSILON && qpxr.length() <= Number.EPSILON) {
-  //     t0 = new Vector3().subVectors(q, p).dot(r) / r.lengthSq()
-  //     t1 = t0 + s.dot(r) / r.lengthSq()
-  //     return t0 >= 0 && t0 <= 1 && t1 >= 0 && t1 <= 1
-  //   }
-  //   else if (rxs.length() > Number.EPSILON) {
-  //     return u >= 0 && u <= 1 && t >= 0 && t <= 1
-  //   }
-  //   return false
-  // }
-
   lineIntersection: function lineIntersection(a, b, c, d) {
     // http://stackoverflow.com/questions/2316490/the-algorithm-to-find-the-point-of-intersection-of-two-3d-line-segment
     var da = new Vector3().subVectors(b, a)
