@@ -387,28 +387,30 @@ function splitEdge(edges, edgeIndex, points, forwards, sectionId, split) {
   //   }
   // }
 
+  var oldEdgeIds = edges[edgeIndex]
+    , mergedEdgeIds = oldEdgeIds.concat([split.sectionId])
   if (split.points.length === 1) {
     var point = split.points[0]
     points.splice(edgeIndex + 1, 0, point)
 
     // remove edge and replace with 2 edges that would sum up to original edge
+
     edges.splice(edgeIndex, 1)
     if (forwards) {
-      edges.splice(edgeIndex, 0, [sectionId])
-      edges.splice(edgeIndex + 1, 0, [sectionId, split.sectionId])
+      edges.splice(edgeIndex, 0, oldEdgeIds)
+      edges.splice(edgeIndex + 1, 0, mergedEdgeIds)
     }
     else {
-      edges.splice(edgeIndex, 0, [sectionId, split.sectionId])
-      edges.splice(edgeIndex + 1, 0, [sectionId])
+      edges.splice(edgeIndex, 0, mergedEdgeIds)
+      edges.splice(edgeIndex + 1, 0, oldEdgeIds)
     }
   }
   else if (split.points.length === 2) {
     points.splice(edgeIndex + 1, 0, split.points[0], split.points[1])
     // remove edge and replace with 3 edges that would sum up to original edge
-    var oldEdgeIds = edges[edgeIndex]
     edges.splice(edgeIndex, 1)
     edges.splice(edgeIndex, 0, oldEdgeIds)
-    edges.splice(edgeIndex + 1, 0, oldEdgeIds.concat([split.sectionId]))
+    edges.splice(edgeIndex + 1, 0, mergedEdgeIds)
     edges.splice(edgeIndex + 2, 0, oldEdgeIds)
   }
   else {
