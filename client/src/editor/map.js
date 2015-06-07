@@ -338,7 +338,7 @@ function onBlocksLoaded() {
 function findLargestId(group) {
   var max = 1
   for (var i = 0; i < group.length; i++) {
-    max = Math.max(max, group.id)
+    max = Math.max(max, group[i].id)
   }
   return max
 }
@@ -511,6 +511,7 @@ function addSection(section) {
   // itself be an array with section ids that contains this edge. In the case of a new sector,
   // edge would just be that sector
   var sections = this.sections
+  console.log("Adding section", section)
 
   section.points = reversePointsIfClockwise(section.points)
   section.edges = []
