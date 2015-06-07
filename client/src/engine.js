@@ -85,7 +85,7 @@ function parseLevel(level) {
   }
 
   var collisionVerts = level.collisionVertices || []
-  for (var i = 0; i < collisionVertices.length; i += 3) {
+  for (var i = 0; i < collisionVerts.length; i += 3) {
     var a = collisionVerts[i]
       , b = collisionVerts[i + 1]
       , c = collisionVerts[i + 2]
