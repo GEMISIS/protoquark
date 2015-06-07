@@ -70,6 +70,15 @@ Map.prototype = {
     return closest
   },
 
+  rescaleHeight: function rescaleHeight(scale) {
+    var sections = this.sections
+    for (var i = 0; i < sections.length; i++) {
+      var section = sections[i]
+      section.floorHeight *= scale
+      section.ceilingHeight *= scale
+    }
+  },
+
   getClosestOnEdge: function(point) {
     var sections = this.sections
       , closestA
@@ -191,9 +200,10 @@ Map.prototype = {
   },
 
   // find smallest area section underneath x, y
-  findSectionUnder: function findSectionUnder(point) {
+  findSectionUnder: function findSectionUnder(point, findLargest) {
     var sections = this.sections
       , smallestArea = Number.POSITIVE_INFINITY
+      , largestArea = Number.NEGATIVE_INFINITY
       , touchedSection
       , area
     for (var i = 0; i < sections.length; i++) {
@@ -201,9 +211,11 @@ Map.prototype = {
       if (!isPointInside(point, section.points)) continue
 
       area = computePointsArea(section.points)
-      if (area < smallestArea) {
+      if ((!findLargest && area < smallestArea) ||
+         (findLargest && area > largestArea)) {
         touchedSection = section
-        smallestArea = area
+        smallestArea = Math.min(smallestArea, area)
+        largestArea = Math.min(largestArea, area)
       }
     }
 
@@ -295,8 +307,14 @@ function getEdgeIntersection(a, b, c, d) {
 
 function onSectionsLoaded() {
   for (var i = 0; i < this.sections.length; i++) {
-    this.nextSectionId = Math.max(this.nextSectionId, this.sections[i].id + 1)
-    mergeSimilarPoints(this.sections[i])
+    var section = this.sections[i]
+    this.nextSectionId = Math.max(this.nextSectionId, section.id + 1)
+    for (var j = 0; j < section.points.length; j++) {
+      var point = section.points[j]
+      if (point.__proto__ != THREE.Vector3.prototype)
+        point.__proto__ = THREE.Vector3.prototype
+    }
+    // mergeSimilarPoints(this.sections[i]) // ths is causing errors
   }
 }
 
@@ -508,7 +526,7 @@ function addSection(section) {
         var t0 = Math.min(info.t0, info.t1)
           , t1 = Math.max(info.t0, info.t1)
 
-        console.log("Edge", sectionEdgeIndex, "against", otherEdgeIndex)
+        console.log("Edge", sectionEdgeIndex, "against edge", otherEdgeIndex, "of", otherSection.id)
 
         if ((t0 == 0 && t1 > 1) ||
           (t1 == 1 && t0 < 0)) {
@@ -538,7 +556,11 @@ function addSection(section) {
             sectionId: section.id
           })
           // might not need this since ab is fully embedded in this case
-          nonCase1Split = true
+          // nonCase1Split = true
+          // *edit* set looping to false instead to prevent infinite loops
+          // break since we dont need to check any more edges of otherSection since this one completely fills ab
+          looping = false
+          break
         }
         else if ( (isNearPoint(c, a) && isNearPoint(d, b)) ||
           (isNearPoint(d, a) && isNearPoint(c, b))) {

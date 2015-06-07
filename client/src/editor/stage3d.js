@@ -3,10 +3,9 @@ var Color = THREE.Color
 var SurfaceList = require("./surfacelist")
 
 // all maxVertices must be a multiple of 3
-var maxVertices = 3000
-var maxSelectionVertices = 300
-var maxHoverVertices = 90
-var numFaces = maxVertices / 3
+var maxVertices = 12000
+var maxSelectionVertices = 600
+var maxHoverVertices = 180
 
 function Stage3D(width, height) {
   this.width = width
@@ -117,7 +116,7 @@ initGeometry: function() {
   for (var i = 0; i < maxVertices; i++) {
     geometry.vertices.push(empty)
   }
-  for (var i = 0; i < numFaces; i++) {
+  for (var i = 0; i < maxVertices / 3; i++) {
     var vertIndex = i * 3
     geometry.faces.push(new THREE.Face3(vertIndex, vertIndex + 1, vertIndex + 2))
   }

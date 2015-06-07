@@ -1,9 +1,24 @@
-var Map = require("./map")
-var Stage2D = require("./stage2D")
-var Stage3D = require("./stage3D")
-var geometrybuilder = require("./geometrybuilder")
-var Vector3 = THREE.Vector3
-var downloadString = require("tm-components/download-string")
+var Map                = require("./map")
+var Stage2D            = require("./stage2D")
+var Stage3D            = require("./stage3D")
+var geometrybuilder    = require("./geometrybuilder")
+var Vector3            = THREE.Vector3
+var downloadString     = require("tm-components/download-string")
+var exportGeometry     = require("./geometryExporter")
+
+var colorInputs = [
+  "ceilingColor",
+  "ceilingWallColor",
+  "wallColor",
+  "floorColor",
+  "floorWallColor"
+]
+
+var toggleInputs = [
+  "wall",
+  "floor",
+  "ceiling"
+]
 
 var keysUp = {
   87: function onStopMoving(e) {
@@ -103,6 +118,19 @@ var keysDown = {
     this.ceilingSelection = !this.ceilingSelection
     this.rebuild3DSelection()
   },
+  76: function onSetColorsToLast(e) {
+    if (this.mode !== "section") return
+    var selections = this.getSelections()
+      , last = selections[selections.length - 1]
+
+    colorInputs.forEach(function(prop) {
+      for (var i = 0; i < selections.length - 1; i++) {
+        var section = selections[i]
+        section[prop] = last[prop]
+      }
+    })
+    this.rebuild3DWorld()
+  },
   77: function onSetHeightsToLast(e) {
     if (this.mode !== "section") return
     var selections = this.getSelections()
@@ -110,27 +138,12 @@ var keysDown = {
       , prop = this.ceilingSelection ? "ceilingHeight" : "floorHeight"
     for (var i = 0; i < selections.length - 1; i++) {
       var section = selections[i]
-      if (!section) continue
       section[prop] = last[prop]
     }
     if (selections.length)
       this.rebuild3DWorld()
   }
 }
-
-var colorInputs = [
-  "ceilingColor",
-  "ceilingWallColor",
-  "wallColor",
-  "floorColor",
-  "floorWallColor"
-]
-
-var toggleInputs = [
-  "wall",
-  "floor",
-  "ceiling"
-]
 
 function Editor(canvas) {
   this.map = new Map()
@@ -223,9 +236,14 @@ function Editor(canvas) {
     downloadString("map.json", JSON.stringify({sections: this.map.sections, things: this.map.things}))
   }.bind(this))
 
-  document.getElementById("export").addEventListener("click", function(e) {
+  document.getElementById("exportObj").addEventListener("click", function(e) {
     var exporter = new THREE.OBJExporter()
     downloadString("map.obj", exporter.parse(this.stage3D.mesh, this.stage3D.geometry.visibleVertices, this.stage3D.geometry.visibleFaces))
+  }.bind(this))
+
+  document.getElementById("exportTris").addEventListener("click", function(e) {
+    var geometry = this.stage3D.geometry
+    downloadString("vertices.json", JSON.stringify(exportGeometry(geometry)))
   }.bind(this))
 
   syncColorValues.call(this, this.map)
@@ -238,6 +256,10 @@ function Editor(canvas) {
     reader.onload = function(e) {
       var obj = JSON.parse(e.target.result)
       this.map.setSections(obj.sections)
+
+      // just messing around with heights
+      // this.map.rescaleHeight(.33)
+
       this.map.things = obj.things
       this.map.selectedThing = null
 

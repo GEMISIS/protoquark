@@ -6,7 +6,8 @@ var zero = new Vector3(0, 0, 0)
 
 // Convert map point (2d) to world 3d point
 function convert2Dto3D(point, y, canvasDimensions, gradient) {
-  gradient = gradient || .05
+  // debugger
+  gradient = gradient || .025
   return new Vector3((point.x - canvasDimensions.x / 2) * gradient, y, (point.y - canvasDimensions.y / 2) * gradient)
 }
 
@@ -199,8 +200,8 @@ function buildWorldGeometry(map, geometry, width, height) {
   }
 
   // Added properties
-  geometry.visibleFaces = f;
-  geometry.visibleVertices = v;
+  geometry.visibleFaces = f
+  geometry.visibleVertices = v
 
   // Zero out the rest.
   for (; v < vertices.length; v++) {
@@ -213,7 +214,8 @@ function buildWorldGeometry(map, geometry, width, height) {
 
   return {
     sectionSurfaces: sectionSurfaces,
-    blockSurfaces: blockSurfaces
+    blockSurfaces: blockSurfaces,
+    numVertices: geometry.visibleVertices
   }
 }
 
