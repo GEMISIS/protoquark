@@ -7,7 +7,7 @@ var Health     = require("./interface/health")
 var Radar      = require("./interface/radar")
 var Router     = require("./router")
 var Score      = require("./interface/score")
-var Stage      = require("./stage")
+var Stage      = require("./stage/stage")
 var Status     = require("./interface/connection-status")
 var Weapon     = require('./interface/weapon')
 

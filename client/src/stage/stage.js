@@ -1,17 +1,18 @@
-var Matrix4    = require("./math").mat4
-var Vector3    = require("./math").vec3
-var Quaternion = require("./math").quat
-var Euler      = require("./math").euler
+var math       = require("../math")
+var Matrix4    = math.mat4
+var Vector3    = math.vec3
+var Quaternion = math.quat
+var Euler      = math.euler
 
 var representations = {
-  box:          require('./obj3d/box'),
-  block:        require('./obj3d/block'),
-  health:       require('./obj3d/health'),
-  ammo:         require('./obj3d/ammo'),
-  bullet:       require('./obj3d/bullet'),
-  remoteplayer: require("./obj3d/player"),
-  gib:          require('./obj3d/block'),
-  level:        require("./obj3d/level"),
+  box:          require('../obj3d/box'),
+  block:        require('../obj3d/block'),
+  health:       require('../obj3d/health'),
+  ammo:         require('../obj3d/ammo'),
+  bullet:       require('../obj3d/bullet'),
+  remoteplayer: require('../obj3d/player'),
+  gib:          require('../obj3d/block'),
+  level:        require('../obj3d/level'),
   // level:        require("./obj3d/model"),
 }
 

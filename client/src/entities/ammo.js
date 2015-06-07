@@ -27,11 +27,11 @@ var ammo = {
       var hit = collision.collides(ent, other)
       // only send commands about ourself
       if (hit && other.type == "player") {
-          this.addStateCommand({command: "ammo", target: other.id, amount: ent.amount})
-          ent.markedForDeletion = true
-          break
-        }
+        this.addStateCommand({command: "ammo", target: other.id, amount: ent.amount})
+        ent.markedForDeletion = true
+        break
       }
+    }
   }
 }
 

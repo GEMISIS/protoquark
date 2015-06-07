@@ -1,17 +1,13 @@
-var Box = require("../math").box
-var math = require("../math")
-var Vector3 = math.vec3
-
+var loadmodel = require('../stage/loadmodel')
+var colorChildren = require('../stage/colorchildren')
 function Health (entity) {
   this.entity = entity
   this.o3d = new THREE.Object3D()
 
-  var self = this
-  var loader = new THREE.OBJLoader()
-  loader.load('/health.obj', function (object) {
-    self.o3d.add(object)
-    setColor(object.children, 0xFF0000)
-  })
+  loadmodel('/health.obj', function(mesh) {
+    this.o3d.add(mesh)
+    colorChildren(mesh.children, 0xFF5555)
+  }.bind(this))
 }
 
 Health.prototype = {
@@ -20,12 +16,6 @@ Health.prototype = {
     var e = this.entity
     o3d.position.copy(e.position)
     o3d.rotation.y += 0.05
-  }
-}
-
-function setColor(children, color) {
-  for (var i = 0; i < children.length; i++) {
-    children[i].material.color.setHex(color)
   }
 }
 
