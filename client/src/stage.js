@@ -9,7 +9,8 @@ var representations = {
   health:       require('./obj3d/block'),
   bullet:       require('./obj3d/bullet'),
   remoteplayer: require("./obj3d/player"),
-  gib:          require('./obj3d/block')
+  gib:          require('./obj3d/block'),
+  level:        require("./obj3d/level")
 }
 
 function Stage (engine) {
@@ -28,7 +29,7 @@ function Stage (engine) {
 
 Stage.prototype = {
   init: function init() {
-    this.scene = new THREE.Scene()
+    var scene = this.scene = new THREE.Scene()
     this.camera = new THREE.PerspectiveCamera(50, 0, .05, 1000)
     this.renderer = new THREE.WebGLRenderer()
     this.emap = {}
@@ -41,14 +42,31 @@ Stage.prototype = {
 
     this.resize()
 
-    var colors = [0x0000FF, 0x00FF00, 0xFF0000, 0xFF00FF]
-    for (var angle = 0; angle < 4; angle++) {
-      var p = new representations.box(null,
-        colors[angle])
-      p.o3d.position.x = Math.cos(angle * 90 * Math.PI / 180) * 5
-      p.o3d.position.z = -Math.sin(angle * 90 * Math.PI / 180) * 5
-      this.scene.add(p.o3d)
-    }
+    // markers for direction
+    // var colors = [0x0000FF, 0x00FF00, 0xFF0000, 0xFF00FF]
+    // for (var angle = 0; angle < 4; angle++) {
+    //   var p = new representations.box(null,
+    //     colors[angle])
+    //   p.o3d.position.x = Math.cos(angle * 90 * Math.PI / 180) * 5
+    //   p.o3d.position.z = -Math.sin(angle * 90 * Math.PI / 180) * 5
+    //   scene.add(p.o3d)
+    // }
+
+    var light = new THREE.DirectionalLight(0xffffff, 0.5)
+    light.position.set(.5, .707, .707)
+    scene.add(light)
+
+    light = new THREE.DirectionalLight(0xcccccc, 0.5)
+    light.position.set(-1, 1, .1)
+    scene.add(light)
+
+    light = new THREE.DirectionalLight(0xaaaaaa, 0.5)
+    light.position.set(0, 1, -1)
+    scene.add(light)
+
+    light = new THREE.DirectionalLight(0x888888, 0.5)
+    light.position.set(0, -1, .25)
+    scene.add(light)
   },
 
   resize: function resize() {

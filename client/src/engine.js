@@ -7,6 +7,7 @@ var Vector3    = require("./math").vec3
 var Triangle   = require("./math").triangle
 var weapons    = require("./config/weapon")
 var health     = require("./entities/health")
+
 require("./entities/player")
 require("./entities/remoteplayer")
 
@@ -59,16 +60,16 @@ function loadLevel(url, done) {
 }
 
 function parseLevel(level) {
-  level.blocks.forEach((function(block) {
-    var ent = new Entity(block, this.genLocalId())
-    ent.type = 'block'
-    var pos = block.position
-    ent.position = new Vector3(pos.x, pos.y, pos.z)
-    //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
-    var color = Math.floor(Math.random()*50) + 25
-    ent.context.color = (color | (color << 8) | (color << 16)).toString(16)
-    this.add(ent)
-  }).bind(this))
+  // level.blocks.forEach((function(block) {
+  //   var ent = new Entity(block, this.genLocalId())
+  //   ent.type = 'block'
+  //   var pos = block.position
+  //   ent.position = new Vector3(pos.x, pos.y, pos.z)
+  //   //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
+  //   var color = Math.floor(Math.random()*50) + 25
+  //   ent.context.color = (color | (color << 8) | (color << 16)).toString(16)
+  //   this.add(ent)
+  // }).bind(this))
 
   level.healths.forEach((function(healthObj) {
     var ent = health.create(this.genLocalId(), healthObj.position)
@@ -81,15 +82,22 @@ function parseLevel(level) {
   }).bind(this))
 
   if (level.mesh) {
-    // ... // 
+    // ... //
   }
 
-  var collisionVerts = level.collisionVertices || []
-  for (var i = 0; i < collisionVerts.length; i += 3) {
-    var a = collisionVerts[i]
-      , b = collisionVerts[i + 1]
-      , c = collisionVerts[i + 2]
-    this.addTriangleCollider(new Triangle(new Vector3(a.x, a.y, a.z), new Vector3(b.x, b.y, b.z), new Vector3(c.x, c.y, c.z)))
+  if (level.collisionVertices) {
+    var collisionVerts = level.collisionVertices
+      , id = this.genLocalId()
+    var ent = new Entity({id: id, vertices: collisionVerts}, id)
+    ent.type = "level"
+    this.add(ent)
+
+    for (var i = 0; i < collisionVerts.length; i += 3) {
+      var a = collisionVerts[i]
+        , b = collisionVerts[i + 1]
+        , c = collisionVerts[i + 2]
+      this.addTriangleCollider(new Triangle(new Vector3(a.x, a.y, a.z), new Vector3(b.x, b.y, b.z), new Vector3(c.x, c.y, c.z)))
+    }
   }
 }
 
