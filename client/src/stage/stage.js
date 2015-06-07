@@ -86,8 +86,9 @@ Stage.prototype = {
     var me = this.engine.you()
 
     if (me) {
+      // place camera slightly above player
+      this.camera.position.set(me.position.x, me.position.y + .25, me.position.z)
       this.camera.rotation.copy(new Euler(-me.euler.x, -me.euler.y, 0, "YXZ"))
-      this.camera.position.copy(me.position)
     }
 
     // Diff the entities in the engine and add and or update, or remove them.
