@@ -7,6 +7,7 @@ var representations = {
   box:          require('./obj3d/box'),
   block:        require('./obj3d/block'),
   health:       require('./obj3d/health'),
+  ammo:         require('./obj3d/ammo'),
   bullet:       require('./obj3d/bullet'),
   remoteplayer: require("./obj3d/player"),
   gib:          require('./obj3d/block'),

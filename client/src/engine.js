@@ -7,6 +7,7 @@ var Vector3    = require("./math").vec3
 var Triangle   = require("./math").triangle
 var weapons    = require("./config/weapon")
 var health     = require("./entities/health")
+var ammo       = require("./entities/ammo")
 
 require("./entities/player")
 require("./entities/remoteplayer")
@@ -71,15 +72,29 @@ function parseLevel(level) {
   //   this.add(ent)
   // }).bind(this))
 
-  level.healths.forEach((function(healthObj) {
-    var ent = health.create(this.genLocalId(), healthObj.position, healthObj.amount)
-    var pos = healthObj.position
-    ent.position = new Vector3(pos.x, pos.y, pos.z)
-    //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
-    var color = Math.floor(Math.random()*50) + 25
-    ent.context.color = (color | (color << 8) | (color << 16)).toString(16)
-    this.add(ent)
-  }).bind(this))
+  if(level.healths !== undefined) {
+    level.healths.forEach((function(healthObj) {
+      var ent = health.create(this.genLocalId(), healthObj.position, healthObj.amount)
+      var pos = healthObj.position
+      ent.position = new Vector3(pos.x, pos.y, pos.z)
+      //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
+      var color = Math.floor(Math.random()*50) + 25
+      ent.context.color = (color | (color << 8) | (color << 16)).toString(16)
+      this.add(ent)
+    }).bind(this))
+  }
+
+  if(level.ammos !== undefined) {
+    level.ammos.forEach((function(ammoObj) {
+      var ent = ammo.create(this.genLocalId(), ammoObj.position, ammoObj.amount)
+      var pos = ammoObj.position
+      ent.position = new Vector3(pos.x, pos.y, pos.z)
+      //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
+      var color = Math.floor(Math.random()*50) + 25
+      ent.context.color = (color | (color << 8) | (color << 16)).toString(16)
+      this.add(ent)
+    }).bind(this))
+  }
 
   if (level.mesh) {
     // ... //
@@ -240,6 +255,9 @@ conn: {
       }
       else if(state.command == 'health' && target) {
         processHealthGet.call(this, target, state);
+      }
+      else if(state.command == 'ammo' && target) {
+        processAmmoGet.call(this, target, state);
       }
     }
   },
@@ -457,11 +475,13 @@ function onStateSend() {
   var states = []
   var entityMap = this.entityMap
   Object.keys(conn.players).forEach(function(id) {
-    states.push({
-      id: id,
-      currentHealth: entityMap[id].health.current,
-      currentScore: entityMap[id].score,
-    })
+    if(entityMap[id]) {
+      states.push({
+        id: id,
+        currentHealth: entityMap[id].health.current,
+        currentScore: entityMap[id].score,
+      })
+    }
   })
 
   if (states.length) {
@@ -549,6 +569,16 @@ function processHealthGet(target, command) {
   target.health.current += command.amount
   if(target.health.current > target.health.max) {
     target.health.current = target.health.max
+  }
+}
+
+function processAmmoGet(target, command) {
+  console.log(command.amount)
+  target.weapon.primary.ammunition += command.amount
+  console.log("Old: " + target.weapon.primary.ammunition)
+  if(target.weapon.primary.ammunition > weapons[target.weapon.primary.id].ammunition) {
+    target.weapon.primary.ammunition = weapons[target.weapon.primary.id].ammunition
+    console.log("New: " + target.weapon.primary.ammunition)
   }
 }
 
