@@ -328,11 +328,11 @@ function onSectionsLoaded() {
     // mergeSimilarPoints(this.sections[i]) // ths is causing errors
   }
 
-  this.nextSectionId = findLargestId(this.sections)
+  this.nextSectionId = findLargestId(this.sections) + 1
 }
 
 function onBlocksLoaded() {
-  this.nextBlockId = findLargestId(this.blocks)
+  this.nextBlockId = findLargestId(this.blocks) + 1
 }
 
 function findLargestId(group) {
