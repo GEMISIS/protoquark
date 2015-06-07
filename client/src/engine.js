@@ -64,8 +64,7 @@ function parseLevel(level) {
   // level.blocks.forEach((function(block) {
   //   var ent = new Entity(block, this.genLocalId())
   //   ent.type = 'block'
-  //   var pos = block.position
-  //   ent.position = new Vector3(pos.x, pos.y, pos.z)
+  //   ent.position.copy(block.position)
   //   //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
   //   var color = Math.floor(Math.random()*50) + 25
   //   ent.context.color = (color | (color << 8) | (color << 16)).toString(16)
@@ -75,11 +74,7 @@ function parseLevel(level) {
   if(level.healths !== undefined) {
     level.healths.forEach((function(healthObj) {
       var ent = health.create(this.genLocalId(), healthObj.position, healthObj.amount)
-      var pos = healthObj.position
-      ent.position = new Vector3(pos.x, pos.y, pos.z)
-      //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
-      var color = Math.floor(Math.random()*50) + 25
-      ent.context.color = (color | (color << 8) | (color << 16)).toString(16)
+      ent.position.copy(healthObj.position)
       this.add(ent)
     }).bind(this))
   }
@@ -87,11 +82,7 @@ function parseLevel(level) {
   if(level.ammos !== undefined) {
     level.ammos.forEach((function(ammoObj) {
       var ent = ammo.create(this.genLocalId(), ammoObj.position, ammoObj.amount)
-      var pos = ammoObj.position
-      ent.position = new Vector3(pos.x, pos.y, pos.z)
-      //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
-      var color = Math.floor(Math.random()*50) + 25
-      ent.context.color = (color | (color << 8) | (color << 16)).toString(16)
+      ent.position.copy(ammoObj.position)
       this.add(ent)
     }).bind(this))
   }
