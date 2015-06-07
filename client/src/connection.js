@@ -55,14 +55,17 @@ Connection.prototype = {
     if (clients[data.relay])
       return clients[data.relay][connType] ? clients[data.relay][connType].send(data) : 0
 
-    // Re-send ourself the event, because we are not a client and we are broadcasting
-    this.emit(data.event, data)
+    // TODO: The order of sending to clients first before emitting should be handled some way as to not
+    // being required.
 
     // As server broadcast to all clients if there is no relay automatically.
     Object.keys(clients).forEach(function (key) {
       if (clients[key][connType])
         clients[key][connType].send(data)
     })
+
+    // Re-send ourself (the server) the event, because we are not a client and we are broadcasting
+    this.emit(data.event, data)
   },
 
   connect: function connect(room) {
@@ -129,13 +132,13 @@ function onClientIdAssigned(id) {
     reliable: this.peer.connect(this.room, {reliable: true})
   }
 
-  Object.keys(server).forEach((function (type) {
+  Object.keys(server).forEach(function (type) {
     var conn = server[type]
     conn.on("open", onConnectedToServer.bind(this))
     conn.on("data", onServerData.bind(this))
     conn.on("close", onServerDisconnected.bind(this))
     conn.on("error", onServerError.bind(this))
-  }).bind(this))
+  }.bind(this))
 
   this.emit('peeridassigned', this.peer.id)
 }
@@ -150,9 +153,12 @@ function removeServerListeners() {
 }
 
 function onConnectedToServer() {
-  console.log("Connected to server")
-  this.connected = true
-  this.emit("connected")
+  // needs both reliable and unreliable to be ready
+  this.connected = this.server.unreliable.open && this.server.reliable.open
+  if (this.connected) {
+    console.log("Connected to server")
+    this.emit("connected")
+  }
 }
 
 function onJoinError(err) {
@@ -322,6 +328,8 @@ function onServerStarted() {
     name: this.generateName(),
     isHost: true
   }
+  // sending playerenter event to ourself as server mainly so engine can create,
+  // since theres no players and sending to all also emits for server, this will basically be emitted instantly
   this.send("playerenter", this.players[this.peer.id])
 }
 

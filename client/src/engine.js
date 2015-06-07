@@ -15,7 +15,8 @@ require("./entities/remoteplayer")
 var localIdCounter = 0
 var startingHealth = 1
 var startingScore = 0
-var SEND_INTERVAL = .04
+var sendInterval = .04
+var startingPosition = {x: 0, y: 3, z: 0}
 
 function handleDirection(control, down) {
   var me = this.you()
@@ -118,7 +119,7 @@ function parseLevel(level) {
   }
 
   if (level.spawns && level.spawns.length) {
-
+    startingPosition = level.spawns[0].position
   }
 }
 
@@ -135,6 +136,7 @@ control: {
     me.updateRotation()
   }
 },
+// packet events
 conn: {
   setting: function (e) {
     if (this.conn.isServer()) return
@@ -157,10 +159,14 @@ conn: {
       return
     }
 
-    console.log("Adding", id, owned)
     // Create the entity only if we're not migrating / it doesnt exist
     var ent = createPlayer(e.context, owned ? "player" : "remoteplayer")
     this.add(ent)
+
+    // tell new user his starting position
+    if (conn.isServer() && !conn.isOwnId(id)) {
+        conn.send("reposition", {position: startingPosition}, {relay:id, reliable: true})
+    }
   },
 
   playerexit: function onPlayerExit (e) {
@@ -230,6 +236,12 @@ conn: {
     entity.position.set(pos.x, pos.y, pos.z)
     entity.health.current = entity.health.max
     entity.weapon.primary.ammunition = weapons[entity.weapon.primary.id].ammunition
+  },
+  reposition: function onPlayerReposition(e) {
+    // our reposition
+    var me = this.you()
+      , pos = e.context.position
+    if (me) me.position.set(pos.x, pos.y, pos.z)
   },
   gamestate: function onGameState(e) {
     var entityMap = this.entityMap
@@ -338,9 +350,9 @@ function Engine (connection, controller) {
   this.entities = []
   this.entityMap = {}
   this.sendIntervalId = setInterval(onIntervalSend.bind(this),
-    SEND_INTERVAL * 1000)
+    sendInterval * 1000)
   this.stateIntervalId = setInterval(onStateSend.bind(this), 500)
-  this.sendInterval = SEND_INTERVAL
+  this.sendInterval = sendInterval
   this.colliders = []
 
   var self = this
@@ -537,6 +549,7 @@ function createPlayer(context, type) {
   var ent = new Entity(context, context.id)
   ent.type = type
   ent.health = {max: startingHealth, current: startingHealth}
+  ent.position.copy(startingPosition)
   ent.jump = 0
   ent.control = {}
   ent.lastControl = {}
@@ -563,7 +576,7 @@ function processCommandHit(target, command) {
     target.health.current = target.health.max
     target.position.set(0, 3, 0)
     this.entityMap[command.shooter].score += 1
-    this.conn.send("death", {killer: command.shooter, id:target.id, position: {x: 0, y: 3, z: 0}}, {relay:target.id})
+    this.conn.send("death", {killer: command.shooter, id:target.id, position: startingPosition}, {relay:target.id})
   }
 }
 
