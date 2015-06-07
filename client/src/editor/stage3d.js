@@ -15,6 +15,7 @@ function Stage3D(width, height) {
   this.angle = {x: 0, y: 0}
 
   var renderer = this.renderer = new THREE.WebGLRenderer()
+  renderer.setClearColor(0xBBBBBB)
   renderer.setSize(width, height)
   document.body.appendChild(renderer.domElement)
 

@@ -1,15 +1,8 @@
 var Vector3 = THREE.Vector3
 var Triangle = THREE.triangle
 var SurfaceList = require("./surfacelist")
-
+var convert2Dto3D = require("./coordinates").convert2Dto3D
 var zero = new Vector3(0, 0, 0)
-
-// Convert map point (2d) to world 3d point
-function convert2Dto3D(point, y, canvasDimensions, gradient) {
-  // debugger
-  gradient = gradient || .025
-  return new Vector3((point.x - canvasDimensions.x / 2) * gradient, y, (point.y - canvasDimensions.y / 2) * gradient)
-}
 
 function buildSelectionGeometry(selections, geometry, isCeiling, width, height) {
   var vertices = geometry.vertices
@@ -221,7 +214,6 @@ function buildWorldGeometry(map, geometry, width, height) {
 
 module.exports = {
   buildWorldGeometry: buildWorldGeometry,
-  buildSelectionGeometry: buildSelectionGeometry,
-  convert2Dto3D: convert2Dto3D
+  buildSelectionGeometry: buildSelectionGeometry
 }
 

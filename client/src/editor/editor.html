@@ -36,11 +36,16 @@
 <body>
 
 <form id="thing">
-  <input id="chance" type="number" min="0" max="100" step="1" value="50"/>
-  <select id="type">
+  <label for="thingChance">Chance</label>
+  <input id="thingChance" name="thingChance" type="number" min="0" max="100" step="1" value="100"/>
+
+  <label for="thingAmount">Amount</label>
+  <input id="thingAmount" name="thingAmount" type="number" min="0" max="100" step="1" value="1"/>
+
+  <select id="thingType">
     <option value="ammo">Ammo</option>
     <option value="health">Health</option>
-    <option value="spawn">Health</option>
+    <option value="spawn">Spawn</option>
   </select>
 </form>
 
@@ -78,7 +83,7 @@
   <input type="button" id="save" value="save"/>
 
   <input type="button" id="exportObj" value="Export Obj"/>
-  <input type="button" id="exportTris" value="Export Triangles"/>
+  <input type="button" id="exportQuack" value="Export To Quack"/>
 </form>
 
 <canvas id="canvas" width="1024" height="576">

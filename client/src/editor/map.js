@@ -52,6 +52,11 @@ Map.prototype = {
     onSectionsLoaded.call(this)
   },
 
+  setBlocks: function setBlocks(blocks) {
+    this.blocks = blocks
+    onBlocksLoaded.call(this)
+  },
+
   getClosestOnVertex: function(point) {
     var sections = this.sections
       , closestDistance = Number.POSITIVE_INFINITY
@@ -107,6 +112,13 @@ Map.prototype = {
   },
 
   addThing: function addThing(thing) {
+    // find highest y underneat thing
+    var section = this.findSectionUnder(thing.position)
+      , block = this.findBlockUnder(thing.position)
+      , heightPadding = .5 // amount above section / block
+      , height = Math.max(section ? section.floorHeight : 0, block ? block.y : 0) + heightPadding
+
+    thing.height = height
     this.things.push(thing)
   },
 
@@ -215,7 +227,7 @@ Map.prototype = {
          (findLargest && area > largestArea)) {
         touchedSection = section
         smallestArea = Math.min(smallestArea, area)
-        largestArea = Math.min(largestArea, area)
+        largestArea = Math.max(largestArea, area)
       }
     }
 
@@ -308,7 +320,6 @@ function getEdgeIntersection(a, b, c, d) {
 function onSectionsLoaded() {
   for (var i = 0; i < this.sections.length; i++) {
     var section = this.sections[i]
-    this.nextSectionId = Math.max(this.nextSectionId, section.id + 1)
     for (var j = 0; j < section.points.length; j++) {
       var point = section.points[j]
       if (point.__proto__ != THREE.Vector3.prototype)
@@ -316,6 +327,20 @@ function onSectionsLoaded() {
     }
     // mergeSimilarPoints(this.sections[i]) // ths is causing errors
   }
+
+  this.nextSectionId = findLargestId(this.sections)
+}
+
+function onBlocksLoaded() {
+  this.nextBlockId = findLargestId(this.blocks)
+}
+
+function findLargestId(group) {
+  var max = 1
+  for (var i = 0; i < group.length; i++) {
+    max = Math.max(max, group.id)
+  }
+  return max
 }
 
 function isNearPoint(a, b) {

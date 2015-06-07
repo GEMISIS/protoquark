@@ -4,7 +4,8 @@ var Stage3D            = require("./stage3D")
 var geometrybuilder    = require("./geometrybuilder")
 var Vector3            = THREE.Vector3
 var downloadString     = require("tm-components/download-string")
-var exportGeometry     = require("./geometryExporter")
+var exportMap          = require("./exportmap")
+var convert2Dto3D      = require("./coordinates").convert2Dto3D
 
 var colorInputs = [
   "ceilingColor",
@@ -35,6 +36,9 @@ var keysUp = {
   },
   16: function onShift(e) {
     this.multiSelect = false
+  },
+  66: function() {
+    this.selectLargestArea = false
   }
 }
 
@@ -142,6 +146,10 @@ var keysDown = {
     }
     if (selections.length)
       this.rebuild3DWorld()
+  },
+
+  66: function onSelectLargest() {
+    this.selectLargestArea = true
   }
 }
 
@@ -182,28 +190,29 @@ function Editor(canvas) {
     this.pointerLocked = !!!this.pointerLocked
   }.bind(this))
 
-  var floorHeightInput = this.floorHeightInput = document.getElementById("floorHeight")
-  floorHeightInput.addEventListener("input", function() {
+  var floorHeightEl = this.floorHeightEl = document.getElementById("floorHeight")
+  floorHeightEl.addEventListener("input", function() {
     var section = this.getSelectedSection()
     if (section) {
-      section.floorHeight = parseFloat(floorHeightInput.value)
+      section.floorHeight = parseFloat(floorHeightEl.value)
       buildPolygons.call(this, {x: this.canvas.width, y: this.canvas.height})
     }
   }.bind(this))
-  floorHeightInput.disabled = true
+  floorHeightEl.disabled = true
 
-  var ceilingHeightInput = this.ceilingHeightInput = document.getElementById("ceilingHeight")
-  ceilingHeightInput.addEventListener("input", function() {
+  var ceilingHeightEl = this.ceilingHeightEl = document.getElementById("ceilingHeight")
+  ceilingHeightEl.addEventListener("input", function() {
     var section = this.getSelectedSection()
     if (section) {
-      section.ceilingHeight = parseFloat(ceilingHeightInput.value)
+      section.ceilingHeight = parseFloat(ceilingHeightEl.value)
       buildPolygons.call(this, {x: this.canvas.width, y: this.canvas.height})
     }
   }.bind(this))
-  ceilingHeightInput.disabled = true
+  ceilingHeightEl.disabled = true
 
-  var thingTypeEl = this.thingTypeEl = document.getElementById("type")
-  var thingChanceEl = this.thingChanceEl = document.getElementById("chance")
+  var thingTypeEl = this.thingTypeEl = document.getElementById("thingType")
+  var thingChanceEl = this.thingChanceEl = document.getElementById("thingChance")
+  var thingAmountEl = this.thingAmountEl = document.getElementById("thingAmount")
 
   var thingContainerEl = this.thingContainerEl = document.getElementById("thing")
   var sectionContainerEl = this.sectionContainerEl = document.getElementById("section")
@@ -215,6 +224,10 @@ function Editor(canvas) {
 
   thingChanceEl.addEventListener("change", function(evt) {
     if (this.selectedThing) this.selectedThing.chance = parseInt(thingChanceEl.value)
+  }.bind(this))
+
+  thingAmountEl.addEventListener("change", function(evt) {
+    if (this.selectedThing) this.selectedThing.amount = parseInt(thingAmountEl.value)
   }.bind(this))
 
   var self = this
@@ -233,7 +246,7 @@ function Editor(canvas) {
   })
 
   document.getElementById("save").addEventListener("click", function(e) {
-    downloadString("map.json", JSON.stringify({sections: this.map.sections, things: this.map.things}))
+    downloadString("map.json", JSON.stringify({sections: this.map.sections, things: this.map.things, blocks: this.map.blocks}))
   }.bind(this))
 
   document.getElementById("exportObj").addEventListener("click", function(e) {
@@ -241,9 +254,8 @@ function Editor(canvas) {
     downloadString("map.obj", exporter.parse(this.stage3D.mesh, this.stage3D.geometry.visibleVertices, this.stage3D.geometry.visibleFaces))
   }.bind(this))
 
-  document.getElementById("exportTris").addEventListener("click", function(e) {
-    var geometry = this.stage3D.geometry
-    downloadString("vertices.json", JSON.stringify(exportGeometry(geometry)))
+  document.getElementById("exportQuack").addEventListener("click", function(e) {
+    downloadString("map.quack.json", exportMap(this))
   }.bind(this))
 
   syncColorValues.call(this, this.map)
@@ -261,7 +273,10 @@ function Editor(canvas) {
       // this.map.rescaleHeight(.33)
 
       this.map.things = obj.things
-      this.map.selectedThing = null
+      this.selectedThing = null
+
+      this.map.setBlocks(obj.blocks || [])
+      this.selectedBlock = null
 
       this.redraw2D()
       this.rebuild3DWorld()
@@ -439,7 +454,12 @@ var leftMouseHandler = {
     this.redraw2D()
   },
   thing: function(evt) {
-    this.map.addThing({position: this.getMouseCanvas(evt), type: this.thingTypeEl.value, chance: parseInt(this.thingChanceEl.value)})
+    this.map.addThing({
+      position: this.getMouseCanvas(evt),
+      type: this.thingTypeEl.value,
+      chance: parseInt(this.thingChanceEl.value),
+      amount: parseInt(this.thingAmountEl.value),
+    })
     this.redraw2D()
   },
   block: function(evt) {
@@ -471,7 +491,7 @@ var rightMouseHandler = {
       this.map.points = []
     }
     else {
-      var section = this.map.findSectionUnder(this.getMouseCanvas(evt))
+      var section = this.map.findSectionUnder(this.getMouseCanvas(evt), this.selectLargestArea)
       if (!section) return
 
       var index = this.selectedSections.indexOf(section.id)
@@ -496,8 +516,12 @@ var rightMouseHandler = {
   thing: function(evt) {
     this.selectedThing = this.map.findThingUnder(this.getMouseCanvas(evt))
     if (this.selectedThing) {
-      this.thingTypeEl.value = this.selectedThing.type
-      this.thingChanceEl = this.selectedThing.chance
+      this.thingTypeEl.value   = this.selectedThing.type
+      this.thingChanceEl.value = this.selectedThing.chance
+      this.thingAmountEl.value = this.selectedThing.amount
+    }
+    else {
+      // this.resetThingDefaults()
     }
     this.redraw2D()
   },
@@ -507,7 +531,6 @@ var rightMouseHandler = {
     }
     else {
       this.selectedBlock = this.map.findBlockUnder(this.getMouseCanvas(evt))
-      console.log(this.selectedBlock)
     }
     this.redraw2D()
   }
@@ -565,7 +588,7 @@ function onMiddleMouseDown(evt) {
     var camera = this.stage3D.camera
       , pos = new Vector3(0, 0, 0)
     for (var i = 0; i < section.points.length; i++) {
-      var point = geometrybuilder.convert2Dto3D(section.points[i], section.floorHeight + 1.5, dimensions)
+      var point = convert2Dto3D(section.points[i], section.floorHeight + 1.5, dimensions)
       pos.add(point)
     }
     pos.multiplyScalar(section.points.length ? 1/section.points.length : 1)
@@ -600,11 +623,11 @@ function onMouseWheel(evt) {
     if (!section) continue
     if (this.ceilingSelection) {
       section.ceilingHeight += delta
-      this.ceilingHeightInput.value = section.ceilingHeight
+      this.ceilingHeightEl.value = section.ceilingHeight
     }
     else {
       section.floorHeight += delta
-      this.floorHeightInput.value = section.floorHeight
+      this.floorHeightEl.value = section.floorHeight
     }
   }
   this.rebuild3DWorld()
