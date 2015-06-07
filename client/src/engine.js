@@ -72,7 +72,7 @@ function parseLevel(level) {
   // }).bind(this))
 
   level.healths.forEach((function(healthObj) {
-    var ent = health.create(this.genLocalId(), healthObj.position)
+    var ent = health.create(this.genLocalId(), healthObj.position, healthObj.amount)
     var pos = healthObj.position
     ent.position = new Vector3(pos.x, pos.y, pos.z)
     //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
@@ -542,7 +542,7 @@ function processCommandHit(target, command) {
 }
 
 function processHealthGet(target, command) {
-  target.health.current += .34
+  target.health.current += command.amount
   if(target.health.current > target.health.max) {
     target.health.current = target.health.max
   }
