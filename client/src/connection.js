@@ -73,7 +73,7 @@ Connection.prototype = {
     this.room = room
     delete this.serving
 
-    var peer = this.peer = migrating ? this.peer : new Peer({key: API_KEY, debug: 3})
+    var peer = this.peer = migrating ? this.peer : new Peer({key: API_KEY, debug: 2})
     if (!migrating) {
       this.emit("opening")
       peer.once("error", onJoinError.bind(this))

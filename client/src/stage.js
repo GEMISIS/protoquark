@@ -10,7 +10,8 @@ var representations = {
   bullet:       require('./obj3d/bullet'),
   remoteplayer: require("./obj3d/player"),
   gib:          require('./obj3d/block'),
-  level:        require("./obj3d/level")
+  level:        require("./obj3d/level"),
+  // level:        require("./obj3d/model"),
 }
 
 function Stage (engine) {
@@ -52,21 +53,23 @@ Stage.prototype = {
     //   scene.add(p.o3d)
     // }
 
-    var light = new THREE.DirectionalLight(0xffffff, 0.5)
-    light.position.set(.5, .707, .707)
-    scene.add(light)
+    // var light = new THREE.DirectionalLight(0xffffff, 0.5)
+    // light.position.set(.5, .707, .707)
+    // scene.add(light)
 
-    light = new THREE.DirectionalLight(0xcccccc, 0.5)
-    light.position.set(-1, 1, .1)
-    scene.add(light)
+    // light = new THREE.DirectionalLight(0xcccccc, 0.5)
+    // light.position.set(-1, 1, .1)
+    // scene.add(light)
 
-    light = new THREE.DirectionalLight(0xaaaaaa, 0.5)
-    light.position.set(0, 1, -1)
-    scene.add(light)
+    // light = new THREE.DirectionalLight(0xaaaaaa, 0.5)
+    // light.position.set(0, 1, -1)
+    // scene.add(light)
 
-    light = new THREE.DirectionalLight(0x888888, 0.5)
-    light.position.set(0, -1, .25)
-    scene.add(light)
+    // light = new THREE.DirectionalLight(0x888888, 0.5)
+    // light.position.set(0, -1, .25)
+    // scene.add(light)
+
+    scene.add(new THREE.AmbientLight(0xFFFFFF));
   },
 
   resize: function resize() {

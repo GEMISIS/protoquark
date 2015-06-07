@@ -22,8 +22,6 @@ function getGeometry(entity) {
     geometry.computeFaceNormals()
     geometry.verticesNeedUpdate = true
     geometry.colorsNeedUpdate = true
-    var foo = geometry
-    debugger
   }
 
   return geometry
