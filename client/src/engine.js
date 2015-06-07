@@ -60,6 +60,10 @@ function loadLevel(url, done) {
   req.send()
 }
 
+function getItemChance(obj) {
+  return !obj.chance || Math.random() * 100 <= obj.chance
+}
+
 function parseLevel(level) {
   // level.blocks.forEach((function(block) {
   //   var ent = new Entity(block, this.genLocalId())
@@ -71,16 +75,19 @@ function parseLevel(level) {
   //   this.add(ent)
   // }).bind(this))
 
-  if(level.healths !== undefined) {
+  if (level.healths) {
     level.healths.forEach((function(healthObj) {
+      if (!getItemChance(healthObj)) return
+
       var ent = health.create(this.genLocalId(), healthObj.position, healthObj.amount)
       ent.position.copy(healthObj.position)
       this.add(ent)
     }).bind(this))
   }
 
-  if(level.ammos !== undefined) {
+  if (level.ammos) {
     level.ammos.forEach((function(ammoObj) {
+      if (!getItemChance(ammoObj)) return
       var ent = ammo.create(this.genLocalId(), ammoObj.position, ammoObj.amount)
       ent.position.copy(ammoObj.position)
       this.add(ent)
@@ -108,6 +115,10 @@ function parseLevel(level) {
         , c = collisionVerts[i + 2]
       this.addTriangleCollider(new Triangle(new Vector3(a.x, a.y, a.z), new Vector3(b.x, b.y, b.z), new Vector3(c.x, c.y, c.z)))
     }
+  }
+
+  if (level.spawns && level.spawns.length) {
+
   }
 }
 
