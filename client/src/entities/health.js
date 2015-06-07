@@ -23,8 +23,11 @@ var health = {
       var other = entities[i]
       if (other.type == "player" || other.type == "remoteplayer") {
         var hit = collision.collides(ent, other)
-        if (hit && !ent.markedForDeletion) {
-          this.addStateCommand({command: "health", target: other.id})
+        // only send commands about ourself
+        if (hit && other.type == "player") {
+          if (other.type == "player") {
+            this.addStateCommand({command: "health", target: other.id})
+          }
           ent.markedForDeletion = true
           break
         }

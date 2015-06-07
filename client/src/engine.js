@@ -79,6 +79,18 @@ function parseLevel(level) {
     ent.context.color = (color | (color << 8) | (color << 16)).toString(16)
     this.add(ent)
   }).bind(this))
+
+  if (level.mesh) {
+    // ... // 
+  }
+
+  var collisionVerts = level.collisionVertices || []
+  for (var i = 0; i < collisionVertices.length; i += 3) {
+    var a = collisionVerts[i]
+      , b = collisionVerts[i + 1]
+      , c = collisionVerts[i + 2]
+    this.addTriangleCollider(new Triangle(new Vector3(a.x, a.y, a.z), new Vector3(b.x, b.y, b.z), new Vector3(c.x, c.y, c.z)))
+  }
 }
 
 var ons = {
@@ -372,6 +384,10 @@ Engine.prototype = {
 
     this.entities.splice(this.entities.indexOf(ent), 1)
     delete this.entityMap[ent.id]
+  },
+
+  addTriangleCollider: function addTriangleCollider(tri) {
+    this.colliders.push(tri)
   },
 
   addBoxCollider: function addBoxCollider(ent) {
