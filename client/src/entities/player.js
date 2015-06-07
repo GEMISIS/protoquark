@@ -38,11 +38,11 @@ module.exports = function updatePlayer (dt, ent) {
 
   if (ent.control.jump && !ent.jumping) {
     ent.jumping = true
-    ent.jump = 6
+    ent.jump = 4
   }
 
   // apply gravity
-  ent.jump -= dt * 12
+  ent.jump -= dt * 10
   var gravity = new Vector3(0, ent.jump * dt, 0)
   var minY = -1.0
   if (applyDelta(ent, gravity, collision, colliders, false) || ent.position.y < minY) {

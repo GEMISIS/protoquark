@@ -55,13 +55,13 @@ Stage.prototype = {
     //   scene.add(p.o3d)
     // }
 
-    // var light = new THREE.DirectionalLight(0xffffff, 0.5)
-    // light.position.set(.5, .707, .707)
-    // scene.add(light)
+    var light = new THREE.DirectionalLight(0xffffff)
+    light.position.set(1, 1, 1)
+    scene.add(light)
 
-    // light = new THREE.DirectionalLight(0xcccccc, 0.5)
-    // light.position.set(-1, 1, .1)
-    // scene.add(light)
+    light = new THREE.DirectionalLight(0xcccccc)
+    light.position.set(-1, 1, -1)
+    scene.add(light)
 
     // light = new THREE.DirectionalLight(0xaaaaaa, 0.5)
     // light.position.set(0, 1, -1)
@@ -71,7 +71,7 @@ Stage.prototype = {
     // light.position.set(0, -1, .25)
     // scene.add(light)
 
-    scene.add(new THREE.AmbientLight(0xFFFFFF));
+    scene.add(new THREE.AmbientLight(0x222222));
   },
 
   resize: function resize() {

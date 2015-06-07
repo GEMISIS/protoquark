@@ -1,5 +1,6 @@
 var loadmodel = require('../stage/loadmodel')
 var colorChildren = require('../stage/colorchildren')
+
 function Health (entity) {
   this.entity = entity
   this.o3d = new THREE.Object3D()
