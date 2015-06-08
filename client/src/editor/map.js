@@ -329,17 +329,24 @@ function onSectionsLoaded() {
   }
 
   this.nextSectionId = findLargestId(this.sections) + 1
+  console.log("Next section", this.nextSectionId)
 }
 
 function onBlocksLoaded() {
   this.nextBlockId = findLargestId(this.blocks) + 1
+  console.log("Next block", this.nextBlockId)
 }
 
 function findLargestId(group) {
   var max = 1
+  debugger
   for (var i = 0; i < group.length; i++) {
+    if (!group[i].id) {
+      debugger
+    }
     max = Math.max(max, group[i].id)
   }
+  debugger
   return max
 }
 

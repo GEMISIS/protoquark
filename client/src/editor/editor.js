@@ -165,6 +165,8 @@ function Editor(canvas) {
   this.selectedThing = null
   this.mapOffsets = {x: 0, y: 0}
 
+  var mapDefaults = this.mapDefaults = {}
+
   this.stage3D.renderer.domElement.style.display = "none"
 
   this.map.on("sectionschanged", function() {this.rebuild3DWorld()}.bind(this))
@@ -238,7 +240,11 @@ function Editor(canvas) {
     }.bind(self))
   })
 
+  // editor will have properties of toggleInputs which will be the corresponding input element
+  // map also has these properties as a boolean
   toggleInputs.forEach(function(input) {
+    mapDefaults[input] = self.map[input]
+
     self[input] = document.getElementById(input)
     self[input].addEventListener("change", function(e) {
       onMapPropertyChanged.call(self, input, self[input].checked)
@@ -390,15 +396,20 @@ function onMapPropertyChanged(propName, value) {
   // items changed should be selection
   // if no selection, then change the default map properties
   var items = this.getSelections()
-  if (!items.length) items = [this.map]
+    , isMap = !items.length
+  if (isMap) items = [this.map]
 
   for (var i = 0; i < items.length; i++) {
     if (typeof items[i][propName] === undefined) continue
     items[i][propName] = value
   }
 
-  if (this.selectedSections.length) {
+  if (!isMap && this.selectedSections.length) {
     this.rebuild3DWorld()
+  }
+
+  if (isMap) {
+    this.mapDefaults[propName] = value
   }
 }
 
@@ -406,7 +417,14 @@ function onMapPropertyChanged(propName, value) {
 function onSectionsSelected() {
   var selections = this.selectedSections
     , section = this.map.findSection(selections[0])
+    , lastSection = this.map.findSection(selections[selections.length - 1])
     , map = this.map
+
+  toggleInputs.forEach(function(input) {
+    this.map[input] = lastSection ? lastSection[input] : this.mapDefaults[input]
+    this[input].checked = this.map[input]
+  }.bind(this))
+
   if (selections.length == 1 && section) {
     syncColorValues.call(this, section)
   }
