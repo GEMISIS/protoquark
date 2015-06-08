@@ -13,7 +13,7 @@ var representations = {
   remoteplayer: require('../obj3d/player'),
   gib:          require('../obj3d/block'),
   level:        require('../obj3d/level'),
-  // level:        require("./obj3d/model"),
+  model:        require("../obj3d/model"),
 }
 
 function Stage (engine) {

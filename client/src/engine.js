@@ -106,10 +106,6 @@ function parseLevel(level) {
     ent.type = "level"
     this.add(ent)
 
-    // var ent = new Entity({id: id, model: "../scene.obj", material: "../scene.mtl"}, id)
-    // ent.type = "level"
-    // this.add(ent)
-
     for (var i = 0; i < collisionVerts.length; i += 3) {
       var a = collisionVerts[i]
         , b = collisionVerts[i + 1]
