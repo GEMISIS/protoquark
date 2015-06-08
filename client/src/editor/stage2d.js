@@ -69,12 +69,20 @@ drawGrid: function drawGrid() {
 drawThings: function drawThings(selectedThing) {
   var ctx = this.ctx
     , things = this.map.things
-    , thickness = 16
+    , thickness = 24
     , offset = this.offset
+
+  ctx.font = "20px serif"
+  ctx.textBaseline = "middle"
+  ctx.textAlign = "center"
+
   for (var i = 0; i < things.length; i++) {
     var thing = things[i]
     ctx.fillStyle = thing == selectedThing ? "rgb(100, 100, 255)" : "rgb(255, 100, 100)"
     ctx.fillRect(thing.position.x - thickness/2 - offset.x, thing.position.y - thickness / 2 - offset.y, thickness, thickness)
+
+    ctx.fillStyle = "rgb(0, 0, 0)"
+    ctx.fillText(thing.type.substr(0, 1), thing.position.x - offset.x, thing.position.y - offset.y)
   }
 },
 
