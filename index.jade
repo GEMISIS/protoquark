@@ -1,19 +1,18 @@
 doctype html
 html
-	head
-		title Quack
-		link(rel="stylesheet" href="/style.css")
-	body
-		div(class="mainStart")
-			h1(style="font-size: 400%;") Welcome to Quack
-			br
-			h3 Leave the room name blank to join a random room!
-			br
-			form(action="rooms/")
-				| Room Name:
-				input(type="text", name="name", placeholder="Leave empty to join random", autofocus)
-				br
-				input(type="text", name="maxPlayers", value="8")
-				br
-				br
-				input(type="submit", value="Join Room")
+  head
+    title Quack
+    link(rel="stylesheet" href="/style.css")
+  body
+    div(id="mainStart")
+      h1 Welcome to Quack
+      form(action="rooms/")
+        ul
+          li
+            label(for="room") Room name
+            input(type="text", name="room", placeholder="Leave empty to join random", autofocus)
+          li
+            label(for="maxPlayers") Max players
+            input(type="number", name="maxPlayers", value="8", min="1", step="1")
+          li
+            input(type="submit", value="Join Room")

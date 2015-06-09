@@ -22,14 +22,26 @@ body {
   overflow: hidden;
 }
 
-.mainStart {
+#mainStart {
   position: absolute;
   top: 50%;
-  left: 50%; 
+  left: 50%;
   -moz-transform: translateX(-50%) translateY(-50%);
   -webkit-transform: translateX(-50%) translateY(-50%);
   transform: translateX(-50%) translateY(-50%);
   text-align: center;
+}
+
+#mainStart label {
+  margin: 0 8px;
+}
+
+#mainStart ul {
+  list-style-type: none;
+}
+
+#mainStart li {
+  margin: 8px 0;
 }
 
 .noselect {
