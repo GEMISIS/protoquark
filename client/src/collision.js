@@ -287,17 +287,23 @@ module.exports = {
   getSweptBoxCollision: getSweptBoxCollision,
   getCollision: getCollision,
 
-  collides: function collides(a, b) {
-    var boxA = a.box ? a.box.clone() : new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
-    var boxB = b.box ? b.box.clone() : new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
+  collides: (function() {
+    var defaultA = new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
+      , defaultB = new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
+      , boxA = new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
+      , boxB = Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
 
-    boxA.min.add(a.position)
-    boxA.max.add(a.position)
-    boxB.min.add(b.position)
-    boxB.max.add(b.position)
+    return function(a, b) {
+      boxA.copy(a.box ? a.box : defaultA)
+      boxB.copy(b.box ? b.box : defaultB)
+      boxA.min.add(a.position)
+      boxA.max.add(a.position)
+      boxB.min.add(b.position)
+      boxB.max.add(b.position)
 
-    return boxA.isIntersectionBox (boxB)
-  },
+      return boxA.isIntersectionBox(boxB)
+    }
+  }())
 
   collidesSwept: function collidesSwept(a, b, from, to) {
     var boxA = {
