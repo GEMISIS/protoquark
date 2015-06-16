@@ -291,7 +291,7 @@ module.exports = {
     var defaultA = new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
       , defaultB = new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
       , boxA = new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
-      , boxB = Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
+      , boxB = new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
 
     return function(a, b) {
       boxA.copy(a.box ? a.box : defaultA)
@@ -303,7 +303,7 @@ module.exports = {
 
       return boxA.isIntersectionBox(boxB)
     }
-  }())
+  }()),
 
   collidesSwept: function collidesSwept(a, b, from, to) {
     var boxA = {
