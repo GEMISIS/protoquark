@@ -54,16 +54,21 @@ module.exports = function updatePlayer (dt, ent) {
   ent.updateRotation()
 
   // Queue up packets to send - we'll clear this once sent
-  if (this.conn.connected)
+  if (this.conn.connected) {
     ent.addSnapshot(this.conn.getServerTime(), ent.control)
+  }
 
   var weapon = ent.weapon.active === "primary" ? ent.weapon.primary : ent.weapon.secondary
   if (!weapon) return
   var weaponStats = weapons[weapon.id]
+    , delay = 1 / weaponStats.firerate
   weapon.shotTimer -= dt
+  weapon.shotTimer = Math.max(weapon.shotTimer, 0)
   if (ent.control.shoot && (!ent.lastControl.shoot || weaponStats.automatic) && weapon.shotTimer <= 0 && weapon.ammunition > 0) {
-    weapon.shotTimer = 1 / weaponStats.firerate
-    this.add(bullets.create(this.genLocalId(), ent, "normal"))
+    weapon.shotTimer = delay
+    var bulletPos = ent.getOffsetPosition(new Vector3().addVectors(ent.weaponStartOffset, ent.position), ent.weaponOffsetPos)
+    this.add(bullets.create(this.genLocalId(), ent, "normal", bulletPos))
     weapon.ammunition--
   }
+  weapon.shotT = 1.0 - weapon.shotTimer / delay
 }

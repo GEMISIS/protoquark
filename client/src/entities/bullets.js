@@ -4,12 +4,15 @@ var collision = require("../collision")
 var gib = require("./gib")
 
 var bullet = {
-  create: function create(id, creator, bulletType) {
+  create: function create(id, creator, bulletType, position, rotation) {
     var ent = new Entity({id: id}, id)
     ent.update = bullet[bulletType]
 
-    ent.position.copy(creator.position)
-    ent.rotation.copy(creator.rotation)
+    var position = position || creator.position
+      , rotation = rotation || creator.rotation
+
+    ent.position.copy(position)
+    ent.rotation.copy(rotation)
     ent.euler.copy(creator.euler)
     ent.shape = new Vector3(.1, .1, .1)
 

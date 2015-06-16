@@ -16,6 +16,7 @@ var localIdCounter = 0
 var startingHealth = 1
 var startingScore = 0
 var sendInterval = .04
+var serverStateInterval = .5
 var startingPosition = {x: 0, y: 3, z: 0}
 
 function handleDirection(control, down) {
@@ -200,7 +201,6 @@ conn: {
       var ent = createPlayer(e.context[id], "remoteplayer")
       self.add(ent)
     })
-    console.log("onPlayers")
   },
   playerstate: function onPlayerState(e) {
     if (!this.conn.isServer()) return
@@ -347,7 +347,7 @@ function Engine (connection, controller) {
   this.entityMap = {}
   this.sendIntervalId = setInterval(onIntervalSend.bind(this),
     sendInterval * 1000)
-  this.stateIntervalId = setInterval(onStateSend.bind(this), 500)
+  this.stateIntervalId = setInterval(onStateSend.bind(this), serverStateInterval * 1000)
   this.sendInterval = sendInterval
   this.colliders = []
 
@@ -499,6 +499,7 @@ function onStateSend() {
   }
 }
 
+var lastSendTime = 0
 function onIntervalSend() {
   var conn = this.conn
   var me = this.you()
@@ -528,6 +529,13 @@ function onIntervalSend() {
     })
     this.stateCommands = []
   }
+
+  // If tab inactive update entities since thats on the requestAnimation timer
+  if (document.hidden) {
+    this.update(conn.getServerTime() - lastSendTime)
+  }
+
+  lastSendTime = conn.getServerTime()
 }
 
 function addStartingWeapon(ent) {
@@ -551,6 +559,11 @@ function createPlayer(context, type) {
   ent.lastControl = {}
   addStartingWeapon(ent)
   addUpdate(ent)
+
+  // We want the gun to start this far from player and be used as the new origin during transformations
+  ent.weaponOffsetPos = new Vector3(.075, 0, -.20)
+  ent.weaponStartOffset = new Vector3(0, .20, 0)
+
   return ent
 }
 

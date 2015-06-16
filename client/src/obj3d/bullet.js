@@ -1,6 +1,6 @@
 var geometry, material;
 function getGeometry() {
-  if (!geometry) geometry = new THREE.BoxGeometry(0.1, 0.1, 0.3)
+  if (!geometry) geometry = new THREE.BoxGeometry(0.03, 0.03, 0.03)
   return geometry
 }
 function getMaterial() {

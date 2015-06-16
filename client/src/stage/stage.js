@@ -11,6 +11,7 @@ var representations = {
   ammo:         require('../obj3d/ammo'),
   bullet:       require('../obj3d/bullet'),
   remoteplayer: require('../obj3d/player'),
+  player:       require('../obj3d/ownplayer'),
   gib:          require('../obj3d/block'),
   level:        require('../obj3d/level'),
   model:        require("../obj3d/model"),
@@ -126,7 +127,7 @@ Stage.prototype = {
         continue
       }
 
-      if (rep.o3d) this.scene.remove(rep.o3d) 
+      if (rep.o3d) this.scene.remove(rep.o3d)
       delete map[id]
       ids.splice(i, 1)
       i--

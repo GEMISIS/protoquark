@@ -1,4 +1,3 @@
-var Maths = require("./math").maths
 var Matrix4    = require("./math").mat4
 var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
@@ -97,6 +96,25 @@ Entity.prototype = {
     if (snapshots.length > 240) {
       snapshots.splice(0, snapshots.length - 240)
     }
+  },
+
+  // For values offset from the entity, like attachments such as weapons
+  getOffsetPosition: function getOffsetPosition(basePos, offsetPos) {
+    var y = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -this.euler.y)
+      , x = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -this.euler.x)
+      , quaternion = new Quaternion().multiplyQuaternions(y, x)
+
+    var rotatedOffset = new Vector3().copy(offsetPos).applyQuaternion(quaternion)
+    var rotatedPos = new Vector3().addVectors(basePos, rotatedOffset)
+
+    return rotatedPos
+  },
+
+  getOffsetRotation: function (offEulerX, offEulerY) {
+    var y = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -this.euler.y + offEulerY)
+      , x = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -this.euler.x + offEulerX)
+
+    return new Quaternion().multiplyQuaternions(y, x)
   }
 }
 
