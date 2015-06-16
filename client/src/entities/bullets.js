@@ -36,7 +36,7 @@ var bullet = {
 
     var hit = collision.getSweptCollision(from, delta, this.colliders, ent.shape, true)
     if (hit.collision) {
-      ent.position = hit.position
+      ent.position.copy(hit.position)
       ent.markedForDeletion = true
       return
     }

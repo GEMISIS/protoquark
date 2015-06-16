@@ -30,7 +30,7 @@ var gib = {
 
     var hit = collision.getSweptCollision(from, delta, this.colliders, gibShape, true)
     if (ent.velocity.y < 0 && hit.collision) {
-      ent.position = hit.position
+      ent.position.copy(hit.position)
       ent.markedForDeletion = true
       ent.velocity.set(0, 0, 0)
       return

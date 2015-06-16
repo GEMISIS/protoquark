@@ -8,7 +8,7 @@ var playerShape = new Vector3(.25, .65, .25)
 function applyDelta(ent, delta, collision, colliders, stick) {
   var prev = new Vector3().copy(ent.position)
   var hit = collision.getSweptCollision(prev, delta, colliders, playerShape, stick)
-  if (hit.collision) ent.position = hit.position
+  if (hit.collision) ent.position.copy(hit.position)
   else ent.position.add(delta)
   return hit.collision
 }

@@ -56,11 +56,11 @@ Stage.prototype = {
     //   scene.add(p.o3d)
     // }
 
-    var light = new THREE.DirectionalLight(0xffffff)
+    var light = new THREE.DirectionalLight(0xaaaaaa)
     light.position.set(1, 1, 1)
     scene.add(light)
 
-    light = new THREE.DirectionalLight(0xcccccc)
+    light = new THREE.DirectionalLight(0x888888)
     light.position.set(-1, 1, -1)
     scene.add(light)
 
