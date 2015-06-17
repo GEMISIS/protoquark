@@ -3,6 +3,11 @@ var Vector3    = require("./math").vec3
 var Quaternion = require("./math").quat
 
 function Entity(context, id) {
+  // autoset id if only context obj given, or create context obj if only id given
+  var type = typeof context
+  id = id || (type === "string" ? context : (context && context.id ? context.id : "id"))
+  context = (type === "string" || !context) ? {id: id} : context
+
   this.context = context
 
   this.position = new Vector3(0, 2, 0)

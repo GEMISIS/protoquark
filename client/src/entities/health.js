@@ -1,4 +1,4 @@
-var Box = require("../math").box
+var Box        = require("../math").box
 var Entity     = require("../entity")
 var Vector3    = require("../math").vec3
 var collision  = require("../collision")
