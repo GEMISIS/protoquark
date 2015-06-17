@@ -17,6 +17,8 @@ Ammo.prototype = {
     var e = this.entity
     o3d.position.copy(e.position)
     o3d.rotation.y += 0.05
+
+    o3d.visible = !e.respawning
   }
 }
 

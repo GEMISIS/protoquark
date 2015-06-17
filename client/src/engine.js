@@ -206,19 +206,14 @@ conn: {
     if (!this.conn.isServer()) return
 
     var ent = this.entityMap[e.sender]
-    if (!ent) {
-      console.log("Cant find", e.sender)
-      return
-    }
-
-    // Queue packets for future send - dont put in ent.snapshots since we'll handle that with
-    // the entitiesupdate event for both client and server
+    if (!ent) return
 
     // Ignore out of order packets
     if (ent.lastSnapshotTime && e.context.time < ent.lastSnapshotTime) return
     ent.lastSnapshotTime = e.context.time
 
-    this.playersSnapshots = this.playersSnapshots || {}
+    // Queue packets for future send - dont put in ent.snapshots since we'll handle that with
+    // the playerssnapshots event for both client and server
     this.playersSnapshots[e.sender] = (this.playersSnapshots[e.sender] || []).concat(e.context.snapshots)
     ent.latency = e.context.latency
     ent.invincibility = e.context.invincibility
@@ -274,7 +269,7 @@ conn: {
       }
     }
   },
-  entitiesupdate: function onEntitiesUpdate(e) {
+  playerssnapshots: function onPlayersSnapshots(e) {
     var entitySnapshots = e.context.snapshots
     var self = this
     var me = this.you()
@@ -292,7 +287,6 @@ conn: {
       }
     })
   },
-
   migration: function onMigration(e) {
     // New host's player will be old host's player
     var newPlayer = this.entityMap[e.context.previousHost]
@@ -348,6 +342,7 @@ function Engine (connection, controller) {
   this.control = controller
   this.entities = []
   this.entityMap = {}
+  this.playersSnapshots = {}
   this.sendIntervalId = setInterval(onIntervalSend.bind(this),
     sendInterval * 1000)
   this.stateIntervalId = setInterval(onStateSend.bind(this), serverStateInterval * 1000)
@@ -520,7 +515,7 @@ function onIntervalSend() {
   }
 
   if (conn.isServer() && this.playersSnapshots) {
-    conn.send("entitiesupdate", {
+    conn.send("playerssnapshots", {
       snapshots: this.playersSnapshots,
       time: conn.getServerTime()
     })

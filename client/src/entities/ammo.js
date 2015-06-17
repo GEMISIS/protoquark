@@ -1,4 +1,4 @@
-var Box = require("../math").box
+var Box        = require("../math").box
 var Entity     = require("../entity")
 var Vector3    = require("../math").vec3
 var collision  = require("../collision")
@@ -20,6 +20,11 @@ var ammo = {
   },
 
   updateAmmo: function updateAmmo (dt, ent) {
+    if (ent.respawning && this.conn.getServerTime() > ent.respawnTime)
+      ent.respawning = false
+
+    if (ent.respawning) return
+
     // TODO: Use some type of tree to limit number of entities checked
     var entities = this.entities
     for (var i = 0; i < entities.length; i++) {
@@ -28,7 +33,13 @@ var ammo = {
       // only send commands about ourself
       if (hit && other.type == "player") {
         this.addStateCommand({command: "ammo", target: other.id, amount: ent.amount})
-        ent.markedForDeletion = true
+        // cheap hack for now to hide ammo while it respawns / dont delete
+        ent.respawning = true
+        if (this.conn.isServer()) {
+          this.respawnTime = this.conn.getServerTime() + 10
+        }
+
+        // ent.markedForDeletion = true
         break
       }
     }
