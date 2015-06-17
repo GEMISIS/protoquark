@@ -7,8 +7,8 @@ var Euler      = math.euler
 var representations = {
   box:          require('../obj3d/box'),
   block:        require('../obj3d/block'),
-  health:       require('../obj3d/health'),
-  ammo:         require('../obj3d/ammo'),
+  health:       require('../obj3d/pickup'),
+  ammo:         require('../obj3d/pickup'),
   bullet:       require('../obj3d/bullet'),
   remoteplayer: require('../obj3d/player'),
   player:       require('../obj3d/ownplayer'),

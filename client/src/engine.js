@@ -287,6 +287,18 @@ conn: {
       }
     })
   },
+  itemsupdate: function onItemsUpdate(e) {
+    var ids = Object.keys(e.context.ids).forEach(function(id) {
+      var obj = e.context.ids[id]
+        , props = Object.keys(obj)
+        , ent = this.entityMap[id]
+      if (!ent) return
+
+      for (var i = 0; i < props.length; i++) {
+        ent[props[i]] = obj[props[i]]
+      }
+    }.bind(this))
+  },
   migration: function onMigration(e) {
     // New host's player will be old host's player
     var newPlayer = this.entityMap[e.context.previousHost]
@@ -342,12 +354,15 @@ function Engine (connection, controller) {
   this.control = controller
   this.entities = []
   this.entityMap = {}
-  this.playersSnapshots = {}
+  this.sendInterval = sendInterval
   this.sendIntervalId = setInterval(onIntervalSend.bind(this),
     sendInterval * 1000)
-  this.stateIntervalId = setInterval(onStateSend.bind(this), serverStateInterval * 1000)
-  this.sendInterval = sendInterval
   this.colliders = []
+
+  // Server controlled stuff
+  this.playersSnapshots = {}
+  this.stateIntervalId = setInterval(onStateSend.bind(this), serverStateInterval * 1000)
+  this.itemsStates = {}
 
   var self = this
 
@@ -401,6 +416,12 @@ Engine.prototype = {
         i--
       }
     }
+  },
+
+  addItemState: function addItemState(ent, prop, value) {
+    if (!this.conn.isServer()) return
+    if (!this.itemsStates[ent.id]) this.itemsStates[ent.id] = {}
+    this.itemsStates[ent.id][prop] = value
   },
 
   add: function add (ent) {
@@ -483,18 +504,24 @@ function onStateSend() {
   var states = []
   var entityMap = this.entityMap
   Object.keys(conn.players).forEach(function(id) {
-    if(entityMap[id]) {
-      states.push({
-        id: id,
-        currentHealth: entityMap[id].health.current,
-        currentScore: entityMap[id].score,
-      })
-    }
+    if (!entityMap[id]) return
+
+    states.push({
+      id: id,
+      currentHealth: entityMap[id].health.current,
+      currentScore: entityMap[id].score,
+    })
   })
 
   if (states.length) {
     conn.send("gamestate", { states: states })
   }
+
+  conn.send("itemsupdate", {
+    ids: this.itemsStates
+  })
+
+  this.itemsStates = {}
 }
 
 var lastSendTime = 0
@@ -593,19 +620,13 @@ function processCommandHit(target, command) {
 
 function processHealthGet(target, command) {
   target.health.current += command.amount
-  if(target.health.current > target.health.max) {
-    target.health.current = target.health.max
-  }
+  target.health.current = Math.min(target.health.max, target.health.current)
 }
 
 function processAmmoGet(target, command) {
-  console.log(command.amount)
-  target.weapon.primary.ammunition += command.amount
-  console.log("Old: " + target.weapon.primary.ammunition)
-  if(target.weapon.primary.ammunition > weapons[target.weapon.primary.id].ammunition) {
-    target.weapon.primary.ammunition = weapons[target.weapon.primary.id].ammunition
-    console.log("New: " + target.weapon.primary.ammunition)
-  }
+  var weapon = target.weapon.primary
+  weapon.ammunition += command.amount
+  weapon.ammunition = Math.min(weapons[weapon.id].ammunition, weapon.ammunition)
 }
 
 emitter(Engine.prototype)
