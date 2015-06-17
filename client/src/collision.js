@@ -288,14 +288,13 @@ module.exports = {
   getCollision: getCollision,
 
   collides: (function() {
-    var defaultA = new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
-      , defaultB = new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
+    var defaultBox = new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
       , boxA = new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
       , boxB = new Box(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
 
     return function(a, b) {
-      boxA.copy(a.box ? a.box : defaultA)
-      boxB.copy(b.box ? b.box : defaultB)
+      boxA.copy(a.box ? a.box : defaultBox)
+      boxB.copy(b.box ? b.box : defaultBox)
       boxA.min.add(a.position)
       boxA.max.add(a.position)
       boxB.min.add(b.position)

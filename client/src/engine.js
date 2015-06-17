@@ -218,20 +218,23 @@ conn: {
     if (ent.lastSnapshotTime && e.context.time < ent.lastSnapshotTime) return
     ent.lastSnapshotTime = e.context.time
 
-    this.snapshots = this.snapshots || {}
-    this.snapshots[e.sender] = (this.snapshots[e.sender] || []).concat(e.context.snapshots)
+    this.playersSnapshots = this.playersSnapshots || {}
+    this.playersSnapshots[e.sender] = (this.playersSnapshots[e.sender] || []).concat(e.context.snapshots)
     ent.latency = e.context.latency
+    ent.invincibility = e.context.invincibility
   },
   death: function onPlayerDeath(e) {
     // our death usually
     var id = e.context.id
-    var entity = this.entityMap[id]
-    if (!entity || id != this.you().id) return
+    var ent = this.entityMap[id]
+    if (!ent) return
+    // if (!ent || id != this.you().id) return
 
     var pos = e.context.position
-    entity.position.set(pos.x, pos.y, pos.z)
-    entity.health.current = entity.health.max
-    entity.weapon.primary.ammunition = weapons[entity.weapon.primary.id].ammunition
+    ent.position.set(pos.x, pos.y, pos.z)
+    ent.health.current = ent.health.max
+    ent.weapon.primary.ammunition = weapons[ent.weapon.primary.id].ammunition
+    ent.invincibility = e.context.invincibility
   },
   reposition: function onPlayerReposition(e) {
     // our reposition
@@ -509,18 +512,19 @@ function onIntervalSend() {
     conn.send("playerstate", {
       snapshots: me.snapshots,
       time: conn.getServerTime(),
-      latency: conn.latency
+      latency: conn.latency,
+      invincibility: me.invincibility || 0.0
     })
     // Clear for next send.
     me.snapshots = []
   }
 
-  if (conn.isServer() && this.snapshots) {
+  if (conn.isServer() && this.playersSnapshots) {
     conn.send("entitiesupdate", {
-      snapshots: this.snapshots,
+      snapshots: this.playersSnapshots,
       time: conn.getServerTime()
     })
-    this.snapshots = {}
+    this.playersSnapshots = {}
   }
 
   if (states && states.length) {
@@ -532,7 +536,7 @@ function onIntervalSend() {
 
   // If tab inactive update entities since thats on the requestAnimation timer
   if (document.hidden) {
-    this.update(conn.getServerTime() - lastSendTime)
+    // this.update(conn.getServerTime() - lastSendTime)
   }
 
   lastSendTime = conn.getServerTime()
@@ -580,12 +584,15 @@ function addUpdate(ent) {
 }
 
 function processCommandHit(target, command) {
+  if (target.invincibility && target.invincibility > 0) return
+
   target.health.current -= .34
   if (target.health.current <= Number.EPSILON) {
     target.health.current = target.health.max
     target.position.set(0, 3, 0)
     this.entityMap[command.shooter].score += 1
-    this.conn.send("death", {killer: command.shooter, id:target.id, position: startingPosition}, {relay:target.id})
+    // this.conn.send("death", {killer: command.shooter, id:target.id, position: startingPosition, invincibility: 3.0}, {relay:target.id})
+    this.conn.send("death", {killer: command.shooter, id:target.id, position: startingPosition, invincibility: 3.0})
   }
 }
 

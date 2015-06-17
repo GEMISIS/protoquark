@@ -10,10 +10,11 @@ function applyDelta(ent, delta, collision, colliders, stick) {
   var hit = collision.getSweptCollision(prev, delta, colliders, playerShape, stick)
   if (hit.collision) ent.position.copy(hit.position)
   else ent.position.add(delta)
+
   return hit.collision
 }
 
-module.exports = function updatePlayer (dt, ent) {
+module.exports = function updatePlayer(dt, ent) {
   var angle = ent.euler.y
   var sinAngle = Math.sin(angle)
   var cosAngle = Math.cos(angle)
@@ -50,6 +51,9 @@ module.exports = function updatePlayer (dt, ent) {
     ent.jumping = false
     ent.jump = 0
   }
+
+  if (ent.invincibility)
+    ent.invincibility -= dt
 
   ent.updateRotation()
 

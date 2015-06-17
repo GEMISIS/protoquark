@@ -23,9 +23,11 @@ function Player (entity) {
   this.entity = entity
   this.o3d = new THREE.Object3D()
 
-  var material = new THREE.MeshBasicMaterial({
+  var material = this.material = new THREE.MeshBasicMaterial({
     //color: intToARGB(hashCode(entity.context.id))
-    color: 0xAAAAAA
+    color: 0xAAAAAA,
+    transparent: true,
+    opacity: 1.0
   })
 
   this.o3d.add(new THREE.Mesh(getGeometry(), material))
@@ -37,6 +39,15 @@ Player.prototype = {
     var e = this.entity
     o3d.position.copy(e.position)
     o3d.rotation.setFromQuaternion(e.rotation)
+
+    // blink if invincible
+    var blinkInterval = .5
+    if (e.invincibility && e.invincibility > 0) {
+      this.material.opacity = Math.cos(e.invincibility / blinkInterval * 2 * Math.PI) * .5 + .5
+    }
+    else {
+      this.material.opacity = 1
+    }
   }
 }
 
