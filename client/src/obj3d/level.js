@@ -20,6 +20,7 @@ function getGeometry(entity) {
     }
 
     geometry.computeFaceNormals()
+    geometry.computeVertexNormals() // Mainly for the decals
     geometry.verticesNeedUpdate = true
     geometry.colorsNeedUpdate = true
   }
@@ -27,7 +28,7 @@ function getGeometry(entity) {
   return geometry
 }
 
-function Level (entity) {
+function Level(entity) {
   this.entity = entity
   this.o3d = new THREE.Object3D()
 
@@ -40,6 +41,8 @@ function Level (entity) {
   this.o3d.add(mesh)
 
   this.o3d.updateMatrix()
+
+  Level.defaultMesh = mesh
 }
 
 module.exports = Level

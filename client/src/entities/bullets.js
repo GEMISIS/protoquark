@@ -1,9 +1,11 @@
-var Entity   = require("../entity")
-var Vector3  = require("../math").vec3
+var Entity    = require("../entity")
+var Vector3   = require("../math").vec3
 var collision = require("../collision")
-var gib = require("./gib")
+var gib       = require("./gib")
 
 var bullet = {
+  gibsPerBullet: 4,
+
   create: function create(id, creator, bulletType, position, rotation) {
     var ent = new Entity({id: id}, id)
     ent.update = bullet[bulletType]
@@ -66,7 +68,7 @@ var bullet = {
     if (enemyHit) {
       ent.markedForDeletion = true
       ent.position.copy(hitPoint ? hitPoint : enemyHit.position)
-      for (var i = 0; i < 5; i++) {
+      for (var i = 0; i < bullet.gibsPerBullet; i++) {
         this.add(gib.create(this.genLocalId(), ent))
       }
     }

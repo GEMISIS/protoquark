@@ -15,6 +15,7 @@ var representations = {
   gib:          require('../obj3d/block'),
   level:        require('../obj3d/level'),
   model:        require("../obj3d/model"),
+  decal:        require("../obj3d/decal"),
 }
 
 function Stage (engine) {

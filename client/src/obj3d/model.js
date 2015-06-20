@@ -1,4 +1,3 @@
-
 var loadmodel = require('../stage/loadmodel')
 
 function Model (entity) {

@@ -1,6 +1,7 @@
-var Entity   = require("../entity")
-var Vector3  = require("../math").vec3
+var Entity    = require("../entity")
+var Vector3   = require("../math").vec3
 var collision = require("../collision")
+var decal     = require("./decal")
 
 var gibShape = new Vector3(.025, .025, .025)
 
@@ -31,6 +32,8 @@ var gib = {
     var hit = collision.getSweptCollision(from, delta, this.colliders, gibShape, true)
     if (ent.velocity.y < 0 && hit.collision) {
       ent.position.copy(hit.position)
+      this.add(decal.create(this.genLocalId(), ent.position, ent.velocity.clone().normalize()))
+
       ent.markedForDeletion = true
       ent.velocity.set(0, 0, 0)
       return
