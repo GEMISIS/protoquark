@@ -33,6 +33,13 @@ function Stage (engine) {
 }
 
 Stage.prototype = {
+  cacheRepresentations: function() {
+    Object.keys(representations).forEach(function(r) {
+      if (typeof representations[r].cache === 'function')
+        representations[r].cache()
+    })
+  },
+
   init: function init() {
     var scene = this.scene = new THREE.Scene()
     this.camera = new THREE.PerspectiveCamera(50, 0, .05, 1000)
@@ -74,6 +81,8 @@ Stage.prototype = {
     // scene.add(light)
 
     scene.add(new THREE.AmbientLight(0x222222));
+
+    this.cacheRepresentations()
   },
 
   resize: function resize() {

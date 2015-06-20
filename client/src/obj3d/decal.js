@@ -31,9 +31,8 @@ function Decal(entity) {
   this.entity = entity
   this.o3d = new THREE.Object3D()
 
-  if (!Level.defaultMesh) throw Error('Scene mesh be set in Level.defaultMesh')
+  if (!Level.defaultMesh) throw Error('Scene mesh be set in Level.defaultMesh for decal to work')
 
-  console.log("Direction", entity.direction)
   // Copying from decal example
   var m = new THREE.Matrix4()
   var c = entity.direction.clone()
@@ -52,6 +51,10 @@ function Decal(entity) {
   // cant share geometry.
   var geometry = new THREE.DecalGeometry(Level.defaultMesh, entity.position, rotation, dimensions, check)
   this.o3d.add(new THREE.Mesh(geometry, getMaterial()))
+}
+
+Decal.cache = function() {
+  getMaterial()
 }
 
 module.exports = Decal
