@@ -1,7 +1,11 @@
-var Vector3 = THREE.Vector3
-var Triangle = THREE.triangle
-var SurfaceList = require("./surfacelist")
+var Vector3       = THREE.Vector3
+var Triangle      = THREE.Triangle
+var Vector4       = THREE.Vector4
+var Plane         = THREE.Plane
+var Box           = THREE.Box3
+var SurfaceList   = require("./surfacelist")
 var convert2Dto3D = require("./coordinates").convert2Dto3D
+
 var zero = new Vector3(0, 0, 0)
 
 function buildSelectionGeometry(selections, geometry, isCeiling, width, height) {
@@ -41,8 +45,6 @@ function buildWorldGeometry(map, geometry, width, height) {
     , vertices = geometry.vertices
     , faces = geometry.faces
     , canvasDimensions = {x: width, y: height}
-    , noFloorWallY = map.noFloorWallY
-    , noCeilingWallY = map.noCeilingWallY
     , blocks = map.blocks
     , sectionSurfaces = new SurfaceList()
     , blockSurfaces = new SurfaceList()
@@ -58,6 +60,8 @@ function buildWorldGeometry(map, geometry, width, height) {
       , floorWallColor = section.floorWallColor
       , ceilingColor = section.ceilingColor
       , ceilingWallColor = section.ceilingWallColor
+      , noFloorWallY = section.floorStart
+      , noCeilingWallY = section.ceilingStart
 
     // draw floor part of floor - start at index 1 and end 1 less then final index for triangulation
     if (section.floor) {
@@ -216,4 +220,3 @@ module.exports = {
   buildWorldGeometry: buildWorldGeometry,
   buildSelectionGeometry: buildSelectionGeometry
 }
-

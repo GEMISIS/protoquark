@@ -1,95 +1,108 @@
 <!DOCTYPE html>
-<head>
-<title>Title</title>
-<style type="text/css">
-  * {
-    margin: 0;
-    padding: 0;
-  }
+<html>
+  <head>
+    <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+  </head>
 
-  form {
-    position: absolute;
-    right: 0;
-    z-index: 100;
-  }
+  <body>
+    <form id="thing">
+      <label for="thingChance">Chance</label>
+      <input id="thingChance" name="thingChance" type="number" min="0" max="100" step="1" value="100"/>
 
-  input {
-    display: block;
-  }
+      <label for="thingAmount">Amount</label>
+      <input id="thingAmount" name="thingAmount" type="number" min="0" max="100" step="1" value="1"/>
 
-  canvas {
-    z-index: 0;
-  }
+      <select id="thingType">
+        <option value="ammo">Ammo</option>
+        <option value="health">Health</option>
+        <option value="spawn">Spawn</option>
+      </select>
+    </form>
 
-  input:after {
-    content: "";
-    display: none;
-    clear: both;
-  }
+    <ul id="section">
+      <li>
+        <label for="floorStart">Floor Start</label>
+        <input id="floorStart" name="floorStart" type="number" min="-20" max="20" step=".1" value="-1"/>
+      </li>
+      <li>
+        <label for="floorHeight">Floor Height</label>
+        <input id="floorHeight" name="floorHeight" type="number" min="-20" max="20" step=".1" value="0"/>
+      </li>
 
-  body {
-    position: relative;
-  }
+      <li>
+        <label for="ceilingHeight">Ceiling Height</label>
+        <input id="ceilingHeight" name="ceilingHeight" type="number" min="-20" max="20" step=".1" value="10"/>
+      </li>
+      <li>
+        <label for="ceilingStart">Ceiling Start</label>
+        <input id="ceilingStart" name="ceilingStart" type="number" min="-50" max="50" step=".1" value="20"/>
+      </li>
 
-</style>
-</head>
-<body>
+      <li>
+        <label for="wall">Walls</label>
+        <input id="wall" name="wall" type="checkbox" />
+      </li>
 
-<form id="thing">
-  <label for="thingChance">Chance</label>
-  <input id="thingChance" name="thingChance" type="number" min="0" max="100" step="1" value="100"/>
+      <li>
+        <label for="floor">Floors</label>
+        <input id="floor" name="floor" type="checkbox" checked/>
+      </li>
 
-  <label for="thingAmount">Amount</label>
-  <input id="thingAmount" name="thingAmount" type="number" min="0" max="100" step="1" value="1"/>
+      <li>
+        <label for="ceiling">Ceiling</label>
+        <input id="ceiling" name="ceiling" type="checkbox" />
+      </li>
 
-  <select id="thingType">
-    <option value="ammo">Ammo</option>
-    <option value="health">Health</option>
-    <option value="spawn">Spawn</option>
-  </select>
-</form>
+      <li>
+        <label for="wallColor">Wall</label>
+        <input id="wallColor" name="wallColor" type="color" value="#FF0000"/>
+      </li>
 
-<form id="section">
-  <input id="floorHeight" type="number" min="-20" max="20" step=".1" value="0"/>
-  <input id="ceilingHeight" type="number" min="-20" max="20" step=".1" value="10"/>
+      <li>
+        <label for="floorColor">Floor</label>
+        <input id="floorColor" name="floorColor" type="color"/>
+      </li>
 
-  <label for="wall">Walls</label>
-  <input id="wall" name="wall" type="checkbox" checked/>
+      <li>
+        <label for="ceilingColor">Ceiling</label>
+        <input id="ceilingColor" name="ceilingColor" type="color"/>
+      </li>
 
-  <label for="floor">Floors</label>
-  <input id="floor" name="floor" type="checkbox" checked/>
+      <li>
+        <label for="ceilingWallColor">Ceiling Wall</label>
+        <input id="ceilingWallColor" name="ceilingWallColor" type="color"/>
+      </li>
 
-  <label for="ceiling">Ceiling</label>
-  <input id="ceiling" name="ceiling" type="checkbox" checked/>
+      <li>
+        <label for="floorWallColor">Floor Wall</label>
+        <input id="floorWallColor" name="floorWallColor" type="color"/>
+      </li>
 
-  <label for="wallColor">Wall Color</label>
-  <input id="wallColor" name="wallColor" type="color" value="#FF0000"/>
+      <li>
+        <label for="file">Load Map</label>
+        <input type="file" id="file" name="file" />
+      </li>
 
-  <label for="floorColor">Floor Color</label>
-  <input id="floorColor" name="floorColor" type="color"/>
+      <li>
+        <input type="button" id="save" value="save"/>
+      </li>
 
-  <label for="ceilingColor">Ceiling Color</label>
-  <input id="ceilingColor" name="ceilingColor" type="color"/>
+      <li>
+        <input type="button" id="exportObj" value="Export Obj"/>
+      </li>
 
-  <label for="ceilingWallColor">Ceiling Wall Color</label>
-  <input id="ceilingWallColor" name="ceilingWallColor" type="color"/>
+      <li>
+        <input type="button" id="exportQuack" value="Export To Quack"/>
+      </li>
+    </ul>
 
-  <label for="floorWallColor">Floor Wall Color</label>
-  <input id="floorWallColor" name="floorWallColor" type="color"/>
+    <canvas id="canvas" width="1024" height="576">
+      No canvas support
+    </canvas>
 
-  <label for="file">Load Map</label>
-  <input type="file" id="file" name="file" />
-
-  <input type="button" id="save" value="save"/>
-
-  <input type="button" id="exportObj" value="Export Obj"/>
-  <input type="button" id="exportQuack" value="Export To Quack"/>
-</form>
-
-<canvas id="canvas" width="1024" height="576">
-  No canvas support
-</canvas>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.min.js"></script>
-<script src="./OBJExporter.js"></script>
-<script src="bin/main.js"></script>
-</body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.min.js"></script>
+    <script src="./OBJExporter.js"></script>
+    <script src="bin/main.js"></script>
+  </body>
+</html>

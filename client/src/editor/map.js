@@ -32,9 +32,12 @@ function Map() {
   this.ceilingColor = 0x4A5CB0
   this.ceilingWallColor = 0x4A5CB0
 
-  this.noFloorWallY = 0
-  this.noCeilingWallY = 10
   this.pixelTolerance = pixelTolerance
+
+  this.floorHeight = 0
+  this.floorStart = -.5
+  this.ceilingHeight = 10
+  this.ceilingStart = 10
 
   // Enabled or not
   this.floor = this.ceiling = this.wall = true
@@ -141,8 +144,12 @@ Map.prototype = {
     addSection.call(this, {
       id: this.nextSectionId++,
       points: points,
-      floorHeight: this.noFloorWallY,
-      ceilingHeight: this.noCeilingWallY,
+      // floorHeight: this.noFloorWallY,
+      // ceilingHeight: this.noCeilingWallY,
+      floorHeight: this.floorHeight,
+      ceilingHeight: this.ceilingHeight,
+      floorStart: this.floorStart,
+      ceilingStart: this.ceilingStart,
       floor: this.floor,
       ceiling: this.ceiling,
       wall: this.wall,
@@ -320,6 +327,7 @@ function getEdgeIntersection(a, b, c, d) {
 function onSectionsLoaded() {
   for (var i = 0; i < this.sections.length; i++) {
     var section = this.sections[i]
+
     for (var j = 0; j < section.points.length; j++) {
       var point = section.points[j]
       if (point.__proto__ != THREE.Vector3.prototype)
@@ -339,14 +347,9 @@ function onBlocksLoaded() {
 
 function findLargestId(group) {
   var max = 1
-  debugger
   for (var i = 0; i < group.length; i++) {
-    if (!group[i].id) {
-      debugger
-    }
     max = Math.max(max, group[i].id)
   }
-  debugger
   return max
 }
 

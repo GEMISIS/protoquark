@@ -132,6 +132,16 @@ initGeometry: function() {
     selectionGeometry.faces.push(new THREE.Face3(vertIndex, vertIndex + 1, vertIndex + 2))
   }
 
+  var maxExtraVerts = 3000
+  var extraGeometry = this.extraGeometry = new THREE.Geometry()
+  for (var i = 0; i < maxExtraVerts; i++) {
+    extraGeometry.vertices.push(empty)
+  }
+  for (var i = 0; i < maxExtraVerts / 3; i++) {
+    var vertIndex = i * 3
+    extraGeometry.faces.push(new THREE.Face3(vertIndex, vertIndex + 1, vertIndex + 2))
+  }
+
   // geometry for section / block underneath the cursor during hovering
   var hoverGeometry = this.hoverGeometry = new THREE.Geometry()
   for (var i = 0; i < maxHoverVertices; i++) {
@@ -158,6 +168,10 @@ createScene: function() {
   this.selectionMesh = new THREE.Mesh(this.selectionGeometry, new THREE.MeshBasicMaterial( { color: 0xFFAAAA } ))
   this.selectionMesh.frustumCulled = false
   scene.add(this.selectionMesh)
+
+  this.extraMesh = new THREE.Mesh(this.extraGeometry, new THREE.MeshPhongMaterial( { shading: THREE.FlatShading, vertexColors: THREE.FaceColors } ))
+  this.extraMesh.frustumCulled = false
+  scene.add(this.extraMesh)
 
   this.hoverMesh = new THREE.Mesh(this.hoverGeometry, new THREE.MeshBasicMaterial( { color: 0xFFAA55 } ))
   this.hoverMesh.frustumCulled = false

@@ -3,10 +3,12 @@ var Stage2D            = require("./stage2D")
 var Stage3D            = require("./stage3D")
 var geometrybuilder    = require("./geometrybuilder")
 var Vector3            = THREE.Vector3
+var Box                = THREE.Box3
 var downloadString     = require("tm-components/download-string")
 var exportMap          = require("./exportmap")
 var convert2Dto3D      = require("./coordinates").convert2Dto3D
 
+// inputs that use color selector
 var colorInputs = [
   "ceilingColor",
   "ceilingWallColor",
@@ -15,10 +17,18 @@ var colorInputs = [
   "floorWallColor"
 ]
 
+// inputs that are true / false or checked
 var toggleInputs = [
   "wall",
   "floor",
   "ceiling"
+]
+
+var numberInputs = [
+  "floorHeight",
+  "ceilingHeight",
+  "floorStart",
+  "ceilingStart"
 ]
 
 var keysUp = {
@@ -103,6 +113,9 @@ var keysDown = {
   16: function onShift(e) {
     this.multiSelect = true
   },
+  84: function onExtremes(e) {
+    this.extreme = !!!this.extreme
+  },
   49: function onSectionMode(e) {
     this.mode = "section"
     this.thingContainerEl.style.display = "none"
@@ -139,10 +152,12 @@ var keysDown = {
     if (this.mode !== "section") return
     var selections = this.getSelections()
       , last = selections[selections.length - 1]
-      , prop = this.ceilingSelection ? "ceilingHeight" : "floorHeight"
+      , props = this.ceilingSelection ? ["ceilingHeight", "ceilingStart"] : ["floorHeight", "floorStart"]
     for (var i = 0; i < selections.length - 1; i++) {
       var section = selections[i]
-      section[prop] = last[prop]
+      for (var j = 0, prop; j < props.length, prop = props[j]; j++) {
+        section[prop] = last[prop]
+      }
     }
     if (selections.length)
       this.rebuild3DWorld()
@@ -166,6 +181,7 @@ function Editor(canvas) {
   this.mapOffsets = {x: 0, y: 0}
 
   var mapDefaults = this.mapDefaults = {}
+  var self = this
 
   this.stage3D.renderer.domElement.style.display = "none"
 
@@ -192,25 +208,20 @@ function Editor(canvas) {
     this.pointerLocked = !!!this.pointerLocked
   }.bind(this))
 
-  var floorHeightEl = this.floorHeightEl = document.getElementById("floorHeight")
-  floorHeightEl.addEventListener("input", function() {
-    var section = this.getSelectedSection()
-    if (section) {
-      section.floorHeight = parseFloat(floorHeightEl.value)
-      buildPolygons.call(this, {x: this.canvas.width, y: this.canvas.height})
-    }
-  }.bind(this))
-  floorHeightEl.disabled = true
-
-  var ceilingHeightEl = this.ceilingHeightEl = document.getElementById("ceilingHeight")
-  ceilingHeightEl.addEventListener("input", function() {
-    var section = this.getSelectedSection()
-    if (section) {
-      section.ceilingHeight = parseFloat(ceilingHeightEl.value)
-      buildPolygons.call(this, {x: this.canvas.width, y: this.canvas.height})
-    }
-  }.bind(this))
-  ceilingHeightEl.disabled = true
+  numberInputs.forEach(function(input) {
+    self[input] = document.getElementById(input)
+    self[input].addEventListener("input", function(e) {
+      // var section = this.getSelectedSection()
+      // if (section) {
+      //   section[input] = parseFloat(self[input].value)
+      //   buildPolygons.call(this, {x: this.canvas.width, y: this.canvas.height})
+      // }
+      // else {
+      //   this.map[input] = parseFloat(self[input].value)
+      // }
+      onMapPropertyChanged.call(self, input, parseFloat(self[input].value))
+    }.bind(self))
+  })
 
   var thingTypeEl = this.thingTypeEl = document.getElementById("thingType")
   var thingChanceEl = this.thingChanceEl = document.getElementById("thingChance")
@@ -232,7 +243,6 @@ function Editor(canvas) {
     if (this.selectedThing) this.selectedThing.amount = parseInt(thingAmountEl.value)
   }.bind(this))
 
-  var self = this
   colorInputs.forEach(function(input) {
     self[input] = document.getElementById(input)
     self[input].addEventListener("input", function(e) {
@@ -249,6 +259,8 @@ function Editor(canvas) {
     self[input].addEventListener("change", function(e) {
       onMapPropertyChanged.call(self, input, self[input].checked)
     }.bind(self))
+
+    self.map[input] = self[input].checked
   })
 
   document.getElementById("save").addEventListener("click", function(e) {
@@ -290,6 +302,8 @@ function Editor(canvas) {
 
     reader.readAsText(file)
   }.bind(this))
+
+  this.redraw2D()
 }
 
 Editor.prototype = {
@@ -605,15 +619,14 @@ function onMiddleMouseDown(evt) {
     // Place camera at section base so that camera is standing on it
     var camera = this.stage3D.camera
       , pos = new Vector3(0, 0, 0)
-    for (var i = 0; i < section.points.length; i++) {
-      var point = convert2Dto3D(section.points[i], section.floorHeight + 1.5, dimensions)
+    // since last point is just loop of first
+    for (var i = 0; i < section.points.length - 1; i++) {
+      var point = convert2Dto3D(section.points[i], section.floorHeight, dimensions)
       pos.add(point)
     }
-    pos.multiplyScalar(section.points.length ? 1/section.points.length : 1)
+    pos.multiplyScalar(section.points.length > 1 ? 1 / (section.points.length - 1) : 1)
 
-    camera.position.x = pos.x
-    camera.position.y = pos.y
-    camera.position.z = pos.z
+    camera.position.set(pos.x, pos.y + 1.5, pos.z)
   }
 }
 
@@ -639,14 +652,12 @@ function onMouseWheel(evt) {
   for (var i = 0; i < selections.length; i++) {
     var section = this.map.findSection(selections[i])
     if (!section) continue
-    if (this.ceilingSelection) {
-      section.ceilingHeight += delta
-      this.ceilingHeightEl.value = section.ceilingHeight
-    }
-    else {
-      section.floorHeight += delta
-      this.floorHeightEl.value = section.floorHeight
-    }
+
+    var prop = this.extreme ? "floorStart" : "floorHeight"
+    if (this.ceilingSelection)
+      prop = this.extreme ? "ceilingStart" : "ceilingHeight"
+    section[prop] += delta
+    this[prop].value = section[prop]
   }
   this.rebuild3DWorld()
 }
