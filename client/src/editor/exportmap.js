@@ -34,7 +34,8 @@ module.exports = function exportmap(editor) {
     healths: getByType(things3D, "health"),
     ammos: getByType(things3D, "ammo"),
     blocks: [],
-    spawns: getByType(things3D, "spawn")
+    spawns: getByType(things3D, "spawn"),
+    weapons: getByType(things3D, "weapon")
   }
 
   return JSON.stringify(obj)
