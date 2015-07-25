@@ -40,6 +40,9 @@ var bullet = {
     if (hit.collision) {
       ent.position.copy(hit.position)
       ent.markedForDeletion = true
+      for (var i = 0; i < bullet.gibsPerBullet; i++) {
+        this.add(gib.create(this.genLocalId(), ent, {color: "0xFFFF00"}))
+      }
       return
     }
 
@@ -69,7 +72,7 @@ var bullet = {
       ent.markedForDeletion = true
       ent.position.copy(hitPoint ? hitPoint : enemyHit.position)
       for (var i = 0; i < bullet.gibsPerBullet; i++) {
-        this.add(gib.create(this.genLocalId(), ent))
+        this.add(gib.create(this.genLocalId(), ent, {decal:true, size: .05}))
       }
     }
     else {

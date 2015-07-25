@@ -2,26 +2,16 @@ var Vector3 = THREE.Vector3
 var Euler   = THREE.Euler
 var Level   = require('./level')
 
-var sharedMaterial
-var diffuse
-function getMaterial() {
-  if (!sharedMaterial) {
-    diffuse = THREE.ImageUtils.loadTexture('/blood.png')
-    diffuse.magFilter = diffuse.minFilter = THREE.NearestFilter
-    sharedMaterial = new THREE.MeshPhongMaterial( {
-      specular: 0x444444,
-      map: diffuse,
-      shininess: 0,
-      transparent: true,
-      depthTest: true,
-      depthWrite: false,
-      polygonOffset: true,
-      polygonOffsetFactor: -4,
-      wireframe: false
-    })
-  }
+var textureNames = [
+  '/blood1.png',
+  '/blood2.png',
+  '/blood3.png',
+]
+var materials = []
 
-  return sharedMaterial
+function getMaterial() {
+  if (materials.length)
+    return materials[Math.floor(Math.random() * materials.length)]
 }
 
 var check = new Vector3(1, 1, 1)
@@ -54,7 +44,23 @@ function Decal(entity) {
 }
 
 Decal.cache = function() {
-  getMaterial()
+  for (var i = 0; i < textureNames.length; i++) {
+    var texture = THREE.ImageUtils.loadTexture(textureNames[i])
+    texture.magFilter = texture.minFilter = THREE.NearestFilter
+
+    var material = new THREE.MeshPhongMaterial( {
+      specular: 0x444444,
+      map: texture,
+      shininess: 0,
+      transparent: true,
+      depthTest: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+      wireframe: false
+    })
+    materials.push(material)
+  }
 }
 
 module.exports = Decal

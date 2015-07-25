@@ -597,7 +597,6 @@ function addUpdate(ent) {
   if (!ent.type) return
 
   try {
-    // if (!ent.update)
     ent.update = require('./entities/' + ent.type)
   }
   catch (e) {

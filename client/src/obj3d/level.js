@@ -34,7 +34,7 @@ function Level(entity) {
 
   var material = new THREE.MeshPhongMaterial({ shading: THREE.FlatShading, vertexColors: THREE.FaceColors })
   // var material = new THREE.MeshBasicMaterial({ vertexColors: THREE.FaceColors })
-
+  // var material = new THREE.MeshNormalMaterial()
   var mesh = new THREE.Mesh(getGeometry(entity), material)
 
   this.o3d.frustumCulled = mesh.frustumCulled = false

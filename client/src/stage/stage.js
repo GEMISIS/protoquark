@@ -80,9 +80,12 @@ Stage.prototype = {
     // light.position.set(0, -1, .25)
     // scene.add(light)
 
-    scene.add(new THREE.AmbientLight(0x222222));
+    scene.add(new THREE.AmbientLight(0x222222))
+
+    scene.fog = new THREE.Fog(0xAAAAFF, 0.5, 50)
 
     this.cacheRepresentations()
+
   },
 
   resize: function resize() {
