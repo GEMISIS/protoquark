@@ -6,12 +6,13 @@ var gib       = require("./gib")
 var bullet = {
   gibsPerBullet: 4,
 
-  create: function create(id, creator, bulletType, position, rotation) {
+  create: function create(id, creator, bulletType, opts) {
     var ent = new Entity({id: id}, id)
     ent.update = bullet[bulletType]
+    opts = opts || {}
 
-    var position = position || creator.position
-      , rotation = rotation || creator.rotation
+    var position = opts.position || creator.position
+      , rotation = opts.rotation || creator.rotation
 
     ent.position.copy(position)
     ent.rotation.copy(rotation)
@@ -23,7 +24,8 @@ var bullet = {
       Math.sin(creator.euler.y) * Math.cos(creator.euler.x),
       -Math.sin(creator.euler.x),
       -Math.cos(creator.euler.y) * Math.cos(creator.euler.x))
-    ent.speed = 100
+    ent.speed = opts.speed || 100
+    ent.damage = opts.damage || 1
     ent.type = "bullet"
     ent.creator = creator.id
 
@@ -63,8 +65,9 @@ var bullet = {
           hitPoint = hit.position
         }
 
+        // Only add state commands if this was our bullet
         if (hit.collision && other.type != "player")
-          this.addStateCommand({command: "hit", target: other.id, shooter: ent.creator})
+          this.addStateCommand({command: "hit", target: other.id, shooter: ent.creator, damage: ent.damage})
       }
     }
 

@@ -64,14 +64,21 @@ module.exports = function updatePlayer(dt, ent) {
 
   var weapon = ent.weapon.active === "primary" ? ent.weapon.primary : ent.weapon.secondary
   if (!weapon) return
+
   var weaponStats = weapons[weapon.id]
     , delay = 1 / weaponStats.firerate
+
   weapon.shotTimer -= dt
   weapon.shotTimer = Math.max(weapon.shotTimer, 0)
+
   if (ent.control.shoot && (!ent.lastControl.shoot || weaponStats.automatic) && weapon.shotTimer <= 0 && weapon.ammunition > 0) {
     weapon.shotTimer = delay
     var bulletPos = ent.getOffsetPosition(new Vector3().addVectors(ent.weaponStartOffset, ent.position), ent.weaponOffsetPos)
-    this.add(bullets.create(this.genLocalId(), ent, "normal", bulletPos))
+    this.add(bullets.create(this.genLocalId(), ent, "normal", {
+      position: bulletPos,
+      damage: weaponStats.damage,
+      speed: weaponStats.speed
+    }))
     weapon.ammunition--
   }
   weapon.shotT = 1.0 - weapon.shotTimer / delay

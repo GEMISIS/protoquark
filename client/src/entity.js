@@ -33,9 +33,7 @@ Entity.prototype = {
   getSnapshot: function getSnapshot(time) {
     var snapshots = this.snapshots
 
-    if (!snapshots.length) {
-      return
-    }
+    if (!snapshots.length) return
 
     // Time is more recent than any entry. Return most recent
     if (time > snapshots[snapshots.length - 1].time)
@@ -120,10 +118,18 @@ Entity.prototype = {
       , x = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -this.euler.x + offEulerX)
 
     return new Quaternion().multiplyQuaternions(y, x)
+  },
+
+  getRotation: function() {
+    return this.getOffsetRotation(0, 0)
+  },
+
+  getForward: function() {
+    return new Vector3(0, 0, -1.0).applyQuaternion(this.getRotation()).normalize()
   }
 }
 
- function createSnapshot(time, position, rotation, control) {
+function createSnapshot(time, position, rotation, control) {
   return {
     time: time,
     // peerjs throws type error function (x, y, z) if using threejs obj created with Vector3

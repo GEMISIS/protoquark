@@ -9,6 +9,7 @@ var representations = {
   block:        require('../obj3d/block'),
   health:       require('../obj3d/pickup'),
   ammo:         require('../obj3d/pickup'),
+  weapon:       require('../obj3d/pickup'),
   bullet:       require('../obj3d/bullet'),
   remoteplayer: require('../obj3d/player'),
   player:       require('../obj3d/ownplayer'),
@@ -102,6 +103,9 @@ Stage.prototype = {
     if (me) {
       // place camera slightly above player
       this.camera.position.set(me.position.x, me.position.y + .25, me.position.z)
+      var position = new Vector3(me.position.x, me.position.y + .25, me.position.z).add(me.getForward().multiplyScalar(10))
+      if (me.control.zoom)
+      this.camera.position.copy(position)
       this.camera.rotation.copy(new Euler(-me.euler.x, -me.euler.y, 0, "YXZ"))
     }
 
@@ -119,7 +123,7 @@ Stage.prototype = {
 
       var Representation = representations[e.type]
       if (Representation) {
-        rep = new Representation(e)
+        rep = new Representation(e, this.scene)
         if (!rep.o3d) throw Error('Tried to add representation with no o3d.')
         this.scene.add(rep.o3d)
       }

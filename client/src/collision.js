@@ -85,6 +85,7 @@ var getCollision = (function() {
     , velNorm = new Vector3()
     , invVelNorm = new Vector3()
     , plane = new Plane()
+    , collisionPoint = new Vector3()
     , triangle = new Triangle(new Vector3(), new Vector3(), new Vector3())
 
   return function(spherePos, vel, tris, sphereShape) {
@@ -144,7 +145,7 @@ var getCollision = (function() {
     }
 
     return {
-      collisionPoint: collisionPoint,
+      collisionPoint: collisionPoint.clone(),
       t: collision ? timeOfImpact : Number.POSITIVE_INFINITY,
       collision: collision
     }

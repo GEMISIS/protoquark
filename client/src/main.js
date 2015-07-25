@@ -30,7 +30,8 @@ var keymap = {
 
 var mousemap = {
   1: "shoot",
-  3: "grenade"
+  2: "grenade",
+  3: "zoom"
 }
 
 var ons = {

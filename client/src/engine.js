@@ -6,8 +6,8 @@ var Settings   = require('./settings')
 var Vector3    = require("./math").vec3
 var Triangle   = require("./math").triangle
 var weapons    = require("./config/weapon")
-var health     = require("./entities/health")
-var ammo       = require("./entities/ammo")
+var parseLevel = require("./level").parseLevel
+var loadLevel  = require("./level").loadLevel
 
 require("./entities/player")
 require("./entities/remoteplayer")
@@ -24,100 +24,6 @@ function handleDirection(control, down) {
   if (!me) return
   me.lastControl[control] = me.control[control]
   me.control[control] = down
-}
-
-function loadLevel(url, done) {
-  var req = new XMLHttpRequest()
-  var resp = {
-    progress: function (ev) {
-      this.emit('levelloadprogress', 0 /* 0 ~ 1 calc progress here */)
-    },
-    load: function (ev) {
-      var err, data
-
-      if (req.status == 200) {
-        try {
-          data = JSON.parse(req.responseText)
-        }
-        catch(e) {
-          err = e
-        }
-      }
-      else {
-        err = Error('An error occured while loading the level data.')
-      }
-
-      done(err, data)
-    },
-    error: function (ev) {
-      done(err)
-    }
-  }
-
-  req.overrideMimeType("application/json")
-  req.open('GET', url, true)
-  Object.keys(resp).forEach((function (key) {
-    req.addEventListener(key, resp[key].bind(this))
-  }).bind(this))
-  req.send()
-}
-
-function getItemChance(obj) {
-  return !obj.chance || Math.random() * 100 <= obj.chance
-}
-
-function parseLevel(level) {
-  // level.blocks.forEach((function(block) {
-  //   var ent = new Entity(block, this.genLocalId())
-  //   ent.type = 'block'
-  //   ent.position.copy(block.position)
-  //   //ent.context.color = Math.floor(Math.random()*16777215).toString(16)
-  //   var color = Math.floor(Math.random()*50) + 25
-  //   ent.context.color = (color | (color << 8) | (color << 16)).toString(16)
-  //   this.add(ent)
-  // }).bind(this))
-
-  if (level.healths) {
-    level.healths.forEach((function(healthObj) {
-      if (!getItemChance(healthObj)) return
-
-      var ent = health.create(this.genLocalId(), healthObj.position, healthObj.amount)
-      ent.position.copy(healthObj.position)
-      this.add(ent)
-    }).bind(this))
-  }
-
-  if (level.ammos) {
-    level.ammos.forEach((function(ammoObj) {
-      if (!getItemChance(ammoObj)) return
-      var ent = ammo.create(this.genLocalId(), ammoObj.position, ammoObj.amount)
-      ent.position.copy(ammoObj.position)
-      this.add(ent)
-    }).bind(this))
-  }
-
-  if (level.mesh) {
-    // ... //
-  }
-
-  if (level.collisionVertices) {
-    var collisionVerts = level.collisionVertices
-      , id = this.genLocalId()
-    var ent = new Entity({id: id, vertices: collisionVerts}, id)
-    ent.type = "level"
-    this.add(ent)
-
-    for (var i = 0; i < collisionVerts.length; i += 3) {
-      var a = collisionVerts[i]
-        , b = collisionVerts[i + 1]
-        , c = collisionVerts[i + 2]
-      this.addTriangleCollider(new Triangle(new Vector3(a.x, a.y, a.z), new Vector3(b.x, b.y, b.z), new Vector3(c.x, c.y, c.z)))
-    }
-  }
-
-  if (level.spawns && level.spawns.length) {
-    startingPosition = level.spawns[0].position
-  }
 }
 
 var ons = {
@@ -238,6 +144,7 @@ conn: {
     if (me) me.position.set(pos.x, pos.y, pos.z)
   },
   gamestate: function onGameState(e) {
+    // These game states can include info on ourself in addition to other players
     var entityMap = this.entityMap
     var states = e.context.states
     var scores = {}
@@ -248,6 +155,10 @@ conn: {
         player.health.current = state.currentHealth
         player.score = state.currentScore
         scores[state.id] = {name: state.id, score: player.score}
+        if (state.currentWeapon != player.weapon.primary.id) {
+          switchToWeapon(player, state.currentWeapon)
+          console.log("Switching weapons")
+        }
       }
     }
     this.emit('scoreboard', scores)
@@ -259,7 +170,10 @@ conn: {
       var state = states[i]
       var target = entityMap[state.target]
       if (state.command == 'hit' && target) {
-        processCommandHit.call(this, target, state)
+        processHit.call(this, target, state)
+      }
+      else if (state.command == 'weapon' && target) {
+        processWeaponGet.call(this, target, state)
       }
       else if(state.command == 'health' && target) {
         processHealthGet.call(this, target, state);
@@ -375,7 +289,8 @@ function Engine (connection, controller) {
     "backward",
     "forward",
     "shoot",
-    "jump"
+    "jump",
+    "zoom"
   ]
 
   controls.forEach(function(c) {
@@ -510,6 +425,7 @@ function onStateSend() {
       id: id,
       currentHealth: entityMap[id].health.current,
       currentScore: entityMap[id].score,
+      currentWeapon: entityMap[id].weapon.primary.id
     })
   })
 
@@ -565,8 +481,12 @@ function onIntervalSend() {
 }
 
 function addStartingWeapon(ent) {
+  switchToWeapon(ent, "pistol")
+}
+
+function switchToWeapon(ent, weaponId) {
+  if (!weapons[weaponId]) return
   var weapon = ent.weapon = ent.weapon || {}
-  var weaponId = "pistol"
   weapon.active = "primary"
   weapon.primary = {
     id: weaponId,
@@ -604,10 +524,10 @@ function addUpdate(ent) {
   }
 }
 
-function processCommandHit(target, command) {
+function processHit(target, command) {
   if (target.invincibility && target.invincibility > 0) return
 
-  target.health.current -= .34
+  target.health.current -= command.damage || .34
   if (target.health.current <= Number.EPSILON) {
     target.health.current = target.health.max
     target.position.set(0, 3, 0)
@@ -615,6 +535,11 @@ function processCommandHit(target, command) {
     // this.conn.send("death", {killer: command.shooter, id:target.id, position: startingPosition, invincibility: 3.0}, {relay:target.id})
     this.conn.send("death", {killer: command.shooter, id:target.id, position: startingPosition, invincibility: 3.0})
   }
+}
+
+function processWeaponGet(target, command) {
+  var weaponIds = Object.keys(weapons)
+  if (weaponIds.length) switchToWeapon(target, weaponIds[Math.floor(Math.random() * weaponIds.length)])
 }
 
 function processHealthGet(target, command) {

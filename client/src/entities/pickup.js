@@ -30,14 +30,19 @@ var pickup = {
       var other = entities[i]
       var hit = collision.collides(ent, other)
       // only send commands about ourself
-      if (hit && other.type == "player") {
-          this.addStateCommand({command: ent.type, target: other.id, amount: ent.amount})
+      if (hit && other.type === "player") {
+          this.addStateCommand({command: ent.type, target: other.id, amount: ent.amount })
           ent.respawning = true
           this.addItemState(ent, "respawnTime", this.conn.getServerTime() + 8 + Math.random() * 5)
           // ent.markedForDeletion = true
           break
-        }
       }
+      else if (hit && other.type === "remoteplayer") {
+        ent.respawning = true
+        // the times should be updated by server and sent to us
+        break
+      }
+    }
   }
 }
 
