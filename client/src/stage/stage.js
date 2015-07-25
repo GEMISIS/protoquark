@@ -86,7 +86,6 @@ Stage.prototype = {
     scene.fog = new THREE.Fog(0xAAAAFF, 0.5, 50)
 
     this.cacheRepresentations()
-
   },
 
   resize: function resize() {
@@ -103,9 +102,8 @@ Stage.prototype = {
     if (me) {
       // place camera slightly above player
       this.camera.position.set(me.position.x, me.position.y + .25, me.position.z)
-      var position = new Vector3(me.position.x, me.position.y + .25, me.position.z).add(me.getForward().multiplyScalar(10))
-      if (me.control.zoom)
-      this.camera.position.copy(position)
+      this.camera.fov = me.control.zoom ? 30 : 50
+      this.camera.updateProjectionMatrix()
       this.camera.rotation.copy(new Euler(-me.euler.x, -me.euler.y, 0, "YXZ"))
     }
 
