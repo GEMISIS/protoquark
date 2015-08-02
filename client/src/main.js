@@ -47,7 +47,7 @@ var ons = {
     var isenter = e.keyCode == 13
     var istab = e.keyCode == 9
 
-    if (istab) {
+    if (istab && !engine.gameOver) {
       this.score.toggle()
       return e.preventDefault()
     }

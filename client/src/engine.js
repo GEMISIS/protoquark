@@ -18,6 +18,7 @@ var startingScore = 0
 var sendInterval = .04
 var serverStateInterval = .5
 var startingPosition = {x: 0, y: 3, z: 0}
+var matchTime = 120000
 
 function handleDirection(control, down) {
   var me = this.you()
@@ -61,7 +62,12 @@ function loadLevel(url, done) {
   }).bind(this))
   req.send()
 }
-
+function createGameTimer(conn) {
+  setTimeout(function() {
+    conn.send("gameOver", {})
+    createGameTimer(conn)
+  }, matchTime)
+}
 function getItemChance(obj) {
   return !obj.chance || Math.random() * 100 <= obj.chance
 }
@@ -164,6 +170,10 @@ conn: {
     if (conn.isServer() && !conn.isOwnId(id)) {
         conn.send("reposition", {position: startingPosition}, {relay:id, reliable: true})
     }
+
+    if(this.conn.isServer() && conn.isOwnId(id)) {
+      createGameTimer(conn)
+    }
   },
 
   playerexit: function onPlayerExit (e) {
@@ -226,6 +236,19 @@ conn: {
     // if (!ent || id != this.you().id) return
 
     var pos = e.context.position
+    ent.position.set(pos.x, pos.y, pos.z)
+    ent.health.current = ent.health.max
+    ent.weapon.primary.ammunition = weapons[ent.weapon.primary.id].ammunition
+    ent.invincibility = e.context.invincibility
+  },
+  gameOver: function onGameOver(e) {
+    // our death usually
+    var id = this.you().id
+    var ent = this.entityMap[id]
+    if (!ent) return
+    // if (!ent || id != this.you().id) return
+
+    var pos = startingPosition
     ent.position.set(pos.x, pos.y, pos.z)
     ent.health.current = ent.health.max
     ent.weapon.primary.ammunition = weapons[ent.weapon.primary.id].ammunition
@@ -349,6 +372,7 @@ settings: {
 
 function Engine (connection, controller) {
   this.localPrefixId = ''
+  this.gameOver = false
   this.settings = new Settings
   this.conn = connection
   this.control = controller
