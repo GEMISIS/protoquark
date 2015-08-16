@@ -248,11 +248,15 @@ conn: {
     if (!ent) return
     // if (!ent || id != this.you().id) return
 
-    var pos = startingPosition
-    ent.position.set(pos.x, pos.y, pos.z)
+    ent.position.set(-1000, -1000, -1000)
     ent.health.current = ent.health.max
     ent.weapon.primary.ammunition = weapons[ent.weapon.primary.id].ammunition
-    ent.invincibility = e.context.invincibility
+    ent.invincibility = 3.0
+    ent.score = startingScore
+
+    this.emit('hideScores')
+    this.emit('matchFinished', this.scores)
+    this.gameOver = true
   },
   reposition: function onPlayerReposition(e) {
     // our reposition
@@ -263,17 +267,17 @@ conn: {
   gamestate: function onGameState(e) {
     var entityMap = this.entityMap
     var states = e.context.states
-    var scores = {}
+    this.scores = {}
     for (var i = 0; i < states.length; i++) {
       var state = states[i]
       var player = entityMap[state.id]
       if (player) {
         player.health.current = state.currentHealth
         player.score = state.currentScore
-        scores[state.id] = {name: state.id, score: player.score}
+        this.scores[state.id] = {name: state.id, score: player.score}
       }
     }
-    this.emit('scoreboard', scores)
+    this.emit('scoreboard', this.scores)
   },
   statecommand: function onStateCommand(e) {
     var entityMap = this.entityMap
@@ -417,6 +421,18 @@ Engine.prototype = {
   you: function you () {
     if (!this.conn.peer) return
     return this.entityMap[this.conn.peer.id]
+  },
+
+  resetPosition: function resetPosition() {
+    var id = this.you().id
+    var ent = this.entityMap[id]
+    if (!ent) return
+
+    var pos = startingPosition
+    ent.position.set(pos.x, pos.y, pos.z)
+    ent.health.current = ent.health.max
+    ent.weapon.primary.ammunition = weapons[ent.weapon.primary.id].ammunition
+    ent.invincibility = 3.0
   },
 
   genLocalId: function genLocalId() {
@@ -603,6 +619,7 @@ function createPlayer(context, type) {
   var ent = new Entity(context, context.id)
   ent.type = type
   ent.health = {max: startingHealth, current: startingHealth}
+  ent.score = startingScore
   ent.position.copy(startingPosition)
   ent.jump = 0
   ent.control = {}
