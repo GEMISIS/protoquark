@@ -65,7 +65,13 @@ app.post('/quit\/[^.\/]+\/?$', function (req, res) {
 app.get('/rooms\/[^.\/]+\/?$', function (req, res) {
   var name = req.url.substr(req.url.indexOf("/") + 1)
   name = name.substr(name.indexOf("/") + 1)
-  name = name.substr(0, name.indexOf("?"))
+  console.log(name.indexOf("?"))
+  if(name.indexOf("/") > 1) {
+    name = name.substr(0, name.indexOf("/"))
+  }
+  else if(name.indexOf("?") > 1) {
+    name = name.substr(0, name.indexOf("?"))
+  }
 
   jade.renderFile("./html.jade", {}, function(err, html) {
     if (!err) {

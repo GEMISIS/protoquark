@@ -252,7 +252,12 @@ conn: {
     ent.health.current = ent.health.max
     ent.weapon.primary.ammunition = weapons[ent.weapon.primary.id].ammunition
     ent.invincibility = 3.0
-    ent.score = startingScore
+
+    if(this.conn.isServer()) {
+      Object.keys(this.entityMap).forEach(function(key) {
+        this.entityMap[key].score = startingScore
+      }.bind(this))
+    }
 
     this.emit('hideScores')
     this.emit('matchFinished', this.scores)
