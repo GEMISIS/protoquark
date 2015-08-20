@@ -147,7 +147,7 @@ var getCollision = (function() {
     }
 
     return {
-      collisionPoint: collisionPoint.copy(),
+      collisionPoint: collisionPoint.clone(),
       t: collision ? timeOfImpact : Number.POSITIVE_INFINITY,
       collision: collision
     }
