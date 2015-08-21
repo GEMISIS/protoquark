@@ -95,4 +95,4 @@ app.get('/rooms\/[^.\/]+\/?$', function (req, res) {
   });
 });
 
-app.listen(1337)
+app.listen(80)
