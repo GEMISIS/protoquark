@@ -28,6 +28,10 @@ function onDeath (e) {
   add(this.ul, "", translatePlayer.call(this, e.context.killer) + " killed " + translatePlayer.call(this, e.context.id))
 }
 
+function onGameOver(e) {
+  add(this.ul, "", "Match over!  A new match begins!")
+}
+
 function translatePlayer(name) {
   var peer = this.conn.peer
   if (!peer) return name
@@ -50,6 +54,7 @@ function Chat (connection) {
   conn.on("death", onDeath.bind(this))
   conn.on("players", onPlayers.bind(this))
   conn.on("playerenter", onPlayerEnter.bind(this))
+  conn.on("gameOver", onGameOver.bind(this))
   this.names = {}
   this.el = document.createElement("div")
   this.el.className = "chat noselect"

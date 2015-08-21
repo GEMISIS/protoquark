@@ -18,6 +18,7 @@ var startingScore = 0
 var sendInterval = .04
 var serverStateInterval = .5
 var startingPosition = {x: 0, y: 3, z: 0}
+var matchTime = 120000
 
 function handleDirection(control, down) {
   var me = this.you()
@@ -69,6 +70,10 @@ conn: {
     // tell new user his starting position
     if (conn.isServer() && !conn.isOwnId(id)) {
         conn.send("reposition", {position: startingPosition}, {relay:id, reliable: true})
+    }
+
+    if(this.conn.isServer() && conn.isOwnId(id)) {
+      createGameTimer(conn)
     }
   },
 
@@ -137,6 +142,28 @@ conn: {
     ent.weapon.primary.ammunition = weapons[ent.weapon.primary.id].ammunition
     ent.invincibility = e.context.invincibility
   },
+  gameOver: function onGameOver(e) {
+    // our death usually
+    var id = this.you().id
+    var ent = this.entityMap[id]
+    if (!ent) return
+    // if (!ent || id != this.you().id) return
+
+    ent.position.set(-1000, -1000, -1000)
+    ent.health.current = ent.health.max
+    ent.weapon.primary.ammunition = weapons[ent.weapon.primary.id].ammunition
+    ent.invincibility = 3.0
+
+    if(this.conn.isServer()) {
+      Object.keys(this.entityMap).forEach(function(key) {
+        this.entityMap[key].score = startingScore
+      }.bind(this))
+    }
+
+    this.emit('hideScores')
+    this.emit('matchFinished', this.scores)
+    this.gameOver = true
+  },
   reposition: function onPlayerReposition(e) {
     // our reposition
     var me = this.you()
@@ -147,21 +174,17 @@ conn: {
     // These game states can include info on ourself in addition to other players
     var entityMap = this.entityMap
     var states = e.context.states
-    var scores = {}
+    this.scores = {}
     for (var i = 0; i < states.length; i++) {
       var state = states[i]
       var player = entityMap[state.id]
       if (player) {
         player.health.current = state.currentHealth
         player.score = state.currentScore
-        scores[state.id] = {name: state.id, score: player.score}
-        if (state.currentWeapon != player.weapon.primary.id) {
-          switchToWeapon(player, state.currentWeapon)
-          console.log("Switching weapons")
-        }
+        this.scores[state.id] = {name: state.id, score: player.score}
       }
     }
-    this.emit('scoreboard', scores)
+    this.emit('scoreboard', this.scores)
   },
   statecommand: function onStateCommand(e) {
     var entityMap = this.entityMap
@@ -263,6 +286,7 @@ settings: {
 
 function Engine (connection, controller) {
   this.localPrefixId = ''
+  this.gameOver = false
   this.settings = new Settings
   this.conn = connection
   this.control = controller
@@ -308,6 +332,18 @@ Engine.prototype = {
   you: function you () {
     if (!this.conn.peer) return
     return this.entityMap[this.conn.peer.id]
+  },
+
+  resetPosition: function resetPosition() {
+    var id = this.you().id
+    var ent = this.entityMap[id]
+    if (!ent) return
+
+    var pos = startingPosition
+    ent.position.set(pos.x, pos.y, pos.z)
+    ent.health.current = ent.health.max
+    ent.weapon.primary.ammunition = weapons[ent.weapon.primary.id].ammunition
+    ent.invincibility = 3.0
   },
 
   genLocalId: function genLocalId() {
@@ -499,6 +535,7 @@ function createPlayer(context, type) {
   var ent = new Entity(context, context.id)
   ent.type = type
   ent.health = {max: startingHealth, current: startingHealth}
+  ent.score = startingScore
   ent.position.copy(startingPosition)
   ent.jump = 0
   ent.control = {}

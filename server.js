@@ -19,8 +19,8 @@ app.get('/', function (req, res){
 
 // Redirects client to random game room.
 app.get('/rooms\/$', function (req, res){
-  if(req.query.name !== undefined && req.query.name != "") {
-    var address = "/rooms/" + req.query.name + "/"
+  if(req.query.roomName !== undefined && req.query.roomName != "") {
+    var address = "/rooms/" + req.query.roomName
     if(req.query.maxPlayers !== undefined) {
       address += "?maxPlayers=" + req.query.maxPlayers
     }
@@ -36,7 +36,11 @@ app.get('/rooms\/$', function (req, res){
       }
     }
     if(foundRoom === false) {
-      res.redirect("/rooms/" + random())
+      var address = "/rooms/" + random()
+      if(req.query.maxPlayers !== undefined) {
+        address += "?maxPlayers=" + req.query.maxPlayers
+      }
+      res.redirect(address)
     }
   }
 })
@@ -61,6 +65,13 @@ app.post('/quit\/[^.\/]+\/?$', function (req, res) {
 app.get('/rooms\/[^.\/]+\/?$', function (req, res) {
   var name = req.url.substr(req.url.indexOf("/") + 1)
   name = name.substr(name.indexOf("/") + 1)
+  console.log(name.indexOf("?"))
+  if(name.indexOf("/") > 1) {
+    name = name.substr(0, name.indexOf("/"))
+  }
+  else if(name.indexOf("?") > 1) {
+    name = name.substr(0, name.indexOf("?"))
+  }
 
   jade.renderFile("./html.jade", {}, function(err, html) {
     if (!err) {

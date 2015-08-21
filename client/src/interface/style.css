@@ -22,6 +22,30 @@
   width: 100%;
 }
 
+.matchInfo {
+  position: absolute;
+  display: none;
+  top: 0;
+  left: 0;
+  padding: 2em;
+}
+
+.matchInfo.active {
+  display: block;
+  background: palegoldenrod;
+  position: absolute;
+  top: 50%;
+  left: 50%; 
+  -moz-transform: translateX(-50%) translateY(-50%);
+  -webkit-transform: translateX(-50%) translateY(-50%);
+  transform: translateX(-50%) translateY(-50%);
+  text-align: center;
+}
+
+.matchInfo > table {
+  width: 100%;
+}
+
 .weapon {
   background: transparent;
   color: white;

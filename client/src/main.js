@@ -7,6 +7,7 @@ var Health     = require("./interface/health")
 var Radar      = require("./interface/radar")
 var Router     = require("./router")
 var Score      = require("./interface/score")
+var MatchInfo  = require("./interface/match-info")
 var Stage      = require("./stage/stage")
 var Status     = require("./interface/connection-status")
 var Weapon     = require('./interface/weapon')
@@ -47,9 +48,18 @@ var ons = {
   keydown: function onKeyDown (e) {
     var isenter = e.keyCode == 13
     var istab = e.keyCode == 9
+    var isescape = e.keyCode == 27
 
-    if (istab) {
+    if (istab && !engine.gameOver) {
       this.score.toggle()
+      return e.preventDefault()
+    }
+    else if (engine.gameOver) {
+      if(istab || isescape) {
+        this.matchInfo.close()
+        engine.resetPosition()
+        engine.gameOver = false
+      }
       return e.preventDefault()
     }
     if (this.chat.hasfocus && !isenter) return
@@ -118,6 +128,9 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
   var score = window.score = new Score(engine)
   el.appendChild(score.el)
+
+  var matchInfo = window.matchInfo = new MatchInfo(engine)
+  el.appendChild(matchInfo.el)
 
   var stage = window.stage = new Stage(engine)
   el.appendChild(stage.el)

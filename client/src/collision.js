@@ -18,6 +18,8 @@ var getSweptCollision = (function() {
     , endPos = new Vector3()
     , maxIterations = 10
     , epsilon = Number.EPSILON * 2
+    , collisionPoint = new Vector3()
+
 
   return function(spherePos, vel, tris, sphereShape, stick) {
     if (vel.lengthSq() < Number.EPSILON) return { position: spherePos, collision: false }
@@ -87,6 +89,7 @@ var getCollision = (function() {
     , plane = new Plane()
     , collisionPoint = new Vector3()
     , triangle = new Triangle(new Vector3(), new Vector3(), new Vector3())
+    , collisionPoint = new Vector3()
 
   return function(spherePos, vel, tris, sphereShape) {
     var collision = false

@@ -1,23 +1,21 @@
 var ce = require('../eltree')
 
-function onScoreBoard (scores) {
+function onMatchFinished (scores) {
   this.scores = scores
-  this.render()
-}
-
-function onDisplayScores () {
   this.el.classList.add("active")
   this.render()
 }
-function onHideScores () {
+
+function onHideMatchInfo() {
   this.el.classList.remove("active")
 }
 
-function Score (engine) {
+function MatchInfo (engine) {
   this.engine = engine
   this.tree = ce({
     tagName: 'div',
-    className: 'scoreboard',
+    className: 'matchInfo',
+    textContent: 'Match Over',
     children: [{
       key: 'table',
       tagName: 'table',
@@ -37,16 +35,23 @@ function Score (engine) {
         tagName: 'tbody'
       }]
     }]
+    // {
+    //   key: 'button',
+    //   tagName: 'button',
+    //   textContent: 'Close',
+    // }]
   })
+  if(this.tree.children.button !== undefined) {
+    this.tree.children.button.el.onclick = onHideMatchInfo.bind(this)
+  }
   this.el = this.tree.el
   this.scores = []
 
-  engine.on('scoreboard', onScoreBoard.bind(this))
-  engine.on('displayScores', onDisplayScores.bind(this))
-  engine.on('hideScores', onHideScores.bind(this))
+  engine.on('matchFinished', onMatchFinished.bind(this))
+  engine.on('hideMatchInfo', onHideMatchInfo.bind(this))
 }
 
-Score.prototype = {
+MatchInfo.prototype = {
   open: function open () {
     this.el.classList.add("active")
     this.render()
@@ -64,24 +69,27 @@ Score.prototype = {
     }
 
     var scores = this.scores
-    Object.keys(this.scores).map(function(key) {
-      return scores[key]
-    }).sort(function (a, b) {
-      if (a.score > b.score) return -1
-      if (a.score < b.score) return 1
-      return 0
-    }).forEach(function (item, index, arr) {
-      stats = [
-        { tagName: 'td', textContent: index + 1 },
-        { tagName: 'td', textContent: item.name },
-        { tagName: 'td', textContent: item.score }
-        ];
-      body.appendChild(ce({
-        tagName: 'tr',
-        children: stats
-      }).el)
-    })
+    if(scores !== undefined)
+    {
+      Object.keys(this.scores).map(function(key) {
+        return scores[key]
+      }).sort(function (a, b) {
+        if (a.score > b.score) return -1
+        if (a.score < b.score) return 1
+        return 0
+      }).forEach(function (item, index, arr) {
+        stats = [
+          { tagName: 'td', textContent: index + 1 },
+          { tagName: 'td', textContent: item.name },
+          { tagName: 'td', textContent: item.score }
+          ];
+        body.appendChild(ce({
+          tagName: 'tr',
+          children: stats
+        }).el)
+      })
+    }
   }
 }
 
-module.exports = Score
+module.exports = MatchInfo
