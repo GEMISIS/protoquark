@@ -8,7 +8,7 @@ var weapon = {
   create: function create(id, pos, amount) {
     var ent = pickup.create(id, "weapon", pos, amount)
     // !TODO! Actual weapon model.
-    ent.model = '/ammo.obj'
+    ent.model = '/models/ammo.obj'
     ent.color = 0xFFFFFF
     return ent
   }
