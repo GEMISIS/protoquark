@@ -3,9 +3,9 @@ var Euler   = THREE.Euler
 var Level   = require('./level')
 
 var textureNames = [
-  '/blood1.png',
-  '/blood2.png',
-  '/blood3.png',
+  '/textures/blood1.png',
+  '/textures/blood2.png',
+  '/textures/blood3.png',
 ]
 var materials = []
 
