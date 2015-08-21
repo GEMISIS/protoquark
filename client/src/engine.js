@@ -27,6 +27,13 @@ function handleDirection(control, down) {
   me.control[control] = down
 }
 
+function createGameTimer(conn) {
+  setTimeout(function() {
+    conn.send("gameOver", {})
+    createGameTimer(conn)
+  }, matchTime)
+}
+
 var ons = {
 control: {
   look: function onLook(state) {
@@ -181,6 +188,10 @@ conn: {
       if (player) {
         player.health.current = state.currentHealth
         player.score = state.currentScore
+        if (state.currentWeapon != player.weapon.primary.id) {
+          switchToWeapon(player, state.currentWeapon)
+          console.log("Switching weapons")
+        }
         this.scores[state.id] = {name: state.id, score: player.score}
       }
     }
