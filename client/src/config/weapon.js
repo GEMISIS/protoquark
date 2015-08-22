@@ -30,19 +30,6 @@ module.exports = {
     shootAnimation: 9
   },
 
-  smg: {
-    ammunition: 100,
-    automatic: true,
-    firerate: 5,
-    damage: .50,
-    speed: 200,
-    recoil: 5,
-    name: "SMG",
-    model: "/models/smg.json",
-    shootAnimation: 7,
-    reloadAnimation: 2,
-  },
-
   assault: {
     ammunition: 100,
     automatic: true,
