@@ -1,58 +1,63 @@
-var Vector3 = THREE.Vector3
-var Quaternion = THREE.Quaternion
-
-var shaftGeometry;
-var handleGeometry;
-
-var weaponGeometries = {
-  pistol: {
-    handlePosition: new Vector3(0.0, -.025, .02),
-    shaft: new THREE.BoxGeometry(.02, .02, .1),
-    handle: new THREE.BoxGeometry(.02, .03, .02)
-  },
-
-  sniper: {
-    handlePosition: new Vector3(0.0, -.025, .02),
-    shaft: new THREE.BoxGeometry(.02, .02, .5),
-    handle: new THREE.BoxGeometry(.02, .03, .02)
-  },
-
-  assault: {
-    handlePosition: new Vector3(0.0, -.035, .02),
-    shaft: new THREE.BoxGeometry(.02, .04, .2),
-    handle: new THREE.BoxGeometry(.02, .03, .02)
-  },
-}
+var loadJSON    = require('../stage/modelloader').loadJSON
+var loadTexture = require('../stage/textureloader').loadTexture
+var Vector3     = THREE.Vector3
+var Quaternion  = THREE.Quaternion
+var weapons     = require("../config/weapon")
 
 function switchWeapons(weaponName) {
-  // addWeaponMeshes(this.o3d, material)
-  var geometries = weaponGeometries[weaponName]
-  if (!geometries) return
+  if (!this.weaponMesh) return
+  
+  var weapon = weapons[weaponName]
+  if (!weapon) return
 
-  this.handleMesh.geometry = geometries.handle
-  this.shaftMesh.geometry = geometries.shaft
+  loadJSON(weapon.model || '/models/assault.json', this.weaponMesh.material, function(geometry, material) {
+    this.weaponMesh.geometry = geometry
+  }.bind(this))
+}
 
-  var handle = this.handleMesh
-  var position = geometries.handlePosition
-  // Take halfway between shaft size and handle size in z dimension. Put below shaft in y dimension
-  handle.position.set(position.x, position.y, position.z)
+function findHandBone(bones) {
+  for (var i = 0; i < bones.length; i++) {
+    if (bones[i].name === 'Hand_Right_jnt') return bones[i]
+  }
+  return null
 }
 
 function OwnPlayer(entity) {
   this.entity = entity
   this.o3d = new THREE.Object3D()
 
-  var material = new THREE.MeshPhongMaterial({
-    color: 0xAAAAAA
-  })
+  var texture = loadTexture('/textures/terror.png')
+  var handsMaterial = this.handsMaterial = new THREE.MeshLambertMaterial( { map: texture, skinning: true, shading: THREE.FlatShading } )
 
-  this.handleMesh = new THREE.Mesh(weaponGeometries.pistol.handle, material)
-  this.shaftMesh = new THREE.Mesh(weaponGeometries.pistol.shaft, material)
-  this.o3d.add(this.handleMesh)
-  this.o3d.add(this.shaftMesh)
+  loadJSON('/models/hands.json', handsMaterial, onHandMeshLoaded.bind(this))
 
   this.currentWeapon = entity.weapon.primary.id || 'pistol'
+}
+
+function onHandMeshLoaded(geometry, material) {
+  var handMesh = this.handMesh = new THREE.SkinnedMesh(geometry, material)
+  this.o3d.add(handMesh)
+  
+  var animationDatas = this.animationDatas = geometry.animations
+  var anim = this.animation = new THREE.Animation(handMesh, geometry.animations[0])
+  debugger
+  // this.animation.play()
+
+  var texture = loadTexture('/textures/pistol.png')
+  var weaponMaterial = weaponMaterial = new THREE.MeshLambertMaterial( { map: texture, shading: THREE.FlatShading } )
+  loadJSON('/models/pistol.json', weaponMaterial, onWeaponMeshLoaded.bind(this))
+}
+
+function onWeaponMeshLoaded(geometry, material) {
+  // Load weapon mesh after hand since we need to attach weapon to hand
+  var bones = this.handMesh.skeleton.bones
+  var weaponMesh = this.weaponMesh = new THREE.Mesh(geometry, material)
+  weaponMesh.materials
+  var bone = findHandBone(bones)
+  if (bone) bone.add(weaponMesh)
+
   switchWeapons.call(this, this.currentWeapon)
+  debugger
 }
 
 OwnPlayer.prototype = {
@@ -60,11 +65,31 @@ OwnPlayer.prototype = {
     var o3d = this.o3d
     var e = this.entity
 
-    o3d.position.copy(e.getOffsetPosition(new Vector3().addVectors(e.weaponStartOffset, e.position), e.weaponOffsetPos))
+    if (this.handMesh) {
+      // both sniper and shotgun shoot only once and immediately go to animation reload
+      // if (this.animation.currentTime > endTime) {
+      //   this.animation.stop()
+      //   this.animation.play(startTime)
+      // }
+      var weapon = weapons[this.currentWeapon]
+      this.handMesh.position.set(0, -2.5, -2.0)
+      // this.handMesh.rotation.set(Math.PI / 8, Math.PI / 8, 0, 'XYZ')
+      this.handMesh.rotation.set(Math.PI / 10, 0, 0, 'XYZ')
+      if (e.newShot) {
+        // this.animation.data = this.animationDatas[2]
+        // this.animation = new THREE.Animation(this.handMesh, this.animationDatas[weapon.shootAnimation || 2])
+        debugger
+        var animationData = this.animationDatas[weapon.shootAnimation || 2]
+        this.animation.data = THREE.AnimationHandler.init(animationData)
+        this.animation.currentTime = 0
+        this.animation.timeScale = 1
+        this.animation.loop = false
+        this.animation.play()
+      }
+    }
 
-    var time = e.weapon.primary.shotT || 0
-      , weaponAngle = Math.sin(time * Math.PI) * 40 * Math.PI / 180
-    o3d.rotation.setFromQuaternion(e.getOffsetRotation(weaponAngle, 0))
+    o3d.position.set(e.position.x, e.position.y + 1, e.position.z)
+    o3d.rotation.setFromQuaternion(e.getRotation())
 
     // Switch weapons if changed.
     if (this.currentWeapon !== e.weapon.primary.id) {

@@ -101,7 +101,7 @@ Stage.prototype = {
 
     if (me) {
       // place camera slightly above player
-      this.camera.position.set(me.position.x, me.position.y + .25, me.position.z)
+      this.camera.position.set(me.position.x, me.position.y + 1, me.position.z)
       this.camera.fov = me.control.zoom ? 25 : 50
       this.camera.updateProjectionMatrix()
       this.camera.rotation.copy(new Euler(-me.euler.x, -me.euler.y, 0, "YXZ"))
@@ -148,6 +148,7 @@ Stage.prototype = {
       i--
     }
 
+    THREE.AnimationHandler.update(dt)
     this.renderer.render(this.scene, this.camera)
   }
 }

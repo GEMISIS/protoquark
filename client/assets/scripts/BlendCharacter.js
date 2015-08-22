@@ -8,22 +8,13 @@ THREE.BlendCharacter = function () {
 	this.weightSchedule = [];
 	this.warpSchedule = [];
 
-	this.load = function ( url, onLoad ) {
+	this.load = function ( url, material, onLoad ) {
 
 		var scope = this;
 
 		var loader = new THREE.JSONLoader();
 		loader.load( url, function( geometry, materials ) {
-
-			// Temp for now overload materials since non saved in our json file
-			// var originalMaterial = materials[ 0 ];
-			// originalMaterial.skinning = true;
-
-			var texture = THREE.ImageUtils.loadTexture( './terror.png' );
-        	texture.anisotropy = renderer.getMaxAnisotropy();
-        	var originalMaterial = new THREE.MeshBasicMaterial( { map: texture, skinning: true } );
-
-			THREE.SkinnedMesh.call( scope, geometry, originalMaterial );
+			THREE.SkinnedMesh.call( scope, geometry, material );
 
 			// Create the animations
 

@@ -23,6 +23,9 @@ module.exports = function updatePlayer(dt, ent) {
   var delta = new Vector3(0, 0, 0)
   var colliders = this.colliders
 
+  // Reset from last frame.
+  ent.newShot = false
+
   if (ent.control.forward || ent.control.backward) {
     var multiplier = ent.control.forward ? 1 : -1
     delta.x += sinAngle * speed * dt * multiplier
@@ -72,6 +75,7 @@ module.exports = function updatePlayer(dt, ent) {
   weapon.shotTimer = Math.max(weapon.shotTimer, 0)
 
   if (ent.control.shoot && (!ent.lastControl.shoot || weaponStats.automatic) && weapon.shotTimer <= 0 && weapon.ammunition > 0) {
+    ent.newShot = true
     weapon.shotTimer = delay
     var bulletPos = ent.getOffsetPosition(new Vector3().addVectors(ent.weaponStartOffset, ent.position), ent.weaponOffsetPos)
     this.add(bullets.create(this.genLocalId(), ent, "normal", {
