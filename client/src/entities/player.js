@@ -95,6 +95,5 @@ module.exports = function updatePlayer(dt, ent) {
   if (weapon.shotTimer > 0) {
     actions |= action.SHOOTING
   }
-
   ent.actions = actions
 }

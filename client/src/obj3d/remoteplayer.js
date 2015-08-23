@@ -3,6 +3,7 @@ var loadTexture = require('../stage/textureloader').loadTexture
 var Vector3     = THREE.Vector3
 var Quaternion  = THREE.Quaternion
 var weapons     = require("../config/weapon")
+var action      = require("../action")
 
 var geometry;
 function getGeometry() {
@@ -132,6 +133,18 @@ function switchWeapons(weaponName) {
 }
 
 RemotePlayer.prototype = {
+  isPlaying: function(animName) {
+    if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return false
+    return this.playerMesh.animations[animName].isPlaying
+  },
+
+  stop: function(animName) {
+    if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return false
+    var animation = this.playerMesh.animations[animName]
+    animation.stop(0)
+    animation.weight = 0
+  },
+
   play: function(animName, weight, loop, ignoreUnusedBones, duration) {
     if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return
     
@@ -139,7 +152,7 @@ RemotePlayer.prototype = {
     animation.loop = !!loop
     this.playerMesh.play(animName, weight)
 
-    if (ignoreUnusedBones && animName === 'running') {
+    if (ignoreUnusedBones && (animName === 'running' || animName == 'Still')) {
       animation.hierarchyIgnored = hierarchyIgnoredLower
     }
     else if (ignoreUnusedBones) {
@@ -161,6 +174,8 @@ RemotePlayer.prototype = {
   update: function update (dt) {
     var o3d = this.o3d
     var e = this.entity
+    var actions = e.actions
+    console.log('actions', actions)
     o3d.position.set(e.position.x, e.position.y - .65, e.position.z)
 
     var weapon = weapons[e.weapon.primary.id]
@@ -177,6 +192,14 @@ RemotePlayer.prototype = {
     if (this.weaponMesh && this.currentWeapon !== e.weapon.primary.id) {
       this.currentWeapon = e.weapon.primary.id
       switchWeapons.call(this, this.currentWeapon)
+    }
+
+    if ((actions & action.RUNNING) && !this.isPlaying('running')) {
+      this.play('running', 1.0, true, true)
+    }
+    else if (!(actions & action.RUNNING) && this.isPlaying('running')) {
+      this.stop('running')
+      this.play('Still', 1.0, false, true)
     }
 
     // blink if invincible
