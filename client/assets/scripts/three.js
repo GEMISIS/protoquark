@@ -30156,7 +30156,10 @@ THREE.Animation.prototype = {
 
 			}
 
+			// !NOTE! Added this to combine animations.
+			var hierarchyIgnored = this.hierarchyIgnored
 			for ( var h = 0, hl = this.hierarchy.length; h < hl; h ++ ) {
+				if (hierarchyIgnored && hierarchyIgnored[h]) continue;
 
 				var object = this.hierarchy[ h ];
 				var animationCache = object.animationCache.animations[this.data.name];

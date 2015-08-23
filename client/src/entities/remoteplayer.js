@@ -8,6 +8,7 @@ module.exports = function updateRemotePlayer (dt, ent) {
   var player = conn.players[ent.context.id]
   var playerLatency = player && player.latency ? player.latency : .2
   var myLatency = player.latency || .2
+  ent.newShot = false
 
   var lerpTime = Math.max(playerLatency/2 + myLatency/2 + this.sendInterval*2, .10)
   ent.interpolate(conn.getServerTime(), lerpTime)
@@ -23,5 +24,6 @@ module.exports = function updateRemotePlayer (dt, ent) {
     weapon.shotTimer = 1 / weapons[weapon.id].firerate
     this.add(bullets.create(this.genLocalId(), ent, "normal"))
     weapon.ammunition--
+    ent.newShot = true
   }
 }

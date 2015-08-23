@@ -14,8 +14,8 @@ module.exports = {
     name: "Pistol",
     recoil: 0,
     model: "/models/pistol.json",
-    shootAnimation: 4,
-    reloadAnimation: 5,
+    shootAnimation: 'pistol_shoot',
+    reloadAnimation: 'pistol_reload',
   },
 
   sniper: {
@@ -27,7 +27,32 @@ module.exports = {
     recoil: 0,
     name: "Sniper Rifle",
     model: "/models/sniper.json",
-    shootAnimation: 9
+    shootAnimation: 'sniper',
+  },
+
+  shotgun: {
+    ammunition: 20,
+    automatic: false,
+    firerate: .33,
+    damage: 1,
+    speed: 200,
+    recoil: 0,
+    name: "Shotgun",
+    model: "/models/shotgun.json",
+    shootAnimation: 'shotgun',
+  },
+
+  smg: {
+    ammunition: 100,
+    automatic: true,
+    firerate: 5,
+    damage: .50,
+    speed: 200,
+    recoil: 5,
+    name: "SMG",
+    model: "/models/smg.json",
+    shootAnimation: 'smg_shoot',
+    reloadAnimation: 'assault_reload',
   },
 
   assault: {
@@ -39,7 +64,7 @@ module.exports = {
     recoil: 5,
     name: "Assault Rifle",
     model: "/models/assault.json",
-    shootAnimation: 3,
-    reloadAnimation: 2,
+    shootAnimation: 'assault_shoot',
+    reloadAnimation: 'assault_reload',
   }
 }
