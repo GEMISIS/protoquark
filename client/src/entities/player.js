@@ -2,6 +2,7 @@ var bullets      = require("./bullets")
 var weapons      = require("../config/weapon")
 var collision    = require("../collision")
 var Vector3      = require("../math").vec3
+var action       = require("../action")
 
 var playerShape = new Vector3(.25, .65, .25)
 
@@ -25,14 +26,17 @@ module.exports = function updatePlayer(dt, ent) {
 
   // Reset from last frame.
   ent.newShot = false
+  var actions = 0
 
   if (ent.control.forward || ent.control.backward) {
+    actions |= action.RUNNING
     var multiplier = ent.control.forward ? 1 : -1
     delta.x += sinAngle * speed * dt * multiplier
     delta.z -= cosAngle * speed * dt * multiplier
   }
 
   if (ent.control.strafeleft || ent.control.straferight) {
+    actions |= action.RUNNING
     var multiplier = ent.control.straferight ? 1 : -1
     delta.x += cosAngle * speed * dt * multiplier
     delta.z += sinAngle * speed * dt * multiplier
@@ -43,6 +47,7 @@ module.exports = function updatePlayer(dt, ent) {
   if (ent.control.jump && !ent.jumping) {
     ent.jumping = true
     ent.jump = 4
+    actions |= action.JUMPING
   }
 
   // apply gravity
@@ -86,4 +91,10 @@ module.exports = function updatePlayer(dt, ent) {
     weapon.ammunition--
   }
   weapon.shotT = 1.0 - weapon.shotTimer / delay
+
+  if (weapon.shotTimer > 0) {
+    actions |= action.SHOOTING
+  }
+
+  ent.actions = actions
 }

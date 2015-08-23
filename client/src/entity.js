@@ -13,7 +13,7 @@ function Entity(context, id) {
   this.position = new Vector3(0, 2, 0)
   this.rotation = new Quaternion()
   this.euler = new Vector3()
-
+  this.actions = 0
   this.id = id
 
   // ordered array of snapshots based on time with most recent snapshot at end of list.
@@ -23,13 +23,17 @@ function Entity(context, id) {
 Entity.prototype = {
   interpolate: function interpolate(time, delay) {
     var snapshot = this.getSnapshot(time - delay)
-    if (!snapshot || !snapshot.position) return
+    if (!snapshot || !snapshot.position) {
+      console.log("Unable to find snapshot to lerp")
+      return
+    }
 
     this.position = new Vector3(snapshot.position.x, snapshot.position.y, snapshot.position.z)
     this.rotation = new Quaternion(snapshot.rotation.x, snapshot.rotation.y, snapshot.rotation.z, snapshot.rotation.w)
     this.control = snapshot.control
     this.euler.x = snapshot.euler.x
     this.euler.y = snapshot.euler.y
+    this.actions = snapshot.actions
   },
 
   getSnapshot: function getSnapshot(time) {
@@ -68,6 +72,7 @@ Entity.prototype = {
         euler.x = before.euler.x + (after.euler.x - before.euler.x) * t
         euler.y = before.euler.y + (after.euler.y - before.euler.y) * t
 
+        var actions = before.actions | after.actions
         // Combine keys that were pressed
         var combinedControls = {}
         var controls = [before.control, after.control]
@@ -80,13 +85,13 @@ Entity.prototype = {
           }
         }
 
-        return createSnapshot(time, position, rotation, combinedControls, euler)
+        return createSnapshot(time, position, rotation, combinedControls, euler, actions)
       }
     }
   },
 
   addSnapshot: function addSnapshot(time, control) {
-    var snapshot = createSnapshot(time, this.position, this.rotation, control, this.euler)
+    var snapshot = createSnapshot(time, this.position, this.rotation, control, this.euler, this.actions)
     this.snapshots.push(snapshot)
   },
 
@@ -139,7 +144,7 @@ Entity.prototype = {
   }
 }
 
-function createSnapshot(time, position, rotation, control, euler) {
+function createSnapshot(time, position, rotation, control, euler, actions) {
   return {
     time: time,
     // peerjs throws type error function (x, y, z) if using threejs obj created with Vector3
@@ -159,6 +164,7 @@ function createSnapshot(time, position, rotation, control, euler) {
       x: euler ? euler.x : 0,
       y: euler ? euler.y : 0,
     },
+    actions: actions
   }
 }
 
