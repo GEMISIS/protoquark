@@ -55,12 +55,12 @@ function onWeaponMeshLoaded(geometry, material) {
 }
 
 Player.prototype = {
-  play: function(animName, loop, duration) {
+  play: function(animName, loop, startTime, duration) {
     if (!animName || !this.handMeshLoaded || !this.handMesh.animations[animName]) return
     
     var animation = this.handMesh.animations[animName]
     animation.loop = !!loop
-    this.handMesh.play(animName, 1.0)
+    this.handMesh.play(animName, 1.0, startTime || 0.0)
 
     if (typeof duration === 'number' && duration > 0) {
       animation.timeScale = animation.data.length / duration
@@ -73,7 +73,7 @@ Player.prototype = {
   update: function update (dt) {
     var o3d = this.o3d
     var e = this.entity
-    var weapon = weapons[this.currentWeapon]
+    var weapon = weapons[e.weapon.primary.id]
 
     if (this.handMeshLoaded) {
       this.handMesh.position.set(0, -2.5, -2.0)
@@ -91,7 +91,8 @@ Player.prototype = {
     if (this.currentWeapon !== e.weapon.primary.id) {
       this.currentWeapon = e.weapon.primary.id
       switchWeapons.call(this, this.currentWeapon)
-      this.play(weapon.realodAnimation)
+
+      this.play(weapon.reloadAnimation ? weapon.reloadAnimation : weapon.shootAnimation, false, weapon.readyTime)
     }
   }
 }

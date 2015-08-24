@@ -11,74 +11,23 @@ function getGeometry() {
   return geometry
 }
 
+var runAnim = 'run'
+var idleAnim = 'idle'
+var animCrossDuration = .10
+
 // Some manual hierarchy ignoring to combine animations where only one half of the skeleton
 // is actually used.
 // Note that three.js Animation update must be modified to check for this
-var hierarchyIgnoredUpper = [
-  false,
-  false,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-]
-
-var hierarchyIgnoredLower = [
-  true,
-  true,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-]
+// hierarchy to pass to ignore lower parts
+var ignoredLower = [false, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
+var ignoredUpper = [true, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true]
+var ignoredArms = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true]
+var ignoredNone = []
 
 function RemotePlayer(entity) {
   this.entity = entity
   this.o3d = new THREE.Object3D()
-
+  this.playingShootAnim = false
   var material = this.material = new THREE.MeshBasicMaterial({
     color: 0xAAAAAA,
     transparent: true,
@@ -97,7 +46,7 @@ function RemotePlayer(entity) {
 function onPlayerMeshLoaded() {
   this.o3d.add(this.playerMesh)
   this.playerMeshLoaded = true
-  this.play('running', 1, true, true)
+  this.play(idleAnim, true)
 
   var texture = loadTexture('/textures/pistol.png')
   var weaponMaterial = weaponMaterial = new THREE.MeshLambertMaterial({ map: texture, shading: THREE.FlatShading })
@@ -138,6 +87,18 @@ RemotePlayer.prototype = {
     return this.playerMesh.animations[animName].isPlaying
   },
 
+  isCrossFading: function(animName) {
+    if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return false
+    for (var i = 0; i < this.playerMesh.weightSchedule.length; i++) {
+      if (this.playerMesh.weightSchedule[i].anim == this.playerMesh.animations[animName]) return true
+    }
+  },
+
+  getWeight: function(animName) {
+    if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return false
+    return this.playerMesh.animations[animName].weight
+  },
+
   stop: function(animName) {
     if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return false
     var animation = this.playerMesh.animations[animName]
@@ -145,23 +106,67 @@ RemotePlayer.prototype = {
     animation.weight = 0
   },
 
-  play: function(animName, weight, loop, ignoreUnusedBones, duration) {
+  setIgnore: function(animName, ignore) {
+    if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return
+    
+    var animation = this.playerMesh.animations[animName]
+    if (typeof ignore === 'object') {
+      if (ignore.upper) animation.hierarchyIgnored = ignoredUpper
+      else if (ignore.lower) animation.hierarchyIgnored = ignoredLower
+      else if (ignore.arms) animation.hierarchyIgnored = ignoredArms
+      else animation.hierarchyIgnored = ignoredNone
+    }
+    else {
+      animation.hierarchyIgnored = ignoredNone
+    }
+  },
+
+  fadeIn: function(animName, duration) {
+    this.fade(animName, 0, 1, duration)
+  },
+
+  fadeOut: function(animName, duration) {
+    this.fade(animName, 1, 0, duration)
+  },
+
+  fade: function(animName, start, end, duration) {
+    if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return
+
+    this.playerMesh.weightSchedule.push( {
+      anim: this.playerMesh.animations[animName],
+      startWeight: start,
+      endWeight: end,
+      timeElapsed: 0,
+      duration: duration
+    } );
+  },
+
+  // cross fades but prevAnimName is already playing
+  playFadeIn: function(animName, prevAnimName, loop, ignore, duration) {
+    if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return
+    var prevAnim = this.playerMesh.animations[prevAnimName]
+    var nextAnim = this.playerMesh.animations[animName]
+
+    if (prevAnim && prevAnim.isPlaying) {
+      this.play(animName, loop, ignore, duration)
+      nextAnim.weight = 0
+
+      this.fadeOut(prevAnimName, animCrossDuration)
+      this.fadeIn(animName, animCrossDuration)
+    }
+    else {
+      this.play(animName, loop, ignore, duration)
+    }
+  },
+
+  play: function(animName, loop, ignore, duration) {
     if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return
     
     var animation = this.playerMesh.animations[animName]
     animation.loop = !!loop
-    this.playerMesh.play(animName, weight)
+    this.playerMesh.play(animName, 1.0)
 
-    if (ignoreUnusedBones && (animName === 'running' || animName == 'Still')) {
-      animation.hierarchyIgnored = hierarchyIgnoredLower
-    }
-    else if (ignoreUnusedBones) {
-      animation.hierarchyIgnored = hierarchyIgnoredUpper
-    }
-    else {
-      // No ignoring.
-      animation.hierarchyIgnored = []
-    }
+    this.setIgnore(animName, ignore)
 
     if (typeof duration === 'number' && duration > 0) {
       animation.timeScale = animation.data.length / duration
@@ -175,18 +180,18 @@ RemotePlayer.prototype = {
     var o3d = this.o3d
     var e = this.entity
     var actions = e.actions
-    console.log('actions', actions)
     o3d.position.set(e.position.x, e.position.y - .65, e.position.z)
 
     var weapon = weapons[e.weapon.primary.id]
+    var shootAnimation = weapon.shootAnimation
 
-    // o3d.rotation.setFromQuaternion(e.rotation)
     // Note we're adding offset of Math.PI to getRotationY since model is facing down positive z axis
     // but all the rotations are assuming facing negative z
     o3d.rotation.setFromQuaternion(e.getRotationY(Math.PI))
 
     if (e.newShot) {
-      this.play(weapon.shootAnimation, 1, false, true)
+      this.play(shootAnimation, false, {lower:true})
+      this.playingShootAnim = true
     }
 
     if (this.weaponMesh && this.currentWeapon !== e.weapon.primary.id) {
@@ -194,13 +199,42 @@ RemotePlayer.prototype = {
       switchWeapons.call(this, this.currentWeapon)
     }
 
-    if ((actions & action.RUNNING) && !this.isPlaying('running')) {
-      this.play('running', 1.0, true, true)
+    var running = actions & action.RUNNING
+    var shooting = actions & action.SHOOTING
+    if (running && !this.isPlaying(runAnim)) {
+      this.playFadeIn(runAnim, idleAnim, true)
     }
-    else if (!(actions & action.RUNNING) && this.isPlaying('running')) {
-      this.stop('running')
-      this.play('Still', 1.0, false, true)
+    else if (!running && !this.isPlaying(idleAnim)) {
+      this.playFadeIn(idleAnim, runAnim, true)
     }
+
+    // If was previously shooting and animation has just ended, then cross fade from the end frame of the shoot animation
+    // (which it should currently be on since it stays with end frame after animation is done) to idle / running animation.
+    // Note we need a flag playingShootAnim since when we set to last frame with timeScale of 0, isPlaying would still return true
+    if (this.playingShootAnim && !this.isPlaying(shootAnimation) /*!shooting*/) {
+      var animation = this.playerMesh.animations[shootAnimation]
+
+      this.playingShootAnim = false
+
+      // play last-ish frame
+      animation.play(animation.data.length - Number.EPSILON)
+      // make it never advance (at least until we play the animation again)
+      animation.timeScale = 0
+
+      // now cross fade
+      this.fadeOut(shootAnimation, animCrossDuration)
+      // Cross fade only if not already fading in.
+      if (running && !this.isCrossFading(runAnim)) {
+        this.fadeIn(runAnim, animCrossDuration)
+      }
+      else if (!running && !this.isCrossFading(idleAnim)) {
+        this.fadeIn(idleAnim, animCrossDuration)
+      }
+    }
+
+    // Only ignore upper animations if shooting
+    this.setIgnore(runAnim, {upper: this.playingShootAnim || shooting})
+    this.setIgnore(idleAnim, {upper: this.playingShootAnim || shooting})
 
     // blink if invincible
     var blinkInterval = .5
@@ -209,6 +243,11 @@ RemotePlayer.prototype = {
     }
     else {
       this.material.opacity = 1
+    }
+
+    // !NOTE! Do this last since some of our animation smoothing crossfades works better with it.
+    if (this.playerMeshLoaded) {
+      this.playerMesh.update(dt)
     }
   }
 }

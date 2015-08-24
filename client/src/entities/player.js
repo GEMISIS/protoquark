@@ -44,6 +44,11 @@ module.exports = function updatePlayer(dt, ent) {
 
   applyDelta(ent, delta, collision, colliders, false)
 
+  if (ent.control.look && (ent.control.look.x > 0 || ent.control.look.y > 0)) {
+    // Turning rather.
+    // actions |= action.RUNNING
+  }
+
   if (ent.control.jump && !ent.jumping) {
     ent.jumping = true
     ent.jump = 4

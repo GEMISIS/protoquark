@@ -3,6 +3,9 @@
 // Damage of .5 is half
 // etc
 //
+// readyTime uses either the reloadAnimation (if it has one), or shootAnimation otherwise.
+// It is the start time into the animation to play when switching weapons.
+//
 
 module.exports = {
   pistol: {
@@ -16,6 +19,7 @@ module.exports = {
     model: "/models/pistol.json",
     shootAnimation: 'pistol_shoot',
     reloadAnimation: 'pistol_reload',
+    readyTime: .84
   },
 
   sniper: {
@@ -40,6 +44,7 @@ module.exports = {
     name: "Shotgun",
     model: "/models/shotgun.json",
     shootAnimation: 'shotgun',
+    readyTime: .84
   },
 
   smg: {
@@ -53,6 +58,7 @@ module.exports = {
     model: "/models/smg.json",
     shootAnimation: 'smg_shoot',
     reloadAnimation: 'assault_reload',
+    readyTime: .90
   },
 
   assault: {
@@ -66,5 +72,6 @@ module.exports = {
     model: "/models/assault.json",
     shootAnimation: 'assault_shoot',
     reloadAnimation: 'assault_reload',
+    readyTime: .90
   }
 }

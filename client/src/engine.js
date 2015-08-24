@@ -23,6 +23,7 @@ var matchTime = 120000
 function handleDirection(control, down) {
   var me = this.you()
   if (!me) return
+
   me.lastControl[control] = me.control[control]
   me.control[control] = down
 }
@@ -324,8 +325,8 @@ function Engine (connection, controller) {
     "backward",
     "forward",
     "shoot",
-    "jump",
-    "zoom"
+    "zoom",
+    "look"
   ]
 
   controls.forEach(function(c) {

@@ -41,7 +41,6 @@ THREE.BlendCharacter = function () {
 	};
 
 	this.update = function( dt ) {
-
 		for ( var i = this.weightSchedule.length - 1; i >= 0; -- i ) {
 
 			var data = this.weightSchedule[ i ];

@@ -45,7 +45,6 @@ app.get('/rooms\/$', function (req, res){
   }
 })
 
-// Opens game room.
 app.post('/quit\/[^.\/]+\/?$', function (req, res) {
   var name = req.url.substr(req.url.lastIndexOf("/") + 1)
 
