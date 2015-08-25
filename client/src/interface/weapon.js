@@ -6,6 +6,7 @@ function createWeaponLabel (name) {
   var el = document.createElement("label")
   el.className = name
   addSpan('wepname', el)
+  addSpan('clip', el)
   addSpan('ammunition', el)
   return el
 }
@@ -40,6 +41,13 @@ function updateAmmunition(el, amount) {
   }
 
   el.ammunition.amount = amount
+}
+
+function updateClip(el, amount) {
+  if (el.clip.amount != amount) {
+    el.clip.textContent = ("0" + amount).slice(-2) + " / "
+  }
+  el.clip.amount = amount
 }
 
 function Weapon (engine) {
@@ -77,6 +85,7 @@ Weapon.prototype = {
       }
 
       updateAmmunition(this[weap], me.weapon[weap].ammunition)
+      updateClip(this[weap], me.weapon[weap].clip)
     }
   }
 }

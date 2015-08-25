@@ -34,6 +34,7 @@ Entity.prototype = {
     this.euler.x = snapshot.euler.x
     this.euler.y = snapshot.euler.y
     this.actions = snapshot.actions
+    this.timeSinceLastMove = 0
   },
 
   getSnapshot: function getSnapshot(time) {

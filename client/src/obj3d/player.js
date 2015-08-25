@@ -3,6 +3,7 @@ var loadTexture = require('../stage/textureloader').loadTexture
 var Vector3     = THREE.Vector3
 var Quaternion  = THREE.Quaternion
 var weapons     = require("../config/weapon")
+var action      = require("../action")
 
 function switchWeapons(weaponName) {
   if (!this.weaponMesh) return
@@ -26,6 +27,11 @@ function Player(entity) {
   this.entity = entity
   this.o3d = new THREE.Object3D()
   this.currentWeapon = entity.weapon.primary.id || 'pistol'
+  this.idleTimer = 0
+  this.idling = false
+  this.runTimer = 0
+  this.running = false
+  this.runX = 0
 
   var texture = loadTexture('/textures/terror.png')
   var handsMaterial = this.handsMaterial = new THREE.MeshLambertMaterial({ map: texture, skinning: true, shading: THREE.FlatShading })
@@ -55,8 +61,17 @@ function onWeaponMeshLoaded(geometry, material) {
 }
 
 Player.prototype = {
+  hasAnim: function(animName) {
+    return animName && this.handMeshLoaded &&this.handMesh.animations[animName]
+  },
+
+  isPlaying: function(animName) {
+    if (!this.hasAnim(animName)) return
+    return this.playerMesh.animations[animName].isPlaying
+  },
+
   play: function(animName, loop, startTime, duration) {
-    if (!animName || !this.handMeshLoaded || !this.handMesh.animations[animName]) return
+    if (!this.hasAnim(animName)) return
     
     var animation = this.handMesh.animations[animName]
     animation.loop = !!loop
@@ -75,13 +90,45 @@ Player.prototype = {
     var e = this.entity
     var weapon = weapons[e.weapon.primary.id]
 
+    var idleY = 0
+    if (e.timeSinceLastMove > .5) {
+      if (!this.idling) {
+        this.idleTimer = 0
+        this.idling = true
+      }
+
+      this.idleTimer += dt * Math.PI
+      idleY = Math.sin(this.idleTimer) * -.025
+    }
+    else {
+      this.idling = false
+    }
+
+    if (e.actions & action.RUNNING) {
+      if (!this.running) {
+        this.running = true
+        this.runTimer = 0
+      }
+      this.runTimer += dt * Math.PI
+      this.runX = Math.sin(this.runTimer) * .15
+    }
+    else {
+      this.running = false
+      this.runX *= Math.exp(-dt * 10)
+    }
+
     if (this.handMeshLoaded) {
-      this.handMesh.position.set(0, -2.5, -2.0)
+      this.handMesh.position.set(0 + this.runX, -2.5 + idleY, -2.0)
       this.handMesh.rotation.set(Math.PI / 10, 0, 0, 'XYZ')
 
       if (e.newShot) {
-        this.play(weapon.shootAnimation)
+        this.play(weapon.shootAnimation, false, 0, weapon.clip === 1 ? weapon.reloadTime : 0)
       }
+      else if (e.newReload && weapon.reloadAnimation) {
+        this.play(weapon.reloadAnimation, false, 0, weapon.reloadTime)
+      }
+
+      this.handMesh.update(dt)
     }
 
     o3d.position.set(e.position.x, e.position.y + 1, e.position.z)

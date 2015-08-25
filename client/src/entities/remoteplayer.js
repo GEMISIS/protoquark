@@ -14,7 +14,7 @@ module.exports = function updateRemotePlayer (dt, ent) {
   ent.interpolate(conn.getServerTime(), lerpTime)
   ent.trimSnapshots()
 
-  if (ent.invincibility)
+  if (ent.invincibility > 0)
     ent.invincibility -= dt
 
   var weapon = ent.weapon.active === "primary" ? ent.weapon.primary : ent.weapon.secondary

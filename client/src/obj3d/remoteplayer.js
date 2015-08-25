@@ -11,8 +11,8 @@ function getGeometry() {
   return geometry
 }
 
-var runAnim = 'run'
-var idleAnim = 'idle'
+var runAnimName = 'run'
+var idleAnimName = 'idle'
 var animCrossDuration = .10
 
 // Some manual hierarchy ignoring to combine animations where only one half of the skeleton
@@ -27,7 +27,8 @@ var ignoredNone = []
 function RemotePlayer(entity) {
   this.entity = entity
   this.o3d = new THREE.Object3D()
-  this.playingShootAnim = false
+  this.playingUpperAnim = false
+  this.lastUpperAction = action.SHOOTING
   var material = this.material = new THREE.MeshBasicMaterial({
     color: 0xAAAAAA,
     transparent: true,
@@ -46,7 +47,7 @@ function RemotePlayer(entity) {
 function onPlayerMeshLoaded() {
   this.o3d.add(this.playerMesh)
   this.playerMeshLoaded = true
-  this.play(idleAnim, true)
+  this.play(idleAnimName, true)
 
   var texture = loadTexture('/textures/pistol.png')
   var weaponMaterial = weaponMaterial = new THREE.MeshLambertMaterial({ map: texture, shading: THREE.FlatShading })
@@ -82,32 +83,36 @@ function switchWeapons(weaponName) {
 }
 
 RemotePlayer.prototype = {
+  hasAnim: function(animName) {
+    return animName && this.playerMeshLoaded &&this.playerMesh.animations[animName]
+  },
+
   isPlaying: function(animName) {
-    if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return false
+    if (!this.hasAnim(animName)) return
     return this.playerMesh.animations[animName].isPlaying
   },
 
   isCrossFading: function(animName) {
-    if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return false
+    if (!this.hasAnim(animName)) return
     for (var i = 0; i < this.playerMesh.weightSchedule.length; i++) {
       if (this.playerMesh.weightSchedule[i].anim == this.playerMesh.animations[animName]) return true
     }
   },
 
   getWeight: function(animName) {
-    if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return false
+    if (!this.hasAnim(animName)) return
     return this.playerMesh.animations[animName].weight
   },
 
   stop: function(animName) {
-    if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return false
+    if (!this.hasAnim(animName)) return
     var animation = this.playerMesh.animations[animName]
     animation.stop(0)
     animation.weight = 0
   },
 
   setIgnore: function(animName, ignore) {
-    if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return
+    if (!this.hasAnim(animName)) return
     
     var animation = this.playerMesh.animations[animName]
     if (typeof ignore === 'object') {
@@ -130,7 +135,7 @@ RemotePlayer.prototype = {
   },
 
   fade: function(animName, start, end, duration) {
-    if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return
+    if (!this.hasAnim(animName)) return
 
     this.playerMesh.weightSchedule.push( {
       anim: this.playerMesh.animations[animName],
@@ -143,7 +148,7 @@ RemotePlayer.prototype = {
 
   // cross fades but prevAnimName is already playing
   playFadeIn: function(animName, prevAnimName, loop, ignore, duration) {
-    if (!animName || !this.playerMeshLoaded || !this.playerMesh.animations[animName]) return
+    if (!this.hasAnim(animName)) return
     var prevAnim = this.playerMesh.animations[prevAnimName]
     var nextAnim = this.playerMesh.animations[animName]
 
@@ -179,62 +184,12 @@ RemotePlayer.prototype = {
   update: function update (dt) {
     var o3d = this.o3d
     var e = this.entity
-    var actions = e.actions
-    o3d.position.set(e.position.x, e.position.y - .65, e.position.z)
 
-    var weapon = weapons[e.weapon.primary.id]
-    var shootAnimation = weapon.shootAnimation
+    o3d.position.set(e.position.x, e.position.y - .65, e.position.z)
 
     // Note we're adding offset of Math.PI to getRotationY since model is facing down positive z axis
     // but all the rotations are assuming facing negative z
     o3d.rotation.setFromQuaternion(e.getRotationY(Math.PI))
-
-    if (e.newShot) {
-      this.play(shootAnimation, false, {lower:true})
-      this.playingShootAnim = true
-    }
-
-    if (this.weaponMesh && this.currentWeapon !== e.weapon.primary.id) {
-      this.currentWeapon = e.weapon.primary.id
-      switchWeapons.call(this, this.currentWeapon)
-    }
-
-    var running = actions & action.RUNNING
-    var shooting = actions & action.SHOOTING
-    if (running && !this.isPlaying(runAnim)) {
-      this.playFadeIn(runAnim, idleAnim, true)
-    }
-    else if (!running && !this.isPlaying(idleAnim)) {
-      this.playFadeIn(idleAnim, runAnim, true)
-    }
-
-    // If was previously shooting and animation has just ended, then cross fade from the end frame of the shoot animation
-    // (which it should currently be on since it stays with end frame after animation is done) to idle / running animation.
-    // Note we need a flag playingShootAnim since when we set to last frame with timeScale of 0, isPlaying would still return true
-    if (this.playingShootAnim && !this.isPlaying(shootAnimation) /*!shooting*/) {
-      var animation = this.playerMesh.animations[shootAnimation]
-
-      this.playingShootAnim = false
-
-      // play last-ish frame
-      animation.play(animation.data.length - Number.EPSILON)
-      // make it never advance (at least until we play the animation again)
-      animation.timeScale = 0
-
-      // now cross fade
-      this.fadeOut(shootAnimation, animCrossDuration)
-      // Cross fade only if not already fading in.
-      if (running && !this.isCrossFading(runAnim)) {
-        this.fadeIn(runAnim, animCrossDuration)
-      }
-      else if (!running && !this.isCrossFading(idleAnim)) {
-        this.fadeIn(idleAnim, animCrossDuration)
-      }
-    }
-
-    // Only ignore upper animations if shooting
-    this.setIgnore(runAnim, {upper: this.playingShootAnim || shooting})
-    this.setIgnore(idleAnim, {upper: this.playingShootAnim || shooting})
 
     // blink if invincible
     var blinkInterval = .5
@@ -245,10 +200,82 @@ RemotePlayer.prototype = {
       this.material.opacity = 1
     }
 
-    // !NOTE! Do this last since some of our animation smoothing crossfades works better with it.
-    if (this.playerMeshLoaded) {
-      this.playerMesh.update(dt)
+    this.updateAnimation(dt)
+  },
+
+  updateAnimation: function updateAnimation(dt) {
+    if (!this.playerMeshLoaded) return
+
+    var e = this.entity
+    var actions = e.actions
+    var running = actions & action.RUNNING
+    var shooting = actions & action.SHOOTING
+    var reloading = actions & action.RELOADING
+    var weapon = weapons[e.weapon.primary.id]
+    var shootAnimName = weapon.shootAnimation
+    var reloadAnimName = weapon.reloadAnimation
+    var shootAnim = this.playerMesh.animations[shootAnimName]
+    var reloadAnim = this.playerMesh.animations[reloadAnimName]
+    // a single clip weapon would have the reload animation as part of the shot.
+    var singleClipWeapon = weapon.clip === 1
+
+    // the * 1.1 is a cheap hack to extend the animation for now until i can sync the actions better.
+
+    // if (e.newShot) {
+    if (shooting && !reloading && (!shootAnim.isPlaying || shootAnim.timeScale <= 0)) {
+      this.play(shootAnimName, false, {lower:true}, singleClipWeapon ? weapon.reloadTime * 1.1: 0)
+      this.playingUpperAnim = true
+      this.lastUpperAction = action.SHOOTING
     }
+    else if (reloading && reloadAnim && (!reloadAnim.isPlaying || reloadAnim.timeScale <= 0)) {
+      this.play(reloadAnimName, false, {lower: true}, weapon.reloadTime * 1.1)
+      this.playingUpperAnim = true
+      this.lastUpperAction = action.RELOADING
+    }
+
+    if (this.weaponMesh && this.currentWeapon !== e.weapon.primary.id) {
+      this.currentWeapon = e.weapon.primary.id
+      switchWeapons.call(this, this.currentWeapon)
+    }
+
+    if (running && !this.isPlaying(runAnimName)) {
+      this.playFadeIn(runAnimName, idleAnimName, true)
+    }
+    else if (!running && !this.isPlaying(idleAnimName)) {
+      this.playFadeIn(idleAnimName, runAnimName, true)
+    }
+
+    // If was previously shooting and animation has just ended, then cross fade from the end frame of the shoot animation
+    // (which it should currently be on since it stays with end frame after animation is done) to idle / running animation.
+    // Note we need a flag playingUpperAnim since when we set to last frame with timeScale of 0, isPlaying would still return true
+    if (this.playingUpperAnim && !this.isPlaying(shootAnimName) && !this.isPlaying(reloadAnimName) /*!shooting*/) {
+      this.playingUpperAnim = false
+
+      // play last-ish frame
+      var lastWasReloading = this.lastUpperAction === action.RELOADING && reloadAnim
+      var animation = lastWasReloading ? reloadAnim : shootAnim
+      animation.play(animation.data.length - Number.EPSILON)
+      // make it never advance (at least until we play the animation again)
+      animation.timeScale = 0
+
+      // now cross fade
+      this.fadeOut(lastWasReloading ? reloadAnimName : shootAnimName, animCrossDuration)
+
+      // Cross fade only if not already fading in.
+      if (running && !this.isCrossFading(runAnimName)) {
+        this.fadeIn(runAnimName, animCrossDuration)
+      }
+      else if (!running && !this.isCrossFading(idleAnimName)) {
+        this.fadeIn(idleAnimName, animCrossDuration)
+      }
+    }
+
+    // Only ignore upper animations if shooting
+    this.setIgnore(runAnimName, {upper: this.playingUpperAnim || shooting || reloading})
+    this.setIgnore(idleAnimName, {upper: this.playingUpperAnim || shooting || reloading})
+
+    // !NOTE! Do this last since some of our animation smoothing crossfades works better with it.
+    this.playerMesh.update(dt)
   }
 }
 
