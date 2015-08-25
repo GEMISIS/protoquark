@@ -534,7 +534,7 @@ function onIntervalSend() {
 }
 
 function addStartingWeapon(ent) {
-  switchToWeapon(ent, "sniper")
+  switchToWeapon(ent, "pistol")
 }
 
 function switchToWeapon(ent, weaponId) {
@@ -544,7 +544,7 @@ function switchToWeapon(ent, weaponId) {
   weapon.active = "primary"
   weapon.primary = {
     id: weaponId,
-    shotTimer: weaponStats.readyTime,
+    shotTimer: 1.5,
     reloadTimer: 0,
     ammunition: weaponStats.ammunition,
     clip: weaponStats.clip,
