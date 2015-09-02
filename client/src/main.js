@@ -85,7 +85,7 @@ var ons = {
 function onRoom (name) {
   function leavingRoom(e) {
     var xmlHttp = new XMLHttpRequest()
-    xmlHttp.open("POST", "http://localhost:1337/quit/" + name, false)
+    xmlHttp.open("POST", "http://" + window.location.host + "/quit/" + name, false)
     xmlHttp.setRequestHeader("content-type","application/x-www-form-urlencoded");
     xmlHttp.send(null)
   }
