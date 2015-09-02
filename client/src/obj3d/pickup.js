@@ -1,4 +1,4 @@
-var loadmodel = require('../stage/loadmodel')
+var loadOBJ = require('../stage/modelloader').loadOBJ
 var colorChildren = require('../stage/colorchildren')
 
 function Pickup(entity) {
@@ -6,7 +6,7 @@ function Pickup(entity) {
   this.o3d = new THREE.Object3D()
 
   if (entity.model) {
-    loadmodel(entity.model, function(mesh) {
+    loadOBJ(entity.model, function(mesh) {
       this.o3d.add(mesh)
       colorChildren(mesh.children, typeof entity.color === 'undefined' ? 0xFF5555 : entity.color)
     }.bind(this))

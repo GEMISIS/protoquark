@@ -32,8 +32,10 @@ var pickup = {
       // only send commands about ourself
       if (hit && other.type === "player") {
           this.addStateCommand({command: ent.type, target: other.id, amount: ent.amount })
+
           ent.respawning = true
-          this.addItemState(ent, "respawnTime", this.conn.getServerTime() + 8 + Math.random() * 5)
+          ent.respawnTime = this.conn.getServerTime() + 8 + Math.random() * 5
+          this.addItemState(ent, "respawnTime", ent.respawnTime)
           // ent.markedForDeletion = true
           break
       }

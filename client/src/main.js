@@ -59,8 +59,8 @@ var ons = {
         this.matchInfo.close()
         engine.resetPosition()
         engine.gameOver = false
+        return e.preventDefault()
       }
-      return e.preventDefault()
     }
     if (this.chat.hasfocus && !isenter) return
     if (isenter) return this.chat.toggle()
@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
     mel.requestPointerLock()
   })
   window.document.addEventListener("pointerlockerror", function (e) {
-    alert(e.message)
+    console.error("pointer lock error", e.message)
   })
   window.document.addEventListener("pointerlockchange", function (e){
     controller.canLook = window.document.pointerLockElement == mel

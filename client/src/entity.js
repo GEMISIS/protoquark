@@ -13,7 +13,7 @@ function Entity(context, id) {
   this.position = new Vector3(0, 2, 0)
   this.rotation = new Quaternion()
   this.euler = new Vector3()
-
+  this.actions = 0
   this.id = id
 
   // ordered array of snapshots based on time with most recent snapshot at end of list.
@@ -23,11 +23,18 @@ function Entity(context, id) {
 Entity.prototype = {
   interpolate: function interpolate(time, delay) {
     var snapshot = this.getSnapshot(time - delay)
-    if (!snapshot || !snapshot.position) return
+    if (!snapshot || !snapshot.position) {
+      console.log("Unable to find snapshot to lerp")
+      return
+    }
 
     this.position = new Vector3(snapshot.position.x, snapshot.position.y, snapshot.position.z)
     this.rotation = new Quaternion(snapshot.rotation.x, snapshot.rotation.y, snapshot.rotation.z, snapshot.rotation.w)
     this.control = snapshot.control
+    this.euler.x = snapshot.euler.x
+    this.euler.y = snapshot.euler.y
+    this.actions = snapshot.actions
+    this.timeSinceLastMove = 0
   },
 
   getSnapshot: function getSnapshot(time) {
@@ -51,6 +58,7 @@ Entity.prototype = {
           , after = snapshots[i + 1]
           , t = (time - before.time) / (after.time - before.time)
           , rotation = new Quaternion()
+          , euler = {x: 0, y: 0}
 
         var beforePosition = new Vector3(before.position.x, before.position.y, before.position.z)
         var afterPosition = new Vector3(after.position.x, after.position.y, after.position.z)
@@ -62,6 +70,10 @@ Entity.prototype = {
           after.rotation.z, after.rotation.w)
         rotation = Quaternion.slerp(beforeRotation, afterRotation, rotation, t)
 
+        euler.x = before.euler.x + (after.euler.x - before.euler.x) * t
+        euler.y = before.euler.y + (after.euler.y - before.euler.y) * t
+
+        var actions = before.actions | after.actions
         // Combine keys that were pressed
         var combinedControls = {}
         var controls = [before.control, after.control]
@@ -74,13 +86,13 @@ Entity.prototype = {
           }
         }
 
-        return createSnapshot(time, position, rotation, combinedControls)
+        return createSnapshot(time, position, rotation, combinedControls, euler, actions)
       }
     }
   },
 
   addSnapshot: function addSnapshot(time, control) {
-    var snapshot = createSnapshot(time, this.position, this.rotation, control)
+    var snapshot = createSnapshot(time, this.position, this.rotation, control, this.euler, this.actions)
     this.snapshots.push(snapshot)
   },
 
@@ -124,12 +136,16 @@ Entity.prototype = {
     return this.getOffsetRotation(0, 0)
   },
 
+  getRotationY: function(offEulerY) {
+    return new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -this.euler.y + offEulerY)
+  },
+
   getForward: function() {
     return new Vector3(0, 0, -1.0).applyQuaternion(this.getRotation()).normalize()
   }
 }
 
-function createSnapshot(time, position, rotation, control) {
+function createSnapshot(time, position, rotation, control, euler, actions) {
   return {
     time: time,
     // peerjs throws type error function (x, y, z) if using threejs obj created with Vector3
@@ -144,7 +160,12 @@ function createSnapshot(time, position, rotation, control) {
       z: rotation.z,
       w: rotation.w
     },
-    control: control
+    control: control,
+    euler: {
+      x: euler ? euler.x : 0,
+      y: euler ? euler.y : 0,
+    },
+    actions: actions
   }
 }
 

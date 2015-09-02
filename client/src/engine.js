@@ -23,6 +23,7 @@ var matchTime = 120000
 function handleDirection(control, down) {
   var me = this.you()
   if (!me) return
+
   me.lastControl[control] = me.control[control]
   me.control[control] = down
 }
@@ -45,6 +46,7 @@ control: {
     me.euler.x += state.y
 
     me.updateRotation()
+    me.timeSinceLastMove = 0
   }
 },
 // packet events
@@ -178,6 +180,7 @@ conn: {
     if (me) me.position.set(pos.x, pos.y, pos.z)
   },
   gamestate: function onGameState(e) {
+    // Each client will receive gamestate message several times per frame - less than snapshot rate
     // These game states can include info on ourself in addition to other players
     var entityMap = this.entityMap
     var states = e.context.states
@@ -190,7 +193,6 @@ conn: {
         player.score = state.currentScore
         if (state.currentWeapon != player.weapon.primary.id) {
           switchToWeapon(player, state.currentWeapon)
-          console.log("Switching weapons")
         }
         this.scores[state.id] = {name: state.id, score: player.score}
       }
@@ -324,8 +326,9 @@ function Engine (connection, controller) {
     "backward",
     "forward",
     "shoot",
-    "jump",
-    "zoom"
+    "reload",
+    "zoom",
+    "look"
   ]
 
   controls.forEach(function(c) {
@@ -364,6 +367,9 @@ Engine.prototype = {
   update: function update(dt) {
     var conn = this.conn
     var entities = this.entities
+    var me = this.you()
+
+    if (me) me.timeSinceLastMove += dt
 
     for (var i = 0; i < entities.length; i++) {
       var ent = entities[i]
@@ -534,11 +540,14 @@ function addStartingWeapon(ent) {
 function switchToWeapon(ent, weaponId) {
   if (!weapons[weaponId]) return
   var weapon = ent.weapon = ent.weapon || {}
+  var weaponStats = weapons[weaponId]
   weapon.active = "primary"
   weapon.primary = {
     id: weaponId,
-    shotTimer: 0,
-    ammunition: weapons[weaponId].ammunition
+    shotTimer: 1.5,
+    reloadTimer: 0,
+    ammunition: weaponStats.ammunition,
+    clip: weaponStats.clip,
   }
 }
 

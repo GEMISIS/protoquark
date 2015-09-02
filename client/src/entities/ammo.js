@@ -7,7 +7,7 @@ var collision  = require("../collision")
 var ammo = {
   create: function create(id, pos, amount) {
     var ent = pickup.create(id, "ammo", pos, amount)
-    ent.model = '/ammo.obj'
+    ent.model = '/models/ammo.obj'
     ent.color = 0x5555FF
     return ent
   }

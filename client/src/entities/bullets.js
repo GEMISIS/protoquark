@@ -3,6 +3,10 @@ var Vector3   = require("../math").vec3
 var collision = require("../collision")
 var gib       = require("./gib")
 
+var from = new Vector3()
+var delta = new Vector3()
+var to = new Vector3()
+
 var bullet = {
   gibsPerBullet: 4,
 
@@ -33,9 +37,9 @@ var bullet = {
   },
 
   normal: function updateNormal (dt, ent) {
-    var from = ent.position.clone()
-    var delta = new Vector3().copy(ent.velocity).multiplyScalar(dt * ent.speed)
-    var to = ent.position.clone().add(delta)
+    from.copy(ent.position)
+    delta.copy(ent.velocity).multiplyScalar(dt * ent.speed)
+    to.copy(ent.position).add(delta)
     var hitPoint
 
     var hit = collision.getSweptCollision(from, delta, this.colliders, ent.shape, true)
