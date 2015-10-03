@@ -31,8 +31,11 @@ var getSweptCollision = (function() {
     newVel.copy(vel).divide(sphereShape)
 
     for (var i = 0; i < maxIterations; i++) {
-      endPos.addVectors(newPos, newVel)
+      // dampen each iteration
+      if (newVel.lengthSq() < Number.EPSILON) break
+      else if (i !== 0) newVel.multiplyScalar(1 - Number.EPSILON)
 
+      endPos.addVectors(newPos, newVel)
       var info = getCollision(newPos, newVel, tris, sphereShape)
 
       if (!isFinite(info.t)) {
@@ -43,7 +46,7 @@ var getSweptCollision = (function() {
       collision = true
       touchPoint.copy(info.collisionPoint)
       // adding this check seems to fix some of the glitches
-      if (info.t > epsilon)
+      if (newVel.lengthSq() > Number.EPSILON && info.t * newVel.length() > epsilon)
         touchSpherePoint.addVectors(newPos, temp.copy(newVel).multiplyScalar(info.t))
       else
         touchSpherePoint.copy(newPos)
@@ -60,7 +63,7 @@ var getSweptCollision = (function() {
       // Projected end point
       var endTouchPoint = new Vector3().addVectors(endPos, new Vector3().copy(slidePlane.normal).multiplyScalar(-slidePlane.distanceToPoint(endPos)))
 
-      // Can modify
+      // Move slightly above touch point
       newPos.copy(touchSpherePoint).add(slideNormal.multiplyScalar(epsilon))
       newVel.subVectors(endTouchPoint, touchPoint)
     }
