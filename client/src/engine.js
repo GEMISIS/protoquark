@@ -281,7 +281,8 @@ settings: {
   update: function onSettingsUpdate (settings, key, value) {
     if (key == 'mapUrl') {
       loadLevel.call(this, this.settings.mapUrl, (function (err, level) {
-        parseLevel.call(this, level)
+        if (err) return console.log('level load error', err)
+        else parseLevel.call(this, level)
       }).bind(this))
     }
 
@@ -415,6 +416,15 @@ Engine.prototype = {
 
   addTriangleCollider: function addTriangleCollider(tri) {
     this.colliders.push(tri)
+  },
+
+  addTrianglesFromGeometry: function addTrianglesFromGeometry(geometry) {
+    var vertices = geometry.vertices
+    for (var i = 0; i < geometry.faces.length; i++) {
+      var face = geometry.faces[i]
+      var tri = new Triangle(vertices[face.a], vertices[face.b], vertices[face.c])
+      this.addTriangleCollider(tri)
+    }
   },
 
   addBoxCollider: function addBoxCollider(ent) {

@@ -1,7 +1,8 @@
 // async obj and json model loader
 // caches model if already loaded
-var meshesOBJ = []
-var geometryJSON = []
+var meshesOBJ = {}
+var geometryJSON = {}
+var materialsJSON = {}
 
 function loadOBJ(modelfile, materialfile, onsuccess) {
   if (!modelfile) return
@@ -25,19 +26,29 @@ function loadOBJ(modelfile, materialfile, onsuccess) {
 }
 
 /**
+  * Load three.js json model with options.
   * onsuccess will get passed in the created geometry and supplied material
+  * param {object} opts - options object
+  * param {string} opts.modelfile - required
+  * param {string} opts.texturepath - optional, if set opts.material is ignored. Only one of opts.material or opts.texturepath may be set
+  * param {THREE.material} opts.material - optional, material that will override any defined in the json file.
   */
-function loadJSON(modelfile, material, onsuccess) {
+function loadJSON(opts, onsuccess) {
+  var modelfile = opts.modelfile
+  var texturepath = opts.texturepath
+
   if (geometryJSON[modelfile]) {
-    return onsuccess(geometryJSON[modelfile], material)
+    return onsuccess(geometryJSON[modelfile], opts.material ? opts.material : materialsJSON[modelfile])
   }
 
   var loader = new THREE.JSONLoader()
   loader.load(modelfile, function(geometry, materials) {
     geometryJSON[modelfile] = geometry
-    // Note we override whatever materials was set
-    if (onsuccess) onsuccess(geometry, material)
-  })
+    var material = new THREE.MeshFaceMaterial(materials)
+    materialsJSON[modelfile] = material
+
+    if (onsuccess) onsuccess(geometry, opts.material ? opts.material : material)
+  }, texturepath)
 }
 
 module.exports = {

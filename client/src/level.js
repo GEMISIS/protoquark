@@ -4,6 +4,7 @@ var weapon     = require("./entities/weapon")
 var Entity     = require("./entity")
 var Triangle   = require("./math").triangle
 var Vector3    = require("./math").vec3
+var loadJSON   = require("./stage/modelloader").loadJSON
 
 module.exports = {
   loadLevel: loadLevel,
@@ -83,9 +84,22 @@ function parseLevel(level) {
     // ... //
   }
 
+  // unfortunately, the level's model also contains collision plane so we'll have to load it here.
+  // !TEMP! for debugging.
+  var opts = {
+    modelfile: '/models/temp_world.json',
+    texturepath: '/textures/world'
+  }
+  // loadJSON(opts, function (geometry) {
+  //   console.log("adding collision")
+  //   this.addTrianglesFromGeometry(geometry)
+  // }.bind(this))
+
   if (level.collisionVertices) {
     var collisionVerts = level.collisionVertices
       , id = this.genLocalId()
+
+    // Manually create an entity of type level with vertices.
     var ent = new Entity({id: id, vertices: collisionVerts}, id)
     ent.type = "level"
     this.add(ent)

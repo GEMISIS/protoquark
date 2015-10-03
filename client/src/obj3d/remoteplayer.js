@@ -51,7 +51,11 @@ function onPlayerMeshLoaded() {
 
   var texture = loadTexture('/textures/pistol.png')
   var weaponMaterial = weaponMaterial = new THREE.MeshLambertMaterial({ map: texture, shading: THREE.FlatShading })
-  loadJSON('/models/pistol.json', weaponMaterial, onWeaponMeshLoaded.bind(this))
+  var opts = {
+    modelfile: '/models/pistol.json',
+    material: weaponMaterial
+  }
+  loadJSON(opts, onWeaponMeshLoaded.bind(this))
 }
 
 function onWeaponMeshLoaded(geometry, material) {
@@ -74,10 +78,14 @@ function findHandBone(bones) {
 
 function switchWeapons(weaponName) {
   if (!this.weaponMesh || !weapons[weaponName]) return
-  
+
   var weapon = weapons[weaponName]
 
-  loadJSON(weapon.model || '/models/assault.json', this.weaponMesh.material, function(geometry, material) {
+  var opts = {
+    modelfile: weapon.model || '/models/assault.json',
+    material: this.weaponMesh.material
+  }
+  loadJSON(opts, function(geometry, material) {
     this.weaponMesh.geometry = geometry
   }.bind(this))
 }

@@ -148,6 +148,11 @@ Stage.prototype = {
       i--
     }
 
+    Object.keys(representations).forEach(function(r) {
+      if (typeof representations[r].update === 'function')
+        representations[r].update(dt)
+    })
+
     THREE.AnimationHandler.update(dt)
     this.renderer.render(this.scene, this.camera)
   }

@@ -1,3 +1,6 @@
+var loadJSON    = require('../stage/modelloader').loadJSON
+var loadTexture = require('../stage/textureloader').loadTexture
+
 var geometry
 function getGeometry(entity) {
   if (!geometry) {
@@ -43,6 +46,18 @@ function Level(entity) {
   this.o3d.updateMatrix()
 
   Level.defaultMesh = mesh
+
+
+  // var texture = loadTexture('/textures/test_world.png')
+  // var tempMat = new THREE.MeshLambertMaterial({ map: texture, shading: THREE.FlatShading })
+  var opts = {
+    modelfile: '/models/temp_world.json',
+    texturepath: '/textures/world'
+  }
+  // loadJSON(opts, function (geometry, material) {
+  //   var mesh = new THREE.Mesh(geometry, material)
+  //   this.o3d.add(mesh)
+  // }.bind(this))
 }
 
 module.exports = Level
