@@ -1,3 +1,5 @@
+var nextTick = require('qualiancy/breeze-nexttick')
+
 // async obj and json model loader
 // caches model if already loaded
 var meshesOBJ = {}
@@ -10,7 +12,9 @@ function loadOBJ(modelfile, materialfile, onsuccess) {
   materialfile = typeof materialfile === 'function' ? null : materialfile
 
   if (meshesOBJ[modelfile]) {
-    return onsuccess(meshesOBJ[modelfile])
+    return nextTick(function() {
+      onsuccess(meshesOBJ[modelfile])
+    })
   }
 
   var loader = materialfile ? new THREE.OBJMTLLoader() : new THREE.OBJLoader()
